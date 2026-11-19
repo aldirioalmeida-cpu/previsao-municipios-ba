@@ -94,7 +94,8 @@ def main():
                 "c": d["weather_code"],
                 "min": arred(d["temperature_2m_min"]),
                 "max": arred(d["temperature_2m_max"]),
-                "mm": arred(d["precipitation_sum"], 1),
+                # o ECMWF às vezes gera -0,1 mm (ruído da desacumulação da chuva): vira 0
+                "mm": [None if v is None else max(0.0, v) for v in arred(d["precipitation_sum"], 1)],
                 "n": arred(d["cloud_cover_mean"]),
                 "urmin": arred(d["relative_humidity_2m_min"]),
                 "urmax": arred(d["relative_humidity_2m_max"]),
