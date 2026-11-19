@@ -57,7 +57,7 @@
 
     function msg(t, erro) { $("ip-msg").innerHTML = t; $("ip-msg").className = "ip-msg" + (erro ? " ip-erro" : ""); }
 
-    fetch(URL_JSON)
+    fetch(URL_JSON, { cache: "no-cache" })   /* sempre confere se há versão nova (o jsDelivr manda o navegador guardar por 7 dias) */
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (j) {
         dados = j;
