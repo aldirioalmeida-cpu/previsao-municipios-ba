@@ -180,7 +180,7 @@
           '<div class="ip-temp"><div class="ip-tmin"><small>mín</small><b>' + num(m.min[i]) + '°</b></div>' +
           '<div class="ip-tmax"><small>máx</small><b>' + num(m.max[i]) + '°</b></div></div>' +
           '<div class="ip-det">' +
-            linha("chuva", "Chuva", num(m.mm[i], 1) + " mm") +
+            linha("chuva", "Chuva", num(m.mm[i] == null ? null : Math.max(0, m.mm[i]), 1) + " mm") +
             (m.urmin ? linha("umid", "Umidade", num(m.urmin[i]) + "–" + num(m.urmax[i]) + "%") : "") +
             (m.v ? linha("vento", "Vento", num(m.v[i]) + " km/h" + direcao(m.dir[i])) : "") +
             (m.raj ? linha("rajada", "Rajada", num(m.raj[i]) + " km/h") : "") +
