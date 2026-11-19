@@ -1,7 +1,10 @@
 # Previsão do tempo por município — Bahia
 
-Gera duas vezes por dia o arquivo `previsao.json` com a previsão de 10 dias do modelo
-**ECMWF IFS 0,25°** (via [Open-Meteo](https://open-meteo.com/)) para os 417 municípios da Bahia.
+Gera duas vezes por dia o arquivo `previsao.json` com a previsão de 5 dias do modelo
+**ECMWF IFS 0,25°** (via [Open-Meteo](https://open-meteo.com/)) para os 417 municípios da Bahia:
+tempo (nuvens + chuva), temperatura mín./máx., chuva (mm), umidade relativa mín./máx.,
+vento médio, rajada máxima, direção predominante, nascer e pôr do sol. O índice UV vem do
+"melhor modelo" do Open-Meteo, porque o ECMWF não fornece UV.
 A página do INEMA lê esse arquivo pelo jsDelivr (`cdn.jsdelivr.net`, domínio já liberado no ba.gov.br).
 
 ## Arquivos
