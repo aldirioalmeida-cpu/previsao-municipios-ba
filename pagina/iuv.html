@@ -30,7 +30,18 @@
     #inema-iuv td.iu-rot{color:#5b6b78;font-weight:600;text-align:left;padding:0}
     #inema-iuv .iu-nota{font-size:13px;color:#33424e;background:#f3f6f8;border-radius:8px;padding:10px 14px;margin-top:16px;line-height:1.45}
     #inema-iuv .iu-fonte{font-size:12px;color:#5b6b78;margin-top:10px}
+    #inema-iuv .iu-topo{display:flex;justify-content:flex-end;margin-bottom:6px}
+    #inema-iuv .iu-pdf{background:#fff;color:#00566e;border:1px solid #00566e;font-size:14px;padding:7px 14px;display:inline-flex;align-items:center;gap:6px}
+    #inema-iuv .iu-pdf:hover{background:#e8f2f5}
+    #inema-iuv .iu-pdf svg{width:16px;height:16px}
   </style>
+
+  <div class="iu-topo">
+    <button type="button" class="iu-pdf" id="iu-pdf" disabled title="Gera um PDF com o resumo e os cards (use &quot;Salvar como PDF&quot; na janela de impressão)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+      Exportar PDF
+    </button>
+  </div>
 
   <div class="iu-resumo" id="iu-resumo">Carregando previsão do IUV…</div>
 
@@ -53,7 +64,7 @@
   <div class="iu-grade" id="iu-grade"></div>
 
   <div class="iu-nota">
-    <b>Céu claro</b> é o IUV sem nuvens: o valor máximo possível no dia, usado como referência para proteção (padrão do INEMA e da OMS).
+    <b>Céu claro</b> é o IUV sem nuvens: o valor máximo possível no dia, usado como referência para proteção (padrão da OMS).
     <b>Com nuvens</b> considera a nebulosidade prevista e costuma ser menor, mas depende de acertar a previsão de nuvens; mesmo em dias nublados a radiação pode ser intensa.
     Valores referentes ao meio-dia solar (máximo do dia).
   </div>
@@ -112,7 +123,7 @@
         var nomes = Object.keys(j.municipios).sort(function (a, b) { return a.localeCompare(b, "pt"); });
         nomes.forEach(function (n) { indice[norm(n)] = n; });
         $("iu-lista").innerHTML = nomes.map(function (n) { return '<option value="' + n + '">'; }).join("");
-        $("iu-btn").disabled = false; $("iu-btn").textContent = "Ver IUV";
+        $("iu-btn").disabled = false; $("iu-btn").textContent = "Ver IUV"; $("iu-pdf").disabled = false;
 
         var dest = DESTAQUES.filter(function (n) { return j.municipios[n]; });
         $("iu-grade").innerHTML = dest.map(function (n) { return card(n, false); }).join("");
@@ -143,6 +154,42 @@
     }
     $("iu-btn").addEventListener("click", buscar);
     $("iu-mun").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); buscar(); } });
+
+    /* ---------- Exportar PDF: abre só o conteúdo do IUV numa janela própria e chama a impressão ---------- */
+    function exportarPDF() {
+      if (!dados) return;
+      var raiz = document.getElementById("inema-iuv");
+      var css = raiz.querySelector("style").textContent;
+      var sel = $("iu-sel").innerHTML;
+      var g = new Date(dados.gerado_em).toLocaleString("pt-BR", { timeZone: "America/Bahia", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      var html = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Previsão do IUV – Bahia – ' + dm(dados.datas[ini]) + ' a ' + dm(dados.datas[dados.datas.length - 1]) + '</title>' +
+        '<style>' + css +
+        '@page{size:A4;margin:12mm}' +
+        'body{font-family:Arial,Helvetica,sans-serif;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '#inema-iuv{max-width:none}' +
+        '#inema-iuv .iu-grade{grid-template-columns:repeat(3,1fr);gap:8px}' +
+        '#inema-iuv .iu-card{break-inside:avoid;page-break-inside:avoid;box-shadow:none;padding:9px 10px}' +
+        '#inema-iuv .iu-card.iu-sel{max-width:none;margin-bottom:6px}' +
+        '#inema-iuv .iu-bola{width:46px;height:46px;font-size:21px}' +
+        '.iu-cab{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #00566e;padding-bottom:6px;margin-bottom:10px}' +
+        '.iu-cab h1{font-size:18px;margin:0;color:#00566e}.iu-cab div{font-size:11px;color:#5b6b78;text-align:right}' +
+        '</style></head><body><div id="inema-iuv">' +
+        '<div class="iu-cab"><h1>Previsão do Índice Ultravioleta (IUV) – Bahia</h1>' +
+          '<div>INEMA – Instituto do Meio Ambiente e Recursos Hídricos<br>Previsão atualizada em ' + g + '</div></div>' +
+        '<div class="iu-resumo">' + $("iu-resumo").innerHTML + '</div>' +
+        raiz.querySelector(".iu-leg").outerHTML +
+        (sel ? '<h3>Município consultado</h3>' + sel : '') +
+        '<h3>Cidades representativas</h3><div class="iu-grade">' + $("iu-grade").innerHTML + '</div>' +
+        '<div class="iu-nota">' + raiz.querySelector(".iu-nota").innerHTML + '</div>' +
+        '<div class="iu-fonte">' + $("iu-fonte").innerHTML + '</div>' +
+        '</div></body></html>';
+      var w = window.open("", "_blank");
+      if (!w) { alert("Permita janelas pop-up para exportar o PDF."); return; }
+      w.document.open(); w.document.write(html); w.document.close();
+      w.focus();
+      setTimeout(function () { w.print(); }, 400);
+    }
+    $("iu-pdf").addEventListener("click", exportarPDF);
   })();
   </script>
 </div>
