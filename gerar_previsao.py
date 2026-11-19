@@ -22,7 +22,7 @@ MODELO = "ecmwf_ifs025"
 DIAS = 10                 # o ECMWF IFS vai até 15 dias, mas o último dia costuma vir incompleto
 LOTE = 100                # municípios por requisição
 VARIAVEIS = ["weather_code", "temperature_2m_max", "temperature_2m_min",
-             "precipitation_sum", "precipitation_probability_max"]
+             "precipitation_sum", "precipitation_probability_max", "cloud_cover_mean"]
 URL = "https://api.open-meteo.com/v1/forecast"
 FUSO_BAHIA = timezone(timedelta(hours=-3))
 
@@ -79,6 +79,7 @@ def main():
                 "min": arred(d["temperature_2m_min"]),
                 "mm": arred(d["precipitation_sum"], 1),
                 "p": d["precipitation_probability_max"],
+                "n": arred(d["cloud_cover_mean"]),   # cobertura média de nuvens (%)
             }
         time.sleep(1)
 
