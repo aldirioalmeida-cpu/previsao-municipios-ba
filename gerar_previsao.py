@@ -87,10 +87,11 @@ def main():
             uv = baixar(lote, ["uv_index_max"])
         except RuntimeError:
             uv, uv_ok = None, False   # sem UV não impede a publicação
-        for k, ((nome, _, _), resp) in enumerate(zip(lote, respostas)):
+        for k, ((nome, lat, lon), resp) in enumerate(zip(lote, respostas)):
             d = resp["daily"]
             datas = datas or d["time"]
             saida[nome] = {
+                "ll": [lat, lon],   # sede do município (usada para achar o mais próximo do visitante)
                 "c": d["weather_code"],
                 "min": arred(d["temperature_2m_min"]),
                 "max": arred(d["temperature_2m_max"]),
