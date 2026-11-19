@@ -23,7 +23,7 @@ ARQ_MUN = os.path.join(PASTA, "dados", "municipios_ba.csv")
 ARQ_SAIDA = os.path.join(PASTA, "previsao.json")
 
 MODELO = "ecmwf_ifs025"
-DIAS = 5
+DIAS = 7                  # o site mostra 5; a planilha de temperaturas da COCEP usa os 7
 LOTE = 100                # municípios por requisição
 VARIAVEIS = ["weather_code", "temperature_2m_min", "temperature_2m_max", "precipitation_sum",
              "cloud_cover_mean", "relative_humidity_2m_min", "relative_humidity_2m_max",
