@@ -2,10 +2,15 @@ name: Atualizar previsão
 
 on:
   schedule:
-    # Horários em UTC. 09:30 UTC = 06:30 na Bahia (rodada 00z do ECMWF)
-    #                  21:30 UTC = 18:30 na Bahia (rodada 12z do ECMWF)
-    - cron: "30 9 * * *"
-    - cron: "30 21 * * *"
+    # Horários em UTC (Bahia = UTC-3):
+    #   05:00 UTC = 02:00 na Bahia
+    #   11:00 UTC = 08:00 na Bahia
+    #   17:00 UTC = 14:00 na Bahia
+    #   23:00 UTC = 20:00 na Bahia
+    - cron: "0 5 * * *"
+    - cron: "0 11 * * *"
+    - cron: "0 17 * * *"
+    - cron: "0 23 * * *"
   workflow_dispatch: {}   # permite rodar manualmente pela aba Actions
 
 permissions:
