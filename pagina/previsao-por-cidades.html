@@ -29,17 +29,31 @@
   <script>
   (function () {
     /* ===== Configuração: endereço do previsao.json no GitHub via jsDelivr ===== */
-    var URL_JSON = "https://cdn.jsdelivr.net/gh/USUARIO/REPOSITORIO@main/previsao.json";
+    var URL_JSON = "https://cdn.jsdelivr.net/gh/aldirioalmeida-cpu/previsao-municipios-ba@main/previsao.json";
 
     var $ = function (id) { return document.getElementById(id); };
     var norm = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
     var dados = null, indice = {};
 
-    /* Códigos de tempo WMO (Open-Meteo) */
-    var TEMPO = {0:["☀️","Céu claro"],1:["🌤️","Poucas nuvens"],2:["⛅","Parcialmente nublado"],3:["☁️","Nublado"],
-      45:["🌫️","Nevoeiro"],48:["🌫️","Nevoeiro"],51:["🌦️","Chuvisco fraco"],53:["🌦️","Chuvisco"],55:["🌦️","Chuvisco forte"],
-      61:["🌧️","Chuva fraca"],63:["🌧️","Chuva moderada"],65:["🌧️","Chuva forte"],80:["🌦️","Pancadas fracas"],
-      81:["🌧️","Pancadas de chuva"],82:["⛈️","Pancadas fortes"],95:["⛈️","Trovoadas"],96:["⛈️","Trovoadas com granizo"],99:["⛈️","Trovoadas com granizo"]};
+    /* Texto do tempo = nuvens (cobertura média do dia, %) + chuva (código WMO) */
+    var CHUVA = {45:"com nevoeiro",48:"com nevoeiro",
+      51:"com chuva fraca",53:"com chuva fraca",55:"com chuva fraca",61:"com chuva fraca",
+      63:"com chuva moderada",65:"com chuva forte",
+      80:"com pancadas de chuva fracas",81:"com pancadas de chuva",82:"com pancadas de chuva fortes",
+      95:"com trovoadas",96:"com trovoadas",99:"com trovoadas"};
+    var NUVEM_POR_CODIGO = {0:10, 1:30, 2:55, 3:85};   /* usado só se faltar a cobertura de nuvens */
+
+    function condicao(codigo, nuvem) {
+      if (nuvem == null) nuvem = NUVEM_POR_CODIGO[codigo] != null ? NUVEM_POR_CODIGO[codigo] : 85;
+      var ceu = nuvem <= 20 ? "Céu claro" : nuvem <= 40 ? "Poucas nuvens" : nuvem <= 70 ? "Parcialmente nublado" : "Nublado";
+      var chuva = CHUVA[codigo] || "";
+      var icone;
+      if (codigo >= 95) icone = "⛈️";
+      else if (codigo === 45 || codigo === 48) icone = "🌫️";
+      else if (chuva) icone = nuvem > 70 ? "🌧️" : "🌦️";
+      else icone = nuvem <= 20 ? "☀️" : nuvem <= 40 ? "🌤️" : nuvem <= 70 ? "⛅" : "☁️";
+      return [icone, chuva ? ceu + " " + chuva : ceu];
+    }
 
     function msg(t, erro) { $("ip-msg").innerHTML = t; $("ip-msg").className = "ip-msg" + (erro ? " ip-erro" : ""); }
 
@@ -70,7 +84,7 @@
         if (dados.datas[i] < hoje || m.max[i] == null) continue;
         var data = new Date(dados.datas[i] + "T12:00:00");
         var rotulo = dados.datas[i] === hoje ? "Hoje" : data.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
-        var t = TEMPO[m.c[i]] || ["🌡️", ""];
+        var t = condicao(m.c[i], m.n ? m.n[i] : null);
         var prob = m.p && m.p[i] != null ? m.p[i] + "% · " : "";
         html += '<div class="ip-dia"><b>' + rotulo + '</b><div class="ip-ico" title="' + t[1] + '">' + t[0] + '</div>' +
           '<div>' + t[1] + '</div>' +
