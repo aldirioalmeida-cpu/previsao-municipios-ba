@@ -1,24 +1,43 @@
 <div id="inema-prev">
   <style>
-    #inema-prev{font-family:inherit;max-width:960px;margin:0 auto}
-    #inema-prev .ip-busca{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-    #inema-prev input{flex:1;min-width:220px;padding:10px 12px;font-size:16px;border:1px solid #9aa5b1;border-radius:6px}
-    #inema-prev button{padding:10px 18px;font-size:16px;border:0;border-radius:6px;background:#00566e;color:#fff;cursor:pointer}
+    #inema-prev{font-family:inherit;max-width:1000px;margin:0 auto;color:#1f2a33}
+    #inema-prev .ip-busca{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+    #inema-prev .ip-busca label{width:100%;font-weight:600}
+    #inema-prev input{flex:1;min-width:220px;padding:10px 12px;font-size:16px;border:1px solid #9aa5b1;border-radius:8px}
+    #inema-prev input:focus{outline:2px solid #00566e;outline-offset:1px}
+    #inema-prev button{padding:10px 20px;font-size:16px;border:0;border-radius:8px;background:#00566e;color:#fff;cursor:pointer}
     #inema-prev button:hover{background:#00404f}
     #inema-prev button:disabled{background:#9aa5b1;cursor:wait}
-    #inema-prev .ip-msg{margin:8px 0;color:#444}
+    #inema-prev .ip-msg{margin:4px 0 12px;font-size:15px}
+    #inema-prev .ip-msg strong{font-size:20px}
     #inema-prev .ip-erro{color:#b00020}
-    #inema-prev .ip-dias{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
-    #inema-prev .ip-dia{border:1px solid #d5dbe1;border-radius:8px;padding:10px;text-align:center;background:#fff}
-    #inema-prev .ip-dia b{display:block;text-transform:capitalize}
-    #inema-prev .ip-ico{font-size:32px;line-height:1.3}
-    #inema-prev .ip-max{color:#c0392b;font-weight:600}
-    #inema-prev .ip-min{color:#1f6fb2;font-weight:600}
-    #inema-prev .ip-chuva{font-size:13px;color:#333}
-    #inema-prev .ip-fonte{font-size:12px;color:#666;margin-top:12px}
+    #inema-prev .ip-dias{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:12px}
+    #inema-prev .ip-dia{background:#fff;border:1px solid #dde3e8;border-radius:14px;padding:14px 14px 12px;
+      box-shadow:0 1px 3px rgba(16,40,60,.08);display:flex;flex-direction:column}
+    #inema-prev .ip-dia.ip-hoje{border-color:#00566e;box-shadow:0 0 0 1px #00566e,0 2px 6px rgba(0,86,110,.15)}
+    #inema-prev .ip-cab{display:flex;justify-content:space-between;align-items:baseline}
+    #inema-prev .ip-sem{font-weight:700;font-size:16px;text-transform:capitalize}
+    #inema-prev .ip-data{font-size:13px;color:#5b6b78}
+    #inema-prev .ip-ico{display:flex;justify-content:center;margin:6px 0 2px}
+    #inema-prev .ip-ico svg{width:72px;height:72px}
+    #inema-prev .ip-cond{text-align:center;font-size:14px;line-height:1.3;min-height:2.6em;color:#33424e}
+    #inema-prev .ip-temp{display:flex;justify-content:center;gap:14px;margin:8px 0 10px}
+    #inema-prev .ip-temp div{text-align:center}
+    #inema-prev .ip-temp small{display:block;font-size:11px;color:#5b6b78;text-transform:uppercase;letter-spacing:.04em}
+    #inema-prev .ip-temp b{font-size:24px;font-weight:700}
+    #inema-prev .ip-tmin b{color:#1f6fb2}
+    #inema-prev .ip-tmax b{color:#c62828}
+    #inema-prev .ip-det{border-top:1px solid #e6ebef;padding-top:8px;display:grid;gap:6px;font-size:13px}
+    #inema-prev .ip-lin{display:flex;align-items:center;gap:7px}
+    #inema-prev .ip-lin svg{width:18px;height:18px;flex:none}
+    #inema-prev .ip-lin span{color:#5b6b78}
+    #inema-prev .ip-lin b{font-weight:600;margin-left:auto;text-align:right}
+    #inema-prev .ip-seta{display:inline-block;width:14px;height:14px;vertical-align:-2px}
+    #inema-prev .ip-uv{margin-top:10px;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;text-align:center;color:#fff}
+    #inema-prev .ip-fonte{font-size:12px;color:#5b6b78;margin-top:14px}
   </style>
   <form class="ip-busca" onsubmit="return false">
-    <label for="ip-mun" style="width:100%;font-weight:600">Digite o nome do município da Bahia:</label>
+    <label for="ip-mun">Digite o nome do município da Bahia:</label>
     <input id="ip-mun" list="ip-lista" placeholder="Ex.: Feira de Santana" autocomplete="off">
     <datalist id="ip-lista"></datalist>
     <button type="submit" id="ip-btn" disabled>Carregando…</button>
@@ -30,29 +49,94 @@
   (function () {
     /* ===== Configuração: endereço do previsao.json no GitHub via jsDelivr ===== */
     var URL_JSON = "https://cdn.jsdelivr.net/gh/aldirioalmeida-cpu/previsao-municipios-ba@main/previsao.json";
+    var DIAS = 5;
 
     var $ = function (id) { return document.getElementById(id); };
     var norm = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
+    var num = function (v, casas) { return v == null ? "–" : Number(v).toFixed(casas || 0).replace(".", ","); };
     var dados = null, indice = {};
 
-    /* Texto do tempo = nuvens (cobertura média do dia, %) + chuva (código WMO) */
+    /* ---------- Ícones (SVG desenhados, iguais em qualquer aparelho) ---------- */
+    function sol(cx, cy, r) {
+      var raios = "";
+      for (var a = 0; a < 360; a += 45) {
+        var t = a * Math.PI / 180, x1 = cx + Math.cos(t) * (r + 4), y1 = cy + Math.sin(t) * (r + 4),
+            x2 = cx + Math.cos(t) * (r + 9), y2 = cy + Math.sin(t) * (r + 9);
+        raios += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '"/>';
+      }
+      return '<g stroke="#f5a623" stroke-width="3" stroke-linecap="round">' + raios + '</g>' +
+             '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#ffc83d" stroke="#f5a623" stroke-width="2"/>';
+    }
+    function nuvem(dx, dy, cor, borda) {
+      return '<path transform="translate(' + dx + ' ' + dy + ')" d="M18 50h30a11 11 0 0 0 1.5-21.9A15 15 0 0 0 20.6 24 11 11 0 0 0 18 50z" fill="' + cor + '" stroke="' + borda + '" stroke-width="2" stroke-linejoin="round"/>';
+    }
+    function gotas(n) {   /* 1 = fraca, 2 = moderada, 3 = forte */
+      var xs = n === 1 ? [26, 38] : [21, 32, 43], larg = n === 3 ? 4 : 3.2;
+      var s = '<g stroke="#2b7bd6" stroke-width="' + larg + '" stroke-linecap="round">';
+      xs.forEach(function (x, k) { var y = 48 + (k % 2) * 3; s += '<line x1="' + x + '" y1="' + y + '" x2="' + (x - 4) + '" y2="' + (y + 10) + '"/>'; });
+      return s + '</g>';
+    }
+    var raio = '<path d="M33 44l-7 10h6l-3 9 9-12h-6l3-7z" fill="#ffc83d" stroke="#e09b00" stroke-width="1.5" stroke-linejoin="round"/>';
+    function icone(tipo, intensidade) {
+      var c;
+      switch (tipo) {
+        case "claro":   c = sol(32, 32, 12); break;
+        case "poucas":  c = sol(24, 24, 10) + nuvem(6, 6, "#ffffff", "#9fb2c1"); break;
+        case "parcial": c = sol(22, 22, 10) + nuvem(4, 4, "#e9eef2", "#8ea3b3"); break;
+        case "nublado": c = nuvem(-10, -4, "#cfd8df", "#8ea3b3") + nuvem(2, 4, "#b8c5cf", "#7d93a4"); break;
+        case "chuva_sol": c = sol(22, 18, 9) + nuvem(2, -6, "#e3e9ee", "#8ea3b3") + gotas(intensidade); break;
+        case "chuva":   c = nuvem(0, -6, "#b8c5cf", "#7d93a4") + gotas(intensidade); break;
+        case "trovoada": c = nuvem(0, -8, "#8fa1b0", "#5f7686") + raio; break;
+        case "nevoeiro": c = nuvem(0, -10, "#d6dee4", "#9fb2c1") +
+          '<g stroke="#9fb2c1" stroke-width="3" stroke-linecap="round"><line x1="14" y1="46" x2="50" y2="46"/><line x1="18" y1="53" x2="46" y2="53"/><line x1="22" y1="60" x2="42" y2="60"/></g>'; break;
+      }
+      return '<svg viewBox="0 0 64 64" aria-hidden="true">' + c + '</svg>';
+    }
+    var MINI = {
+      chuva: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" fill="#2b7bd6"/></svg>',
+      umid: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" fill="none" stroke="#2b7bd6" stroke-width="2"/><text x="12" y="17" font-size="8" font-weight="700" text-anchor="middle" fill="#2b7bd6">%</text></svg>',
+      vento: '<svg viewBox="0 0 24 24" fill="none" stroke="#5b7a8f" stroke-width="2" stroke-linecap="round"><path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 14h15a3 3 0 1 1-3 3"/><path d="M3 19h7"/></svg>',
+      rajada: '<svg viewBox="0 0 24 24" fill="none" stroke="#5b7a8f" stroke-width="2" stroke-linecap="round"><path d="M3 8h13a3 3 0 1 0-3-3"/><path d="M3 13h17"/><path d="M3 18h11a3 3 0 1 1-3 3"/></svg>',
+      nascer: '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M5 18a7 7 0 0 1 14 0" fill="#ffc83d" stroke="#f5a623" stroke-width="2"/><path d="M2 21h20" stroke="#5b7a8f" stroke-width="2"/><path d="M12 3v5M9 6l3-3 3 3" stroke="#f5a623" stroke-width="2"/></svg>',
+      por: '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M5 18a7 7 0 0 1 14 0" fill="#ffb27a" stroke="#e8743b" stroke-width="2"/><path d="M2 21h20" stroke="#5b7a8f" stroke-width="2"/><path d="M12 8V3M9 5l3 3 3-3" stroke="#e8743b" stroke-width="2"/></svg>'
+    };
+
+    /* ---------- Texto do tempo = nuvens (cobertura média, %) + chuva (código WMO) ---------- */
     var CHUVA = {45:"com nevoeiro",48:"com nevoeiro",
       51:"com chuva fraca",53:"com chuva fraca",55:"com chuva fraca",61:"com chuva fraca",
       63:"com chuva moderada",65:"com chuva forte",
       80:"com pancadas de chuva fracas",81:"com pancadas de chuva",82:"com pancadas de chuva fortes",
       95:"com trovoadas",96:"com trovoadas",99:"com trovoadas"};
-    var NUVEM_POR_CODIGO = {0:10, 1:30, 2:55, 3:85};   /* usado só se faltar a cobertura de nuvens */
+    var INTENS = {51:1,53:1,55:1,61:1,80:1,63:2,81:2,65:3,82:3};
+    var NUVEM_POR_CODIGO = {0:10, 1:30, 2:55, 3:85};
 
     function condicao(codigo, nuvem) {
       if (nuvem == null) nuvem = NUVEM_POR_CODIGO[codigo] != null ? NUVEM_POR_CODIGO[codigo] : 85;
       var ceu = nuvem <= 20 ? "Céu claro" : nuvem <= 40 ? "Poucas nuvens" : nuvem <= 70 ? "Parcialmente nublado" : "Nublado";
-      var chuva = CHUVA[codigo] || "";
-      var icone;
-      if (codigo >= 95) icone = "⛈️";
-      else if (codigo === 45 || codigo === 48) icone = "🌫️";
-      else if (chuva) icone = nuvem > 70 ? "🌧️" : "🌦️";
-      else icone = nuvem <= 20 ? "☀️" : nuvem <= 40 ? "🌤️" : nuvem <= 70 ? "⛅" : "☁️";
-      return [icone, chuva ? ceu + " " + chuva : ceu];
+      var chuva = CHUVA[codigo] || "", tipo;
+      if (codigo >= 95) tipo = "trovoada";
+      else if (codigo === 45 || codigo === 48) tipo = "nevoeiro";
+      else if (chuva) tipo = nuvem > 70 ? "chuva" : "chuva_sol";
+      else tipo = nuvem <= 20 ? "claro" : nuvem <= 40 ? "poucas" : nuvem <= 70 ? "parcial" : "nublado";
+      return { svg: icone(tipo, INTENS[codigo] || 1), texto: chuva ? ceu + " " + chuva : ceu };
+    }
+
+    /* ---------- Vento e UV ---------- */
+    var PONTOS = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"];
+    function direcao(g) {
+      if (g == null) return "";
+      /* seta aponta para onde o vento vai (vem de "g") */
+      return ' <svg class="ip-seta" viewBox="0 0 24 24" style="transform:rotate(' + ((g + 180) % 360) + 'deg)"><path d="M12 3l6 10h-4v8h-4v-8H6z" fill="#00566e"/></svg> ' +
+             PONTOS[Math.round(g / 45) % 8];
+    }
+    function uv(v) {
+      if (v == null) return "";
+      var f = v <= 2 ? ["Baixo", "#2e7d32"] : v <= 5 ? ["Moderado", "#c99700"] : v <= 7 ? ["Alto", "#e65100"] :
+              v <= 10 ? ["Muito alto", "#c62828"] : ["Extremo", "#6a1b9a"];
+      return '<div class="ip-uv" style="background:' + f[1] + '">Índice UV ' + v + ' · ' + f[0] + '</div>';
+    }
+    function linha(ico, rotulo, valor) {
+      return '<div class="ip-lin">' + MINI[ico] + '<span>' + rotulo + '</span><b>' + valor + '</b></div>';
     }
 
     function msg(t, erro) { $("ip-msg").innerHTML = t; $("ip-msg").className = "ip-msg" + (erro ? " ip-erro" : ""); }
@@ -79,23 +163,37 @@
       var nome = indice[norm($("ip-mun").value || "")];
       $("ip-dias").innerHTML = ""; $("ip-fonte").innerHTML = "";
       if (!nome) { msg("Município não encontrado na Bahia. Escolha um nome da lista.", true); return; }
-      var m = dados.municipios[nome], hoje = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Bahia" }), html = "";
-      for (var i = 0; i < dados.datas.length; i++) {
+      var m = dados.municipios[nome], hoje = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Bahia" }), html = "", n = 0;
+      for (var i = 0; i < dados.datas.length && n < DIAS; i++) {
         if (dados.datas[i] < hoje || m.max[i] == null) continue;
-        var data = new Date(dados.datas[i] + "T12:00:00");
-        var rotulo = dados.datas[i] === hoje ? "Hoje" : data.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
+        n++;
+        var data = new Date(dados.datas[i] + "T12:00:00"), ehHoje = dados.datas[i] === hoje;
+        var sem = ehHoje ? "Hoje" : data.toLocaleDateString("pt-BR", { weekday: "long" }).replace("-feira", "");
+        var dm = data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
         var t = condicao(m.c[i], m.n ? m.n[i] : null);
-        var prob = m.p && m.p[i] != null ? m.p[i] + "% · " : "";
-        html += '<div class="ip-dia"><b>' + rotulo + '</b><div class="ip-ico" title="' + t[1] + '">' + t[0] + '</div>' +
-          '<div>' + t[1] + '</div>' +
-          '<div><span class="ip-max">' + m.max[i] + '°</span> / <span class="ip-min">' + m.min[i] + '°</span></div>' +
-          '<div class="ip-chuva">💧 ' + prob + (m.mm[i] || 0).toFixed(1) + ' mm</div></div>';
+        html += '<div class="ip-dia' + (ehHoje ? " ip-hoje" : "") + '">' +
+          '<div class="ip-cab"><span class="ip-sem">' + sem + '</span><span class="ip-data">' + dm + '</span></div>' +
+          '<div class="ip-ico" title="' + t.texto + '">' + t.svg + '</div>' +
+          '<div class="ip-cond">' + t.texto + '</div>' +
+          '<div class="ip-temp"><div class="ip-tmin"><small>mín</small><b>' + num(m.min[i]) + '°</b></div>' +
+          '<div class="ip-tmax"><small>máx</small><b>' + num(m.max[i]) + '°</b></div></div>' +
+          '<div class="ip-det">' +
+            linha("chuva", "Chuva", num(m.mm[i], 1) + " mm") +
+            (m.urmin ? linha("umid", "Umidade", num(m.urmin[i]) + "–" + num(m.urmax[i]) + "%") : "") +
+            (m.v ? linha("vento", "Vento", num(m.v[i]) + " km/h" + direcao(m.dir[i])) : "") +
+            (m.raj ? linha("rajada", "Rajada", num(m.raj[i]) + " km/h") : "") +
+            (m.nasc ? linha("nascer", "Nascer do sol", m.nasc[i] || "–") : "") +
+            (m.por ? linha("por", "Pôr do sol", m.por[i] || "–") : "") +
+          '</div>' +
+          (m.uv ? uv(m.uv[i]) : "") +
+          '</div>';
       }
-      if (!html) { msg("Não há previsão disponível para " + nome + " no momento.", true); $("ip-dias").innerHTML = ""; return; }
+      if (!html) { msg("Não há previsão disponível para " + nome + " no momento.", true); return; }
       msg("<strong>" + nome + " – BA</strong>");
       $("ip-dias").innerHTML = html;
       var ger = new Date(dados.gerado_em);
-      $("ip-fonte").innerHTML = "Previsão numérica do modelo " + dados.modelo + ", sem revisão de meteorologista. " +
+      $("ip-fonte").innerHTML = "Previsão numérica do modelo " + dados.modelo + ", sem revisão de meteorologista" +
+        (dados.modelo_uv ? "; índice UV: " + dados.modelo_uv : "") + ". Vento médio a 10 m de altura; a seta indica para onde o vento sopra. " +
         "Atualizada em " + ger.toLocaleString("pt-BR", { timeZone: "America/Bahia", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + ".";
     }
   })();
