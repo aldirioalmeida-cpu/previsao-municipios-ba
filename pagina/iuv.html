@@ -1,0 +1,148 @@
+<div id="inema-iuv">
+  <style>
+    #inema-iuv{font-family:inherit;max-width:1000px;margin:0 auto;color:#1f2a33}
+    #inema-iuv h3{font-size:19px;margin:22px 0 8px}
+    #inema-iuv .iu-resumo{background:#fff7e6;border-left:4px solid #e65100;padding:10px 14px;border-radius:6px;font-size:15px;margin:6px 0 16px}
+    #inema-iuv .iu-leg{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px;font-size:12px}
+    #inema-iuv .iu-leg span{color:#fff;font-weight:700;border-radius:999px;padding:3px 10px}
+    #inema-iuv .iu-busca{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+    #inema-iuv .iu-busca label{width:100%;font-weight:600}
+    #inema-iuv input{flex:1;min-width:220px;padding:10px 12px;font-size:16px;border:1px solid #9aa5b1;border-radius:8px}
+    #inema-iuv button{padding:10px 20px;font-size:16px;border:0;border-radius:8px;background:#00566e;color:#fff;cursor:pointer}
+    #inema-iuv button:hover{background:#00404f}
+    #inema-iuv button:disabled{background:#9aa5b1;cursor:wait}
+    #inema-iuv .iu-msg{margin:4px 0 10px;font-size:15px}
+    #inema-iuv .iu-erro{color:#b00020}
+    #inema-iuv .iu-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
+    #inema-iuv .iu-card{background:#fff;border:1px solid #dde3e8;border-radius:14px;padding:12px 14px;box-shadow:0 1px 3px rgba(16,40,60,.08)}
+    #inema-iuv .iu-card.iu-sel{border-color:#00566e;box-shadow:0 0 0 1px #00566e,0 2px 6px rgba(0,86,110,.15);max-width:520px}
+    #inema-iuv .iu-nome{font-weight:700;font-size:16px;margin-bottom:8px}
+    #inema-iuv .iu-hoje{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+    #inema-iuv .iu-bola{width:58px;height:58px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;flex:none}
+    #inema-iuv .iu-hoje small{display:block;font-size:11px;color:#5b6b78;text-transform:uppercase;letter-spacing:.04em}
+    #inema-iuv .iu-cat{font-weight:700;font-size:15px}
+    #inema-iuv .iu-nuv{font-size:13px;color:#33424e;margin-top:2px}
+    #inema-iuv .iu-nuv b{display:inline-block;min-width:24px;text-align:center;border-radius:6px;color:#fff;padding:0 5px;margin:0 2px}
+    #inema-iuv table{width:100%;border-collapse:separate;border-spacing:3px;font-size:12px;table-layout:fixed}
+    #inema-iuv th{font-weight:600;color:#5b6b78;text-align:center;padding:0;text-transform:capitalize}
+    #inema-iuv th:first-child{text-align:left;width:64px}
+    #inema-iuv td{text-align:center;border-radius:6px;color:#fff;font-weight:700;padding:3px 0}
+    #inema-iuv td.iu-rot{color:#5b6b78;font-weight:600;text-align:left;padding:0}
+    #inema-iuv .iu-nota{font-size:13px;color:#33424e;background:#f3f6f8;border-radius:8px;padding:10px 14px;margin-top:16px;line-height:1.45}
+    #inema-iuv .iu-fonte{font-size:12px;color:#5b6b78;margin-top:10px}
+  </style>
+
+  <div class="iu-resumo" id="iu-resumo">Carregando previsão do IUV…</div>
+
+  <div class="iu-leg" aria-label="Categorias do IUV (OMS)">
+    <span style="background:#2e7d32">Baixo 0–2</span><span style="background:#c99700">Moderado 3–5</span>
+    <span style="background:#e65100">Alto 6–7</span><span style="background:#c62828">Muito alto 8–10</span>
+    <span style="background:#6a1b9a">Extremo 11+</span>
+  </div>
+
+  <form class="iu-busca" onsubmit="return false">
+    <label for="iu-mun">Consulte qualquer município da Bahia:</label>
+    <input id="iu-mun" list="iu-lista" placeholder="Ex.: Lençóis" autocomplete="off">
+    <datalist id="iu-lista"></datalist>
+    <button type="submit" id="iu-btn" disabled>Carregando…</button>
+  </form>
+  <div class="iu-msg" id="iu-msg" aria-live="polite"></div>
+  <div id="iu-sel"></div>
+
+  <h3>Cidades representativas</h3>
+  <div class="iu-grade" id="iu-grade"></div>
+
+  <div class="iu-nota">
+    <b>Céu claro</b> é o IUV sem nuvens: o valor máximo possível no dia, usado como referência para proteção (padrão do INEMA e da OMS).
+    <b>Com nuvens</b> considera a nebulosidade prevista e costuma ser menor, mas depende de acertar a previsão de nuvens; mesmo em dias nublados a radiação pode ser intensa.
+    Valores referentes ao meio-dia solar (máximo do dia).
+  </div>
+  <div class="iu-fonte" id="iu-fonte"></div>
+
+  <script>
+  (function () {
+    var URL_JSON = "https://cdn.jsdelivr.net/gh/aldirioalmeida-cpu/previsao-municipios-ba@main/iuv.json";
+    var DESTAQUES = ["Salvador", "Feira de Santana", "Ilhéus", "Teixeira de Freitas", "Eunápolis", "Paulo Afonso",
+      "Senhor do Bonfim", "Conde", "Juazeiro", "Remanso", "Morro do Chapéu", "Itaberaba", "Jequié",
+      "Vitória da Conquista", "Bom Jesus da Lapa", "Morpará", "Barreiras", "Cocos"];   /* as mesmas do boletim */
+
+    var $ = function (id) { return document.getElementById(id); };
+    var norm = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
+    var dados = null, indice = {}, ini = 0;
+
+    function cat(v) {
+      if (v == null) return ["–", "#9aa5b1"];
+      return v <= 2 ? ["Baixo", "#2e7d32"] : v <= 5 ? ["Moderado", "#c99700"] : v <= 7 ? ["Alto", "#e65100"] :
+             v <= 10 ? ["Muito alto", "#c62828"] : ["Extremo", "#6a1b9a"];
+    }
+    function rotuloDia(iso, k) {
+      if (k === 0 && iso === hojeISO()) return "Hoje";
+      return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
+    }
+    function hojeISO() { return new Date().toLocaleDateString("sv-SE", { timeZone: "America/Bahia" }); }
+    function dm(iso) { return iso.slice(8, 10) + "/" + iso.slice(5, 7); }
+
+    function card(nome, sel) {
+      var m = dados.municipios[nome], cc = m.cc[ini], cn = m.cn[ini], a = cat(cc), b = cat(cn);
+      var cab = "", l1 = "", l2 = "";
+      for (var k = ini; k < dados.datas.length; k++) {
+        cab += '<th title="' + dm(dados.datas[k]) + '">' + rotuloDia(dados.datas[k], k - ini) + '</th>';
+        l1 += '<td style="background:' + cat(m.cc[k])[1] + '" title="' + cat(m.cc[k])[0] + '">' + (m.cc[k] == null ? "–" : m.cc[k]) + '</td>';
+        l2 += '<td style="background:' + cat(m.cn[k])[1] + '" title="' + cat(m.cn[k])[0] + '">' + (m.cn[k] == null ? "–" : m.cn[k]) + '</td>';
+      }
+      return '<div class="iu-card' + (sel ? " iu-sel" : "") + '">' +
+        '<div class="iu-nome">' + nome + (sel ? " – BA" : "") + '</div>' +
+        '<div class="iu-hoje"><div class="iu-bola" style="background:' + a[1] + '">' + (cc == null ? "–" : cc) + '</div>' +
+          '<div><small>Hoje · céu claro</small><div class="iu-cat" style="color:' + a[1] + '">' + a[0] + '</div>' +
+          '<div class="iu-nuv">Com nuvens: <b style="background:' + b[1] + '">' + (cn == null ? "–" : cn) + '</b> ' + b[0] + '</div></div></div>' +
+        '<table><tr><th></th>' + cab + '</tr>' +
+          '<tr><td class="iu-rot">Céu claro</td>' + l1 + '</tr>' +
+          '<tr><td class="iu-rot">Com nuvens</td>' + l2 + '</tr></table>' +
+        '</div>';
+    }
+
+    function msg(t, erro) { $("iu-msg").innerHTML = t; $("iu-msg").className = "iu-msg" + (erro ? " iu-erro" : ""); }
+
+    fetch(URL_JSON, { cache: "no-cache" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) {
+        dados = j;
+        var h = hojeISO(); ini = 0;
+        while (ini < j.datas.length - 1 && j.datas[ini] < h) ini++;   /* começa em hoje */
+        var nomes = Object.keys(j.municipios).sort(function (a, b) { return a.localeCompare(b, "pt"); });
+        nomes.forEach(function (n) { indice[norm(n)] = n; });
+        $("iu-lista").innerHTML = nomes.map(function (n) { return '<option value="' + n + '">'; }).join("");
+        $("iu-btn").disabled = false; $("iu-btn").textContent = "Ver IUV";
+
+        var dest = DESTAQUES.filter(function (n) { return j.municipios[n]; });
+        $("iu-grade").innerHTML = dest.map(function (n) { return card(n, false); }).join("");
+
+        /* Resumo no estilo do boletim */
+        var vals = [];
+        dest.forEach(function (n) { for (var k = ini; k < j.datas.length; k++) if (j.municipios[n].cc[k] != null) vals.push(j.municipios[n].cc[k]); });
+        var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals), cmin = cat(mn)[0], cmax = cat(mx)[0];
+        $("iu-resumo").innerHTML = "Entre <b>" + dm(j.datas[ini]) + "</b> e <b>" + dm(j.datas[j.datas.length - 1]) +
+          "</b>, o IUV de céu claro previsto para as cidades representativas da Bahia varia de <b>" + mn + " a " + mx +
+          "</b> (" + (cmin === cmax ? "categoria <b>" + cmin.toUpperCase() + "</b>" : "categorias <b>" + cmin.toUpperCase() + "</b> a <b>" + cmax.toUpperCase() + "</b>") + ").";
+        var g = new Date(j.gerado_em);
+        $("iu-fonte").innerHTML = "Fonte: " + j.fonte + ". Contém informações modificadas do Copernicus Atmosphere Monitoring Service. " +
+          "Previsão numérica, sem revisão de meteorologista. Atualizada em " +
+          g.toLocaleString("pt-BR", { timeZone: "America/Bahia", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + ".";
+      })
+      .catch(function () {
+        $("iu-resumo").textContent = "A previsão do IUV está temporariamente indisponível. Tente novamente mais tarde.";
+        $("iu-btn").textContent = "Indisponível";
+      });
+
+    function buscar() {
+      if (!dados) return;
+      var nome = indice[norm($("iu-mun").value || "")];
+      if (!nome) { $("iu-sel").innerHTML = ""; msg("Município não encontrado na Bahia. Escolha um nome da lista.", true); return; }
+      msg("");
+      $("iu-sel").innerHTML = card(nome, true);
+    }
+    $("iu-btn").addEventListener("click", buscar);
+    $("iu-mun").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); buscar(); } });
+  })();
+  </script>
+</div>
