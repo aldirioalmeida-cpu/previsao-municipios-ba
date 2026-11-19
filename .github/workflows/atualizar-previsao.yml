@@ -1,0 +1,51 @@
+name: Atualizar previsão
+
+on:
+  schedule:
+    # Horários em UTC. 09:30 UTC = 06:30 na Bahia (rodada 00z do ECMWF)
+    #                  21:30 UTC = 18:30 na Bahia (rodada 12z do ECMWF)
+    - cron: "30 9 * * *"
+    - cron: "30 21 * * *"
+  workflow_dispatch: {}   # permite rodar manualmente pela aba Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atualizar-previsao
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gerar previsao.json
+        run: python gerar_previsao.py
+
+      - name: Publicar no repositório
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add previsao.json
+          if git diff --cached --quiet; then
+            echo "Sem mudanças."
+            echo "mudou=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Previsão atualizada em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+            git push
+            echo "mudou=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Limpar cache do jsDelivr
+        if: steps.commit.outputs.mudou == 'true'
+        run: |
+          sleep 20
+          curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/previsao.json" || echo "Aviso: purge falhou; o jsDelivr atualiza sozinho em até 12 h."
