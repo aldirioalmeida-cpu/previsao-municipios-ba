@@ -34,12 +34,17 @@ jobs:
       - name: Gerar previsao.json
         run: python gerar_previsao.py
 
+      - name: Gerar iuv.json
+        continue-on-error: true   # se o IUV falhar, a previsão do tempo é publicada mesmo assim
+        run: python gerar_iuv.py
+
       - name: Publicar no repositório
         id: commit
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add previsao.json
+          if [ -f iuv.json ]; then git add iuv.json; fi
           if git diff --cached --quiet; then
             echo "Sem mudanças."
             echo "mudou=false" >> "$GITHUB_OUTPUT"
@@ -53,4 +58,6 @@ jobs:
         if: steps.commit.outputs.mudou == 'true'
         run: |
           sleep 20
-          curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/previsao.json" || echo "Aviso: purge falhou; o jsDelivr atualiza sozinho em até 12 h."
+          for f in previsao.json iuv.json; do
+            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" || echo "Aviso: purge de $f falhou; o jsDelivr atualiza sozinho em até 12 h."
+          done
