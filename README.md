@@ -7,6 +7,10 @@ vento médio, rajada máxima, direção predominante, nascer e pôr do sol. O í
 "melhor modelo" do Open-Meteo, porque o ECMWF não fornece UV.
 A página do INEMA lê esse arquivo pelo jsDelivr (`cdn.jsdelivr.net`, domínio já liberado no ba.gov.br).
 
+O robô também gera `iuv.json` (`gerar_iuv.py`): Índice Ultravioleta máximo diário, 5 dias, de
+**céu claro** e **com nuvens**, do CAMS/Copernicus (via Open-Meteo), usado pela página
+`pagina/iuv.html`.
+
 ## Arquivos
 
 | Arquivo | Função |
