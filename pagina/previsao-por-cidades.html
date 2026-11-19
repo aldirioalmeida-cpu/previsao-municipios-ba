@@ -151,17 +151,41 @@
         nomes.forEach(function (n) { indice[norm(n)] = n; });
         $("ip-lista").innerHTML = nomes.map(function (n) { return '<option value="' + n + '">'; }).join("");
         $("ip-btn").disabled = false; $("ip-btn").textContent = "Ver previsão";
+        localizar();
       })
       .catch(function () {
         $("ip-btn").textContent = "Indisponível";
         msg("A previsão por município está temporariamente indisponível. Tente novamente mais tarde.", true);
       });
 
-    $("ip-btn").addEventListener("click", buscar);
+    $("ip-btn").addEventListener("click", function () { buscar(); });
     $("ip-mun").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); buscar(); } });
 
-    function buscar() {
+    /* ---------- Abre no município mais próximo do visitante (se ele permitir a localização) ---------- */
+    var jaBuscou = false, RAIO_KM = 60;   /* fora da Bahia (mais de 60 km de qualquer sede) não faz nada */
+    function distKm(a, b, c, d) {
+      var r = Math.PI / 180, x = Math.sin((c - a) * r / 2), y = Math.sin((d - b) * r / 2);
+      return 12742 * Math.asin(Math.sqrt(x * x + Math.cos(a * r) * Math.cos(c * r) * y * y));
+    }
+    function localizar() {
+      if (!navigator.geolocation || !window.isSecureContext) return;
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        if (jaBuscou) return;   /* o visitante já pesquisou algo: não troca */
+        var lat = pos.coords.latitude, lon = pos.coords.longitude, melhor = null, menor = Infinity;
+        Object.keys(dados.municipios).forEach(function (n) {
+          var ll = dados.municipios[n].ll; if (!ll) return;
+          var dk = distKm(lat, lon, ll[0], ll[1]); if (dk < menor) { menor = dk; melhor = n; }
+        });
+        if (!melhor || menor > RAIO_KM) return;
+        $("ip-mun").value = melhor;
+        buscar(true);
+      }, function () { /* permissão negada ou indisponível: segue normal */ },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 3600000 });
+    }
+
+    function buscar(pelaLocalizacao) {
       if (!dados) return;
+      jaBuscou = true;
       var nome = indice[norm($("ip-mun").value || "")];
       $("ip-dias").innerHTML = ""; $("ip-fonte").innerHTML = "";
       if (!nome) { msg("Município não encontrado na Bahia. Escolha um nome da lista.", true); return; }
@@ -191,7 +215,8 @@
           '</div>';
       }
       if (!html) { msg("Não há previsão disponível para " + nome + " no momento.", true); return; }
-      msg("<strong>" + nome + " – BA</strong>");
+      msg("<strong>" + nome + " – BA</strong>" +
+        (pelaLocalizacao === true ? ' <span style="font-size:13px;color:#5b6b78">· município mais próximo da sua localização</span>' : ""));
       $("ip-dias").innerHTML = html;
       var ger = new Date(dados.gerado_em);
       $("ip-fonte").innerHTML = "Previsão numérica do modelo " + dados.modelo + ", sem revisão de meteorologista" +
