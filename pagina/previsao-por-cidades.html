@@ -28,11 +28,11 @@
     #inema-prev .ip-tmin b{color:#1f6fb2}
     #inema-prev .ip-tmax b{color:#c62828}
     #inema-prev .ip-det{border-top:1px solid #e6ebef;padding-top:8px;display:grid;gap:6px;font-size:13px}
-    #inema-prev .ip-lin{display:flex;align-items:center;gap:7px}
+    #inema-prev .ip-lin{display:flex;align-items:center;gap:6px;white-space:nowrap}
     #inema-prev .ip-lin svg{width:18px;height:18px;flex:none}
-    #inema-prev .ip-lin span{color:#5b6b78}
-    #inema-prev .ip-lin b{font-weight:600;margin-left:auto;text-align:right}
-    #inema-prev .ip-seta{display:inline-block;width:14px;height:14px;vertical-align:-2px}
+    #inema-prev .ip-lin span{color:#5b6b78;flex:none}
+    #inema-prev .ip-lin b{font-weight:600;margin-left:auto;text-align:right;display:flex;align-items:center;gap:2px}
+    #inema-prev .ip-lin b .ip-seta{width:13px;height:13px;margin-left:3px}
     #inema-prev .ip-uv{margin-top:10px;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;text-align:center;color:#fff;white-space:nowrap}
     #inema-prev .ip-fonte{font-size:12px;color:#5b6b78;margin-top:14px}
   </style>
@@ -126,7 +126,7 @@
     function direcao(g) {
       if (g == null) return "";
       /* seta aponta para onde o vento vai (vem de "g") */
-      return ' <svg class="ip-seta" viewBox="0 0 24 24" style="transform:rotate(' + ((g + 180) % 360) + 'deg)"><path d="M12 3l6 10h-4v8h-4v-8H6z" fill="#00566e"/></svg> ' +
+      return '<svg class="ip-seta" viewBox="0 0 24 24" style="transform:rotate(' + ((g + 180) % 360) + 'deg)"><path d="M12 3l6 10h-4v8h-4v-8H6z" fill="#00566e"/></svg>' +
              PONTOS[Math.round(g / 45) % 8];
     }
     function uv(v) {
