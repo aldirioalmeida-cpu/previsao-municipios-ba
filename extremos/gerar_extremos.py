@@ -207,7 +207,12 @@ def gfs_baixar(c, p):
     raw = http_get("https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?" + "&".join(q))
     out = {}
     for k, v, la, lo in mensagens(raw):
-        out[(k["shortName"], k["typeOfLevel"], int(k["level"]))] = para_alvo(v, la, lo)
+        if k["shortName"] == "tp":
+            # o GFS traz duas chuvas por arquivo: a do intervalo (ex.: 6-9 h) e a acumulada desde o início (0-9 h)
+            sr = k["stepRange"]; ini, fim = (sr.split("-") + [sr])[:2] if "-" in sr else ("0", sr)
+            out[("tp", int(ini), int(fim))] = para_alvo(v, la, lo)
+        else:
+            out[(k["shortName"], k["typeOfLevel"], int(k["level"]))] = para_alvo(v, la, lo)
     return out
 
 
@@ -228,16 +233,12 @@ def modelo_gfs(c, ini):
     def pilha(lst):
         lst = [x for x in lst if x is not None]
         return np.array(lst) if lst else vazio[None]
-    # chuva acumulada: GFS zera o balde a cada 6 h (f003 = 0-3 h; f006 = 0-6 h; ...)
-    acc, A = 0.0, {}
-    for p in range(3, fim + 1, 3):
-        if p not in campos:
-            continue
-        b = g(p, "tp", "surface", 0)
-        if b is None:
-            continue
-        inc = b if p % 6 == 3 else b - (g(p - 3, "tp", "surface", 0) if g(p - 3, "tp", "surface", 0) is not None else 0)
-        acc = acc + np.maximum(inc, 0); A[p] = acc
+    # chuva acumulada desde o início da rodada: registro "0-p h" de cada arquivo do GFS
+    A = {}
+    for p in sorted(campos):
+        tot = campos[p].get(("tp", 0, p))
+        if tot is not None:
+            A[p] = tot
     dias = []
     for k in range(NDIAS):
         i0, i1 = a + 24 * k, a + 24 * (k + 1)
