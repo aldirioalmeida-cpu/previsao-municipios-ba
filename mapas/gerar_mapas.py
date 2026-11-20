@@ -29,6 +29,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm, ListedColormap, LinearSegmentedColormap
 from matplotlib.path import Path
+from matplotlib.patches import PathPatch
+from scipy.ndimage import gaussian_filter
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from scipy.spatial import cKDTree
@@ -365,6 +367,24 @@ def carregar_regioes():
 REGIOES = carregar_regioes()
 
 
+def caminho_bahia():
+    """Contorno da Bahia (todas as regiões) como um Path único, para recortar o sombreado."""
+    verts, codes = [], []
+    for _, aneis in REGIOES:
+        for anel in aneis:
+            verts += anel.tolist()
+            codes += [Path.MOVETO] + [Path.LINETO] * (len(anel) - 2) + [Path.CLOSEPOLY]
+    return Path(verts, codes)
+
+
+CAMINHO_BA = caminho_bahia()
+
+
+def titulos(ax, t1, t2):
+    ax.set_title(t1, loc="left", fontsize=11, fontweight="bold", pad=17)
+    ax.text(0, 1.012, t2, transform=ax.transAxes, fontsize=8.5, color="#333", va="bottom", ha="left")
+
+
 def mascara_bahia():
     pts = np.c_[GLON.ravel(), GLAT.ravel()]
     dentro = np.zeros(len(pts), bool)
@@ -389,9 +409,10 @@ ESTILOS = {
 
 def cmap_de(est):
     if "cores" in est:
-        return ListedColormap(est["cores"]), BoundaryNorm(est["niveis"], len(est["cores"]))
-    cm = plt.get_cmap(est["cmap"], len(est["niveis"]) - 1)
-    return cm, BoundaryNorm(est["niveis"], cm.N)
+        cm = ListedColormap(est["cores"])
+        cm.set_over(est["cores"][-1])
+        return cm
+    return plt.get_cmap(est["cmap"], len(est["niveis"]) - 1)
 
 
 def rotulo_dia(d):
@@ -399,7 +420,7 @@ def rotulo_dia(d):
 
 
 def base_mapa(ext, figsize):
-    fig = plt.figure(figsize=figsize, dpi=100)
+    fig = plt.figure(figsize=figsize, dpi=125)
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.set_extent(ext, crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.OCEAN.with_scale("50m"), facecolor="#eef3f7", zorder=0)
@@ -424,19 +445,22 @@ def desenha_regioes(ax, nomes=True):
 
 def mapa_bahia(campo, var, titulo1, titulo2, arq):
     est = ESTILOS[var]
-    cm, nm = cmap_de(est)
+    cm = cmap_de(est)
     fig, ax = base_mapa(EXT_BA, (8.2, 8.6))
-    dado = np.where(MASCARA, campo, np.nan)
-    cs = ax.pcolormesh(LONS, LATS, dado, cmap=cm, norm=nm, shading="nearest", transform=ccrs.PlateCarree(), zorder=1)
+    # sombreado contínuo, recortado no contorno da Bahia
+    cs = ax.contourf(LONS, LATS, campo, levels=est["niveis"], cmap=cm, extend=est["ext"],
+                     transform=ccrs.PlateCarree(), zorder=1)
+    recorte = PathPatch(CAMINHO_BA, transform=ax.transData, facecolor="none", edgecolor="none")
+    ax.add_patch(recorte)
+    cs.set_clip_path(recorte)
     desenha_regioes(ax)
     for nome, lo, la in CIDADES:
         ax.plot(lo, la, "o", ms=3, color="black", transform=ccrs.PlateCarree(), zorder=7)
         ax.text(lo + 0.08, la + 0.08, nome, fontsize=6.5, transform=ccrs.PlateCarree(), zorder=7)
-    cb = fig.colorbar(cs, ax=ax, orientation="horizontal", pad=0.04, fraction=0.045, extend=est["ext"],
+    cb = fig.colorbar(cs, ax=ax, orientation="horizontal", pad=0.04, fraction=0.045,
                       ticks=est["niveis"][::2] if len(est["niveis"]) > 16 else est["niveis"])
     cb.set_label(est["rot"], fontsize=9); cb.ax.tick_params(labelsize=8)
-    ax.set_title(titulo1, loc="left", fontsize=11, fontweight="bold")
-    ax.set_title(titulo2, loc="right", fontsize=8.5)
+    titulos(ax, titulo1, titulo2)
     fig.savefig(arq, bbox_inches="tight", pil_kwargs={"optimize": True})
     plt.close(fig)
 
@@ -451,7 +475,9 @@ def mapa_sinotico(sin, tipo, titulo1, titulo2, arq):
         ax.streamplot(LONS, LATS, u, v, density=2.2, color="#3b3b3b", linewidth=0.6, arrowsize=0.7,
                       transform=ccrs.PlateCarree(), zorder=2)
         niveis = np.arange(980, 1040, 2)
-        cl = ax.contour(LONS, LATS, sin["msl"], levels=niveis, colors="#b30000", linewidths=0.9,
+        msl = sin["msl"]
+        msl = gaussian_filter(np.where(np.isfinite(msl), msl, np.nanmean(msl)), 2.5)  # tira o ruído sobre os Andes
+        cl = ax.contour(LONS, LATS, msl, levels=niveis, colors="#b30000", linewidths=0.9,
                         transform=ccrs.PlateCarree(), zorder=5)
         ax.clabel(cl, fmt="%d", fontsize=7, inline=True)
         rot = "Vento em 850 hPa (m/s) · isóbaras (hPa) em vermelho"
@@ -466,8 +492,7 @@ def mapa_sinotico(sin, tipo, titulo1, titulo2, arq):
     desenha_regioes(ax, nomes=False)
     cb = fig.colorbar(cs, ax=ax, orientation="horizontal", pad=0.04, fraction=0.045, extend="max")
     cb.set_label(rot, fontsize=9); cb.ax.tick_params(labelsize=8)
-    ax.set_title(titulo1, loc="left", fontsize=11, fontweight="bold")
-    ax.set_title(titulo2, loc="right", fontsize=8.5)
+    titulos(ax, titulo1, titulo2)
     fig.savefig(arq, bbox_inches="tight", pil_kwargs={"optimize": True})
     plt.close(fig)
 
