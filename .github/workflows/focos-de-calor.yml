@@ -1,0 +1,61 @@
+name: Focos de calor
+
+# Baixa os focos de calor do INPE (Programa Queimadas), separa os da Bahia e publica no ramo "focos".
+# A cada 3 horas, no minuto 37 (fora da hora cheia). Anos e meses fechados ficam em cache.
+on:
+  schedule:
+    - cron: "37 */3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: focos-de-calor
+  cancel-in-progress: false
+
+jobs:
+  focos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar bibliotecas
+        run: pip install numpy
+
+      - name: Cache dos anos e meses fechados (só Bahia)
+        uses: actions/cache@v4
+        with:
+          path: cache_focos
+          key: focos-v1-${{ github.run_id }}
+          restore-keys: focos-v1-
+
+      - name: Gerar dados
+        run: python focos/gerar_focos.py --saida saida_focos --cache cache_focos
+
+      - name: Publicar no ramo focos (substitui a versão anterior, sem acumular histórico)
+        run: |
+          cp focos/municipios.json focos/ti_ba.geojson mapas/regioes_ba.geojson saida_focos/
+          cd saida_focos
+          git init -q
+          git checkout -q -b focos
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Focos $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" focos
+
+      # Duas limpezas do cache do jsDelivr (a 2ª, 2 min depois, garante a versão nova)
+      - name: Limpar cache do jsDelivr
+        run: |
+          for espera in 15 120; do
+            sleep $espera
+            for f in meta.json ref.json todos.json pontos_todos.json pontos_ref_$(date -u +%Y).json; do
+              curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}@focos/$f" > /dev/null || echo "purge de $f falhou"
+            done
+          done
