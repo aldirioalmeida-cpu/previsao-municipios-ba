@@ -51,17 +51,16 @@ jobs:
         continue-on-error: true   # se o IUV falhar, a previsão do tempo é publicada mesmo assim
         run: python gerar_iuv.py
 
+      # Só para a tabela de extremos (maior/menor pixel do ECMWF e do GFS por município).
+      # Os cards de previsão usam apenas o previsao.json (Open-Meteo) e não dependem desta etapa:
+      # se ela falhar ou passar de 15 min, a previsão é publicada normalmente e fica o extremos.json anterior.
       - name: Gerar extremos.json (ECMWF e GFS por município, direto da grade dos modelos)
         if: steps.verifica.outputs.rodar == 'true'
-        continue-on-error: true   # se falhar, a previsão é publicada mesmo assim
+        continue-on-error: true
+        timeout-minutes: 15
         run: |
           pip install numpy matplotlib eccodes
-          python extremos/gerar_extremos.py --saida extremos.json
-
-      - name: Chuva dos cards = maior pixel do ECMWF no município
-        if: steps.verifica.outputs.rodar == 'true'
-        continue-on-error: true   # se falhar, fica a chuva do Open-Meteo (sede)
-        run: python extremos/aplicar_chuva.py
+          python extremos/gerar_extremos.py --saida extremos.tmp.json && mv extremos.tmp.json extremos.json
 
       - name: Publicar no repositório
         if: steps.verifica.outputs.rodar == 'true'
