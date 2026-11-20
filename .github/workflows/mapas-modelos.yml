@@ -1,0 +1,59 @@
+name: Mapas dos modelos
+
+# Gera os mapas ECMWF x GFS x ICON da Bahia e publica no ramo "mapas".
+# Horários em UTC, no minuto 13 para fugir da hora cheia:
+#   09:13 UTC = 06:13 na Bahia (rodada 00 UTC dos três modelos já completa)
+#   21:13 UTC = 18:13 na Bahia (rodada 12 UTC)
+on:
+  schedule:
+    - cron: "13 9 * * *"
+    - cron: "13 21 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mapas-modelos
+  cancel-in-progress: false
+
+jobs:
+  mapas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: mapas/requirements.txt
+
+      - name: Instalar bibliotecas
+        run: pip install -r mapas/requirements.txt
+
+      - name: Cache dos contornos (Natural Earth)
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/cartopy
+          key: cartopy-naturalearth-v1
+
+      - name: Gerar mapas
+        run: python mapas/gerar_mapas.py --saida saida
+
+      - name: Publicar no ramo mapas (substitui a versão anterior, sem acumular histórico)
+        run: |
+          cd saida
+          git init -q
+          git checkout -q -b mapas
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Mapas $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" mapas
+
+      - name: Limpar cache do jsDelivr
+        run: |
+          sleep 15
+          curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}@mapas/info.json" || echo "purge falhou; o jsDelivr atualiza sozinho em até 12 h."
