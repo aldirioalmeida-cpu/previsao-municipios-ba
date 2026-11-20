@@ -2,11 +2,17 @@ name: Atualizar previsão
 
 on:
   schedule:
-    # O agendamento do GitHub não tem horário garantido (atrasa ou pula rodadas).
-    # Por isso o robô tenta TODA HORA, no minuto 17, e só atualiza se a previsão publicada
-    # tiver 5 h 30 min ou mais. Rodadas extras terminam em segundos, sem baixar nada.
+    # Toda hora (minuto 17) o robô confere no Open-Meteo se já entrou uma rodada 00Z ou 12Z do ECMWF
+    # mais nova que a previsão publicada (verifica_rodada.py, leva segundos) e só então atualiza.
+    # Na prática: 2 atualizações por dia, ~04–05h e ~16–17h (horário da Bahia). As rodadas 06Z/18Z são ignoradas.
+    # O disparador externo (Google Apps Script) também chama este robô.
     - cron: "17 * * * *"
-  workflow_dispatch: {}   # rodada manual pela aba Actions: sempre atualiza
+  workflow_dispatch:      # rodada manual pela aba Actions: faz a mesma conferência, a não ser que se marque "forcar"
+    inputs:
+      forcar:
+        description: "Atualizar mesmo sem rodada nova"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -22,19 +28,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verificar se precisa atualizar
+      - name: Verificar se saiu rodada 00Z/12Z nova
         id: verifica
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "rodar=true" >> "$GITHUB_OUTPUT"; exit 0; fi
-          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
-          import json, datetime as dt
-          try:
-              g = json.load(open("previsao.json", encoding="utf-8"))["gerado_em"]
-              idade = (dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(g)).total_seconds() / 3600
-          except Exception:
-              idade = 99
-          print("rodar=" + ("true" if idade >= 5.5 else "false"))
-          EOF
+          if [ "${{ inputs.forcar }}" = "true" ]; then echo "rodar=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          python3 verifica_rodada.py >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
       - uses: actions/setup-python@v5
