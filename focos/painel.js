@@ -486,7 +486,14 @@
   function pontosRef(anos) {
     return Promise.all(anos.map(function (y) { if (!cachePontos["r" + y]) cachePontos["r" + y] = json("pontos_ref_" + y + ".json"); return cachePontos["r" + y]; }));
   }
-  function corFrp(f) { return f == null ? "#8a8f98" : f < 10 ? "#fdb863" : f < 50 ? "#f46d43" : f < 150 ? "#d73027" : "#7f0000"; }
+  // Classes de intensidade pelo FRP (potência radiativa do fogo, MW): cores bem separadas em claridade e matiz
+  var CLASSES_FRP = [
+    { max: 10, cor: "#ffd60a", nome: "Baixa", faixa: "< 10 MW" },
+    { max: 50, cor: "#ff7b00", nome: "Moderada", faixa: "10–50 MW" },
+    { max: 150, cor: "#d00000", nome: "Alta", faixa: "50–150 MW" },
+    { max: Infinity, cor: "#3c0040", nome: "Muito alta", faixa: "≥ 150 MW" }];
+  function classeFrp(f) { if (f == null) return { cor: "#9aa0a8", nome: "Sem FRP", faixa: "não informado" }; for (var i = 0; i < CLASSES_FRP.length; i++) if (f < CLASSES_FRP[i].max) return CLASSES_FRP[i]; }
+  function corFrp(f) { return classeFrp(f).cor; }
   var geracaoMapa = 0;
   function desenhaMapa(de, ate) {
     if (!window.L) return;
@@ -518,13 +525,13 @@
         var cor = sel.corMapa === "frp" ? corFrp(p.f) : (CORES_BIOMA[META.biomas[p.b]] || "#999");
         grupo.push(L.circleMarker([p.la, p.lo], { radius: n > 20000 ? 2 : 3.5, color: "#fff", weight: n > 20000 ? 0 : .6, fillColor: cor, fillOpacity: .85 })
           .bindTooltip("<b>" + esc(MUN[p.m][0]) + "</b><br>" + br(n2d(p.d)) + " " + String(p.h).padStart(4, "0").replace(/(\d\d)(\d\d)/, "$1:$2") + " UTC<br>" + esc(p.s) +
-            (p.f != null ? "<br>FRP " + p.f + " MW" : "") + "<br>" + esc(META.biomas[p.b]) +
+            (p.f != null ? "<br>Intensidade " + classeFrp(p.f).nome.toLowerCase() + " · FRP " + p.f + " MW" : "") + "<br>" + esc(META.biomas[p.b]) +
             (p.u >= 0 && UC ? "<br><span style='color:#1f6b40'>UC: " + esc(UC.ucs[p.u][0]) + "</span>" : ""), { sticky: true }));
       });
       camadaPontos = L.layerGroup(grupo).addTo(mapa);
       var leg = function (cor, txt) { return "<span class='fc-leg'><i style='background:" + cor + "'></i>" + txt + "</span>"; };
       $("fc-s-mapa").innerHTML = fmt(n) + " focos no mapa · " + (sel.corMapa === "frp"
-        ? "intensidade (FRP): " + leg("#fdb863", "&lt; 10 MW") + leg("#f46d43", "10–50") + leg("#d73027", "50–150") + leg("#7f0000", "≥ 150") + leg("#8a8f98", "sem FRP")
+        ? "intensidade do fogo (FRP): " + CLASSES_FRP.map(function (c) { return leg(c.cor, "<b>" + c.nome + "</b> " + esc(c.faixa)); }).join("") + leg(classeFrp(null).cor, "Sem FRP")
         : "bioma: " + META.biomas.map(function (b) { return leg(CORES_BIOMA[b] || "#999", esc(b)); }).join(""));
     }).catch(function (e) { $("fc-s-mapa").textContent = "Não foi possível carregar o mapa (" + e.message + ")."; });
   }
