@@ -159,9 +159,24 @@ def main():
         return i
 
     # ---- satélite de referência: anos fechados
+    # Vem dos arquivos anuais de TODOS os satélites filtrados pelo AQUA_M-T: mesma contagem da série
+    # de referência do INPE, mas com o FRP (intensidade), que o arquivo "sat_ref" não traz.
+    # Só os focos do AQUA ficam em cache, para o cache não crescer demais.
     ref_por_ano = {}
     for y in range(ANO_INI_REF, ano):
-        regs = com_cache(a.cache, f"ref_{y}", [f"anual/Brasil_sat_ref/focos_br_ref_{y}.zip"])
+        arq = os.path.join(a.cache, f"refsat_{y}.csv.gz")
+        if os.path.exists(arq):
+            regs = le_cache(arq)
+        else:
+            log("baixando", f"anual/Brasil_todos_sats/focos_br_todos-sats_{y}.zip")
+            todos_y = ler_url(BASE + f"anual/Brasil_todos_sats/focos_br_todos-sats_{y}.zip")
+            regs = [r for r in todos_y if r["sat"] == SAT_REF] if todos_y is not None else None
+            if regs is not None:
+                salva_cache(arq, regs)
+                if y == ano - 1:
+                    salva_cache(os.path.join(a.cache, f"todos_{y}.csv.gz"), todos_y)
+        if regs is None:
+            regs = com_cache(a.cache, f"ref_{y}", [f"anual/Brasil_sat_ref/focos_br_ref_{y}.zip"])
         if regs is None:   # ano passado ainda sem arquivo anual de referência: usa os mensais
             regs = []
             for mm in range(1, 13):
@@ -229,7 +244,7 @@ def main():
     # ---- pontos para o mapa
     for y, regs in ref_por_ano.items():
         grava(f"pontos_ref_{y}.json", [[r["lat"], r["lon"], (dt.date.fromisoformat(r["data"]) - d0_ref).days, int(r["hora"] or 0),
-                                        mun_idx(r), b_idx[r["bio"] or "Não informado"]] for r in regs])
+                                        mun_idx(r), b_idx[r["bio"] or "Não informado"], r["frp"]] for r in regs])
     corte = hoje - dt.timedelta(days=DIAS_PONTOS_TODOS)
     grava("pontos_todos.json", [[r["lat"], r["lon"], (dt.date.fromisoformat(r["data"]) - d0_todos).days, int(r["hora"] or 0),
                                  s_idx[r["sat"]], mun_idx(r), b_idx[r["bio"] or "Não informado"], r["frp"]]

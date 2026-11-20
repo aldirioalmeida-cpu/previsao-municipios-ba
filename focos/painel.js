@@ -305,7 +305,7 @@
     if (sel.serie === "ref") {
       for (var y = anoDe(de); y <= anoDe(ate); y++) anos.push(y);
       if (anos.length > 3) { anos = anos.slice(-3); aviso.innerHTML = "<div class='fc-aviso'>Período longo: o mapa mostra só os últimos 3 anos do intervalo.</div>"; }
-      prom = pontosRef(anos).then(function (lst) { var out = []; lst.forEach(function (arr) { arr.forEach(function (p) { var d = D0REF + p[2]; out.push({ la: p[0], lo: p[1], d: d, h: p[3], m: p[4], b: p[5], s: META.sat_ref, f: null }); }); }); return out; });
+      prom = pontosRef(anos).then(function (lst) { var out = []; lst.forEach(function (arr) { arr.forEach(function (p) { var d = D0REF + p[2]; out.push({ la: p[0], lo: p[1], d: d, h: p[3], m: p[4], b: p[5], s: META.sat_ref, f: p.length > 6 ? p[6] : null }); }); }); return out; });
     } else {
       if (de < HOJE - META.dias_pontos_todos + 1) aviso.innerHTML = "<div class='fc-aviso'>O mapa de todos os satélites cobre só os últimos " + META.dias_pontos_todos + " dias; períodos anteriores aparecem nas estatísticas.</div>";
       if (!cachePontos.todos) cachePontos.todos = json("pontos_todos.json");
@@ -328,7 +328,7 @@
             (p.f != null ? "<br>FRP " + p.f + " MW" : "") + "<br>" + esc(META.biomas[p.b]), { sticky: true }));
       });
       camadaPontos = L.layerGroup(grupo).addTo(mapa);
-      $("fc-s-mapa").textContent = fmt(n) + " focos no mapa" + (sel.corMapa === "frp" ? " · cor pela intensidade (FRP): amarelo < 10 MW, laranja < 50, vermelho < 150, vinho ≥ 150" + (sel.serie === "ref" ? " (a série de referência não traz FRP)" : "") : " · cor pelo bioma");
+      $("fc-s-mapa").textContent = fmt(n) + " focos no mapa" + (sel.corMapa === "frp" ? " · cor pela intensidade (FRP): amarelo < 10 MW, laranja < 50, vermelho < 150, vinho ≥ 150" + " · cinza = sem FRP informado" : " · cor pelo bioma");
     }).catch(function (e) { $("fc-s-mapa").textContent = "Não foi possível carregar o mapa (" + e.message + ")."; });
   }
 
@@ -344,7 +344,7 @@
   function baixaFocos() {
     var iv = intervalo(), de = iv[0], ate = iv[1], fm = filtroMun(), fb = algumBioma();
     var prom = sel.serie === "ref"
-      ? (function () { var anos = []; for (var y = anoDe(de); y <= anoDe(ate); y++) anos.push(y); return pontosRef(anos).then(function (l) { var o = []; l.forEach(function (a) { a.forEach(function (p) { o.push([p[0], p[1], D0REF + p[2], p[3], META.sat_ref, p[4], p[5], ""]); }); }); return o; }); })()
+      ? (function () { var anos = []; for (var y = anoDe(de); y <= anoDe(ate); y++) anos.push(y); return pontosRef(anos).then(function (l) { var o = []; l.forEach(function (a) { a.forEach(function (p) { o.push([p[0], p[1], D0REF + p[2], p[3], META.sat_ref, p[4], p[5], p.length > 6 && p[6] != null ? p[6] : null]); }); }); return o; }); })()
       : (cachePontos.todos || (cachePontos.todos = json("pontos_todos.json"))).then(function (a) { return a.map(function (p) { return [p[0], p[1], D0TODOS + p[2], p[3], META.satelites[p[4]], p[5], p[6], p[7]]; }); });
     prom.then(function (pts) {
       var linhas = [["Data (UTC)", "Hora (UTC)", "Latitude", "Longitude", "Satélite", "Município", "Região climática", "Território de Identidade", "Bioma", "FRP (MW)"]];
