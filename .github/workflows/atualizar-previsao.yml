@@ -2,15 +2,15 @@ name: Atualizar previsão
 
 on:
   schedule:
-    # Horários em UTC (Bahia = UTC-3):
-    #   05:00 UTC = 02:00 na Bahia
-    #   11:00 UTC = 08:00 na Bahia
-    #   17:00 UTC = 14:00 na Bahia
-    #   23:00 UTC = 20:00 na Bahia
-    - cron: "0 5 * * *"
-    - cron: "0 11 * * *"
-    - cron: "0 17 * * *"
-    - cron: "0 23 * * *"
+    # Horários em UTC (Bahia = UTC-3). Minuto 17 de propósito: na hora cheia o GitHub atrasa ou descarta rodadas:
+    #   05:17 UTC = 02:17 na Bahia
+    #   11:17 UTC = 08:17 na Bahia
+    #   17:17 UTC = 14:17 na Bahia
+    #   23:17 UTC = 20:17 na Bahia
+    - cron: "17 5 * * *"
+    - cron: "17 11 * * *"
+    - cron: "17 17 * * *"
+    - cron: "17 23 * * *"
   workflow_dispatch: {}   # permite rodar manualmente pela aba Actions
 
 permissions:
