@@ -368,7 +368,17 @@
     Promise.all([json("regioes_ba.geojson"), json("ti_ba.geojson"), json("uc_ba_mapa.geojson").catch(function () { return null; })]).then(function (g) {
       camadasRef.reg = L.geoJSON(g[0], { style: { color: "#0b4f8a", weight: 1.4, fill: false }, interactive: false }).addTo(mapa);
       camadasRef.ti = L.geoJSON(g[1], { style: { color: "#6b7a8f", weight: .8, dashArray: "3 3", fill: false }, interactive: false });
-      var camadas = { "Regiões climáticas": camadasRef.reg, "Territórios de Identidade": camadasRef.ti };
+      // Limites municipais (IBGE 2024, ~0,9 MB): só baixa quando a camada é ligada.
+      camadasRef.mun = L.geoJSON(null, { style: { color: "#8a6d3b", weight: .6, opacity: .8, fill: false }, interactive: false });
+      var camadas = { "Regiões climáticas": camadasRef.reg, "Territórios de Identidade": camadasRef.ti, "Municípios": camadasRef.mun };
+      mapa.on("overlayadd", function (e) {
+        if (e.layer !== camadasRef.mun || camadasRef.munCarregado) return;
+        camadasRef.munCarregado = true;
+        fetch("https://cdn.jsdelivr.net/gh/" + REPO + "@main/extremos/municipios_ba.geojson")
+          .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+          .then(function (gj) { camadasRef.mun.addData(gj); })
+          .catch(function () { camadasRef.munCarregado = false; alert("Não foi possível carregar os limites dos municípios. Tente de novo."); });
+      });
       if (g[2]) {
         mapa.createPane("ucs"); mapa.getPane("ucs").style.zIndex = 390;   // abaixo dos focos
         camadaUC = L.geoJSON(g[2], { pane: "ucs", style: function (f) { var c = f.properties.dominio === "Federal" ? "#0b4f8a" : f.properties.dominio === "Estadual" ? "#2e8b57" : "#b7791f"; return { color: c, weight: 1.1, fillColor: c, fillOpacity: .07 }; },
