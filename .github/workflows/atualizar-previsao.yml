@@ -2,16 +2,11 @@ name: Atualizar previsão
 
 on:
   schedule:
-    # Horários em UTC (Bahia = UTC-3). Minuto 17 de propósito: na hora cheia o GitHub atrasa ou descarta rodadas:
-    #   05:17 UTC = 02:17 na Bahia
-    #   11:17 UTC = 08:17 na Bahia
-    #   17:17 UTC = 14:17 na Bahia
-    #   23:17 UTC = 20:17 na Bahia
-    - cron: "17 5 * * *"
-    - cron: "17 11 * * *"
-    - cron: "17 17 * * *"
-    - cron: "17 23 * * *"
-  workflow_dispatch: {}   # permite rodar manualmente pela aba Actions
+    # O agendamento do GitHub não tem horário garantido (atrasa ou pula rodadas).
+    # Por isso o robô tenta TODA HORA, no minuto 17, e só atualiza se a previsão publicada
+    # tiver 5 h 30 min ou mais. Rodadas extras terminam em segundos, sem baixar nada.
+    - cron: "17 * * * *"
+  workflow_dispatch: {}   # rodada manual pela aba Actions: sempre atualiza
 
 permissions:
   contents: write
@@ -23,33 +18,61 @@ concurrency:
 jobs:
   atualizar:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verificar se precisa atualizar
+        id: verifica
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "rodar=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json, datetime as dt
+          try:
+              g = json.load(open("previsao.json", encoding="utf-8"))["gerado_em"]
+              idade = (dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(g)).total_seconds() / 3600
+          except Exception:
+              idade = 99
+          print("rodar=" + ("true" if idade >= 5.5 else "false"))
+          EOF
+          cat "$GITHUB_OUTPUT"
+
       - uses: actions/setup-python@v5
+        if: steps.verifica.outputs.rodar == 'true'
         with:
           python-version: "3.12"
 
       - name: Gerar previsao.json
+        if: steps.verifica.outputs.rodar == 'true'
         run: python gerar_previsao.py
 
       - name: Gerar iuv.json
+        if: steps.verifica.outputs.rodar == 'true'
         continue-on-error: true   # se o IUV falhar, a previsão do tempo é publicada mesmo assim
         run: python gerar_iuv.py
 
+      - name: Gerar extremos.json (ECMWF e GFS por município, direto da grade dos modelos)
+        if: steps.verifica.outputs.rodar == 'true'
+        continue-on-error: true   # se falhar, a previsão é publicada mesmo assim
+        run: |
+          pip install numpy matplotlib eccodes
+          python extremos/gerar_extremos.py --saida extremos.json
+
       - name: Publicar no repositório
+        if: steps.verifica.outputs.rodar == 'true'
         id: commit
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add previsao.json
           if [ -f iuv.json ]; then git add iuv.json; fi
+          if [ -f extremos.json ]; then git add extremos.json; fi
           if git diff --cached --quiet; then
             echo "Sem mudanças."
             echo "mudou=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Previsão atualizada em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+            git pull --rebase -q || true
             git push
             echo "mudou=true" >> "$GITHUB_OUTPUT"
           fi
@@ -61,7 +84,7 @@ jobs:
         run: |
           for espera in 20 120; do
             sleep $espera
-            for f in previsao.json iuv.json; do
+            for f in previsao.json iuv.json extremos.json; do
               curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" || echo "Aviso: purge de $f falhou; o jsDelivr atualiza sozinho em até 12 h."
             done
           done

@@ -1,13 +1,12 @@
 name: Mapas dos modelos
 
 # Gera os mapas ECMWF x GFS x ICON da Bahia e publica no ramo "mapas".
-# Horários em UTC, no minuto 13 para fugir da hora cheia:
-#   09:13 UTC = 06:13 na Bahia (rodada 00 UTC dos três modelos já completa)
-#   21:13 UTC = 18:13 na Bahia (rodada 12 UTC)
+# O agendamento do GitHub não tem horário garantido, então o robô tenta TODA HORA (minuto 13)
+# e só gera mapas se os publicados tiverem 11 h ou mais (na prática, ~2 vezes por dia,
+# quando sai uma rodada nova 00 ou 12 UTC). Rodadas extras terminam em segundos.
 on:
   schedule:
-    - cron: "13 9 * * *"
-    - cron: "13 21 * * *"
+    - cron: "13 * * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -22,27 +21,49 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
+      - name: Verificar se precisa gerar mapas
+        id: verifica
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "rodar=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          curl -fsS "https://raw.githubusercontent.com/${{ github.repository }}/mapas/info.json" -o info.json || echo '{}' > info.json
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json, datetime as dt
+          try:
+              g = json.load(open("info.json", encoding="utf-8"))["gerado_em"]
+              idade = (dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(g)).total_seconds() / 3600
+          except Exception:
+              idade = 99
+          print("rodar=" + ("true" if idade >= 11 else "false"))
+          EOF
+          cat "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
+        if: steps.verifica.outputs.rodar == 'true'
 
       - uses: actions/setup-python@v5
+        if: steps.verifica.outputs.rodar == 'true'
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: mapas/requirements.txt
 
       - name: Instalar bibliotecas
+        if: steps.verifica.outputs.rodar == 'true'
         run: pip install -r mapas/requirements.txt
 
       - name: Cache dos contornos (Natural Earth)
+        if: steps.verifica.outputs.rodar == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.local/share/cartopy
           key: cartopy-naturalearth-v1
 
       - name: Gerar mapas
+        if: steps.verifica.outputs.rodar == 'true'
         run: python mapas/gerar_mapas.py --saida saida
 
       - name: Publicar no ramo mapas (substitui a versão anterior, sem acumular histórico)
+        if: steps.verifica.outputs.rodar == 'true'
         run: |
           cd saida
           git init -q
@@ -54,6 +75,7 @@ jobs:
           git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" mapas
 
       - name: Limpar cache do jsDelivr
+        if: steps.verifica.outputs.rodar == 'true'
         # Duas limpezas: logo após publicar o jsDelivr ainda pode apontar para a versão anterior do ramo
         # e guardá-la de novo; a segunda, 2 min depois, garante a versão nova.
         run: |
