@@ -19,7 +19,7 @@ e ainda a análise do GFS (hora 0) de pressão + 850 hPa, usada como "carta sin�
 Saída: PNGs + info.json na pasta indicada (--saida), publicados no ramo "mapas".
 Dia local = 00h às 24h no horário da Bahia (03 UTC a 03 UTC).
 """
-import argparse, bz2, datetime as dt, io, json, os, sys, time, traceback, urllib.request, urllib.error
+import argparse, bz2, datetime as dt, io, json, os, sys, tempfile, time, traceback, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -84,10 +84,13 @@ def existe(url):
 # ---------------------------------------------------------------- leitura GRIB
 def mensagens(raw):
     """Itera mensagens GRIB de um bloco de bytes, devolvendo (chaves, valores, lats, lons|None)."""
-    f = io.BytesIO(raw)
+    # o ecCodes precisa de um arquivo de verdade (com fileno), não de BytesIO
+    f = tempfile.TemporaryFile()
+    f.write(raw); f.seek(0)
     while True:
         gid = eccodes.codes_grib_new_from_file(f)
         if gid is None:
+            f.close()
             break
         try:
             k = {n: eccodes.codes_get(gid, n) for n in ("shortName", "typeOfLevel", "level", "gridType")}
