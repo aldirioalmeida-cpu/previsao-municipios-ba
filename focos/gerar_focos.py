@@ -13,6 +13,8 @@ Gera (pasta --saida, publicada no ramo "focos"):
   todos.json           contagem diária por município, bioma e satélite — todos os satélites, desde 1º/jan do ano passado
   pontos_ref_AAAA.json focos individuais do satélite de referência, um arquivo por ano (para o mapa)
   pontos_todos.json    focos individuais de todos os satélites dos últimos 60 dias (para o mapa)
+  uc.json              focos por unidade de conservação (referência desde 2003 e todos os satélites)
+  (nos pontos, o último campo é a UC do foco — a menor, se houver sobreposição — ou -1)
 Datas em UTC (padrão do INPE).
 """
 import argparse, csv, datetime as dt, gzip, io, json, os, sys, time, unicodedata, urllib.request, urllib.error, zipfile
@@ -28,6 +30,64 @@ DIAS_PONTOS_TODOS = 60
 
 def log(*a):
     print(time.strftime("%H:%M:%S"), *a, flush=True)
+
+
+# ------------------------------------------------------------ unidades de conservação
+# uc_ba.geojson: 113 UCs (federais, estaduais e municipais) do shapefile "1 - UNIDADES DE CONSERVAÇÃO".
+# As UCs se sobrepõem (ex.: parque dentro de APA): um foco conta em cada UC em que cai, e os
+# totais "em UC" (índices negativos) contam cada foco uma vez só.
+UNIOES = [("Todas as UCs", None, None), ("Federais", "dominio", "Federal"), ("Estaduais", "dominio", "Estadual"),
+          ("Municipais", "dominio", "Municipal"), ("Proteção Integral", "grupo", "Proteção Integral"),
+          ("Uso Sustentável", "grupo", "Uso Sustentável")]   # índices -1, -2, ... -6
+
+
+def carrega_ucs():
+    from matplotlib.path import Path
+    with open(os.path.join(AQUI, "uc_ba.geojson"), encoding="utf-8") as f:
+        g = json.load(f)
+    ucs = []
+    for ft in g["features"]:
+        polys = []
+        for poly in ft["geometry"]["coordinates"]:
+            ext = np.asarray(poly[0], float)
+            polys.append((Path(ext), [Path(np.asarray(h, float)) for h in poly[1:]],
+                          (ext[:, 0].min(), ext[:, 1].min(), ext[:, 0].max(), ext[:, 1].max())))
+        ucs.append((ft["properties"], polys))
+    return ucs
+
+
+def marca_ucs(regs, ucs):
+    """Grava em cada registro r["uc"] = lista dos índices das UCs que contêm o foco (a menor UC primeiro)."""
+    falta = [r for r in regs if "uc" not in r]
+    if not falta:
+        return
+    lon = np.array([r["lon"] for r in falta]); lat = np.array([r["lat"] for r in falta])
+    pts = np.column_stack([lon, lat])
+    dentro = [[] for _ in falta]
+    for u, (_, polys) in enumerate(ucs):            # ucs já vêm em ordem crescente de área
+        for ext, buracos, (x0, y0, x1, y1) in polys:
+            sel = np.nonzero((lon >= x0) & (lon <= x1) & (lat >= y0) & (lat <= y1))[0]
+            if not len(sel):
+                continue
+            ok = ext.contains_points(pts[sel])
+            for h in buracos:
+                ok &= ~h.contains_points(pts[sel])
+            for i in sel[ok]:
+                if u not in dentro[i]:
+                    dentro[i].append(u)
+    for r, d in zip(falta, dentro):
+        r["uc"] = d
+
+
+def uc_chaves(lista, ucs):
+    """Índices em que o foco conta: cada UC (>=0) e as uniões (-1..-6, uma vez cada)."""
+    if not lista:
+        return []
+    ks = list(lista)
+    for j, (_, campo, valor) in enumerate(UNIOES):
+        if campo is None or any(ucs[u][0][campo] == valor for u in lista):
+            ks.append(-1 - j)
+    return ks
 
 
 def baixar(url, tentativas=4):
@@ -238,16 +298,49 @@ def main():
         with open(os.path.join(a.saida, nome), "w", encoding="utf-8") as f:
             json.dump(obj, f, ensure_ascii=False, separators=(",", ":"))
 
+    # ---- unidades de conservação
+    ucs = carrega_ucs()
+    ordem = sorted(range(len(ucs)), key=lambda u: ucs[u][0]["area_km2"])
+    ucs = [ucs[u] for u in ordem]
+    for y, regs in ref_por_ano.items():
+        marca_ucs(regs, ucs)
+    marca_ucs(todos_total, ucs)
+    agg = {}
+    for regs in ref_por_ano.values():
+        for r in regs:
+            dia = (dt.date.fromisoformat(r["data"]) - d0_ref).days
+            for u in uc_chaves(r["uc"], ucs):
+                agg[(dia, u)] = agg.get((dia, u), 0) + 1
+    uc_ref = sorted([list(k) + [v] for k, v in agg.items()])
+    agg = {}
+    for r in todos_total:
+        dia = (dt.date.fromisoformat(r["data"]) - d0_todos).days
+        for u in uc_chaves(r["uc"], ucs):
+            k = (dia, u, s_idx[r["sat"]])
+            q, f = agg.get(k, (0, 0.0))
+            agg[k] = (q + 1, f + (r["frp"] or 0.0))
+    uc_todos = sorted([list(k) + [v[0], round(v[1], 1)] for k, v in agg.items()])
+    grava("uc.json", {
+        "ucs": [[p["nome"], p["dominio"], p["grupo"], p["area_km2"]] for p, _ in ucs],
+        "unioes": [n for n, _, _ in UNIOES],
+        "nota": "Um foco conta em cada UC que o contém (há UCs sobrepostas); as uniões (índices -1 a -6) contam cada foco uma vez.",
+        "ref": {"d0": d0_ref.isoformat(), "campos": ["dia", "uc", "focos"], "linhas": uc_ref},
+        "todos": {"d0": d0_todos.isoformat(), "campos": ["dia", "uc", "sat", "focos", "frp"], "linhas": uc_todos}})
+    log("UCs: focos de referência em UC:", sum(1 for regs in ref_por_ano.values() for r in regs if r["uc"]),
+        "| todos os satélites em UC:", sum(1 for r in todos_total if r["uc"]))
+
     grava("ref.json", {"d0": d0_ref.isoformat(), "campos": ["dia", "mun", "bioma", "focos"], "linhas": ref_rows})
     grava("todos.json", {"d0": d0_todos.isoformat(), "campos": ["dia", "mun", "bioma", "sat", "focos", "frp"], "linhas": todos_rows})
 
     # ---- pontos para o mapa
     for y, regs in ref_por_ano.items():
         grava(f"pontos_ref_{y}.json", [[r["lat"], r["lon"], (dt.date.fromisoformat(r["data"]) - d0_ref).days, int(r["hora"] or 0),
-                                        mun_idx(r), b_idx[r["bio"] or "Não informado"], r["frp"]] for r in regs])
+                                        mun_idx(r), b_idx[r["bio"] or "Não informado"], r["frp"],
+                                        r["uc"][0] if r["uc"] else -1] for r in regs])
     corte = hoje - dt.timedelta(days=DIAS_PONTOS_TODOS)
     grava("pontos_todos.json", [[r["lat"], r["lon"], (dt.date.fromisoformat(r["data"]) - d0_todos).days, int(r["hora"] or 0),
-                                 s_idx[r["sat"]], mun_idx(r), b_idx[r["bio"] or "Não informado"], r["frp"]]
+                                 s_idx[r["sat"]], mun_idx(r), b_idx[r["bio"] or "Não informado"], r["frp"],
+                                 r["uc"][0] if r["uc"] else -1]
                                 for r in todos_total if dt.date.fromisoformat(r["data"]) >= corte])
 
     ultimo = max((r["data"] + " " + r["hora"] for r in atual), default=None)

@@ -1,5 +1,5 @@
-/* INEMA · Meteorologia — Painel de focos de calor (carregado pela página /inema/meteorologia/focos-de-calor). Gerado a partir de focos-de-calor-inema.html. */
-(function () { if (document.getElementById('inema-fc-css')) return; var s = document.createElement('style'); s.id = 'inema-fc-css'; s.textContent = "#inema-fc{--az:#0b4f8a;--az2:#e8f0f8;--tx:#1d2733;--tx2:#5b6773;--ln:#e1e6ec;--bg:#fff;--fundo:#f5f7fa;--fogo:#e4572e;--fogo2:#fdeee9;--ok:#2e7d4f;--ruim:#c0392b;\n  font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;color:var(--tx);font-size:15px;line-height:1.45;max-width:1400px;margin:0 auto}\n#inema-fc *{box-sizing:border-box}\n#inema-fc .fc-topo{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:.5rem 1.5rem;margin-bottom:.4rem}\n#inema-fc h2{font-size:1.6rem;margin:0;color:var(--tx);letter-spacing:-.01em}\n#inema-fc h2 span{color:var(--fogo)}\n#inema-fc .fc-atual{font-size:.82rem;color:var(--tx2)}\n#inema-fc .fc-atual b{color:var(--tx)}\n#inema-fc .fc-nav{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.85rem;margin:.2rem 0 1rem}\n#inema-fc .fc-nav a{color:var(--az)}\n#inema-fc .fc-nav b{color:var(--tx)}\n#inema-fc .fc-carregando,#inema-fc .fc-erro{padding:1rem;border-radius:10px;background:var(--az2)}\n#inema-fc .fc-erro{background:#fdecea;color:#8a1c12}\n/* filtros */\n#inema-fc .fc-filtros{position:relative;z-index:20;background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:.8rem 1rem;box-shadow:0 2px 10px rgba(20,40,70,.06);display:grid;grid-template-columns:auto 1fr;gap:.55rem 1rem;align-items:center}\n#inema-fc .fc-rot{font-size:.72rem;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}\n#inema-fc .fc-linha{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}\n#inema-fc .fc-seg{display:inline-flex;background:var(--fundo);border:1px solid var(--ln);border-radius:999px;padding:3px}\n#inema-fc .fc-seg button{border:0;background:transparent;padding:.35rem .85rem;border-radius:999px;font:inherit;font-size:.86rem;color:var(--tx2);cursor:pointer}\n#inema-fc .fc-seg button[aria-pressed=true]{background:var(--bg);color:var(--tx);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}\n#inema-fc .fc-chip{border:1px solid var(--ln);background:var(--bg);padding:.32rem .75rem;border-radius:999px;font:inherit;font-size:.84rem;cursor:pointer;color:var(--tx)}\n#inema-fc .fc-chip[aria-pressed=true]{background:var(--tx);border-color:var(--tx);color:#fff}\n#inema-fc .fc-chip .bola{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;margin-right:.35rem;vertical-align:baseline}\n#inema-fc select,#inema-fc input[type=date],#inema-fc input[type=text]{font:inherit;font-size:.86rem;padding:.32rem .6rem;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx)}\n#inema-fc .fc-datas{display:none;gap:.35rem;align-items:center;font-size:.84rem;color:var(--tx2)}\n#inema-fc .fc-datas.vis{display:inline-flex}\n#inema-fc .fc-dica{font-size:.78rem;color:var(--tx2)}\n/* indicadores */\n#inema-fc .fc-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.8rem;margin:1rem 0}\n#inema-fc .fc-kpi{background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:.85rem 1rem}\n#inema-fc .fc-kpi .t{font-size:.76rem;color:var(--tx2);font-weight:600}\n#inema-fc .fc-kpi .v{font-size:1.75rem;font-weight:700;letter-spacing:-.02em;margin-top:.15rem;font-variant-numeric:tabular-nums}\n#inema-fc .fc-kpi .s{font-size:.78rem;color:var(--tx2);margin-top:.1rem}\n#inema-fc .fc-kpi.destaque{background:linear-gradient(135deg,#fff 0%,var(--fogo2) 100%);border-color:#f6c9bb}\n#inema-fc .fc-kpi.destaque .v{color:var(--fogo)}\n#inema-fc .sobe{color:var(--ruim);font-weight:700}\n#inema-fc .desce{color:var(--ok);font-weight:700}\n/* cartões */\n#inema-fc .fc-grade{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:1rem}\n#inema-fc .fc-card{background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:1rem;min-width:0}\n#inema-fc .fc-card h3{font-size:1rem;margin:0 0 .15rem}\n#inema-fc .fc-card .sub{font-size:.78rem;color:var(--tx2);margin:0 0 .6rem}\n#inema-fc .c12{grid-column:span 12}#inema-fc .c8{grid-column:span 8}#inema-fc .c7{grid-column:span 7}#inema-fc .c6{grid-column:span 6}#inema-fc .c5{grid-column:span 5}#inema-fc .c4{grid-column:span 4}\n#inema-fc .fc-graf{position:relative;height:260px}\n#inema-fc .fc-graf.alto{height:320px}\n#inema-fc #fc-mapa{height:520px;border-radius:10px;overflow:hidden;background:#e9eef3}\n#inema-fc .fc-mapa-topo{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem;align-items:center;margin-bottom:.5rem}\n#inema-fc .fc-aviso{font-size:.82rem;color:#7a4b00;background:#fff4e5;border-radius:8px;padding:.45rem .7rem;margin-bottom:.5rem}\n/* rankings */\n#inema-fc .fc-abas{display:flex;gap:.3rem;margin-bottom:.6rem;flex-wrap:wrap}\n#inema-fc .fc-rank{display:flex;flex-direction:column;gap:.3rem;max-height:420px;overflow:auto;padding-right:.3rem}\n#inema-fc .fc-item{display:grid;grid-template-columns:1.6rem minmax(0,1fr) auto;gap:.5rem;align-items:center;font-size:.86rem}\n#inema-fc .fc-item .p{color:var(--tx2);text-align:right;font-variant-numeric:tabular-nums}\n#inema-fc .fc-item .nome{position:relative;padding:.28rem .5rem;border-radius:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}\n#inema-fc .fc-item .nome i{position:absolute;inset:0 auto 0 0;background:var(--fogo2);z-index:0;border-radius:6px}\n#inema-fc .fc-item .nome span{position:relative;z-index:1}\n#inema-fc .fc-item .n{font-weight:700;font-variant-numeric:tabular-nums;text-align:right;min-width:3.2rem}\n#inema-fc .fc-item .n small{display:block;font-weight:400;color:var(--tx2);font-size:.72rem}\n#inema-fc .fc-vazio{color:var(--tx2);font-size:.88rem;padding:1rem 0}\n#inema-fc .fc-acoes{display:flex;gap:.5rem;flex-wrap:wrap}\n#inema-fc .fc-bt{border:1px solid var(--az);background:var(--bg);color:var(--az);padding:.4rem .9rem;border-radius:8px;font:inherit;font-size:.86rem;cursor:pointer}\n#inema-fc .fc-bt:hover{background:var(--az2)}\n#inema-fc .fc-rodape{font-size:.78rem;color:var(--tx2);margin-top:1rem;line-height:1.5}\n#inema-fc .leaflet-container{font:inherit}\n@media (min-height:1000px) and (min-width:1100px){#inema-fc .fc-filtros{position:sticky;top:0}}\n@media (max-width:1100px){#inema-fc .fc-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#inema-fc .c8,#inema-fc .c7,#inema-fc .c6,#inema-fc .c5,#inema-fc .c4{grid-column:span 12}}\n@media (max-width:640px){#inema-fc .fc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-fc .fc-filtros{grid-template-columns:1fr;position:static}#inema-fc #fc-mapa{height:380px}}"; document.head.appendChild(s); })();
+/* INEMA — Painel de focos de calor (carregado pela página /inema/iniciativas/focos-de-calor). Gerado a partir de focos-de-calor-inema.html. */
+(function () { if (document.getElementById('inema-fc-css')) return; var s = document.createElement('style'); s.id = 'inema-fc-css'; s.textContent = "#inema-fc{--az:#0b4f8a;--az2:#e8f0f8;--tx:#1d2733;--tx2:#5b6773;--ln:#e1e6ec;--bg:#fff;--fundo:#f5f7fa;--fogo:#e4572e;--fogo2:#fdeee9;--ok:#2e7d4f;--ruim:#c0392b;\n  font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;color:var(--tx);font-size:15px;line-height:1.45;max-width:1400px;margin:0 auto}\n#inema-fc *{box-sizing:border-box}\n#inema-fc .fc-topo{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:.5rem 1.5rem;margin-bottom:.4rem}\n#inema-fc h2{font-size:1.6rem;margin:0;color:var(--tx);letter-spacing:-.01em}\n#inema-fc h2 span{color:var(--fogo)}\n#inema-fc .fc-atual{font-size:.82rem;color:var(--tx2)}\n#inema-fc .fc-atual b{color:var(--tx)}\n#inema-fc .fc-nav{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.85rem;margin:.2rem 0 1rem}\n#inema-fc .fc-nav a{color:var(--az)}\n#inema-fc .fc-nav b{color:var(--tx)}\n#inema-fc .fc-carregando,#inema-fc .fc-erro{padding:1rem;border-radius:10px;background:var(--az2)}\n#inema-fc .fc-erro{background:#fdecea;color:#8a1c12}\n/* filtros */\n#inema-fc .fc-filtros{position:relative;z-index:20;background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:.8rem 1rem;box-shadow:0 2px 10px rgba(20,40,70,.06);display:grid;grid-template-columns:auto 1fr;gap:.55rem 1rem;align-items:center}\n#inema-fc .fc-rot{font-size:.72rem;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}\n#inema-fc .fc-linha{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}\n#inema-fc .fc-seg{display:inline-flex;background:var(--fundo);border:1px solid var(--ln);border-radius:999px;padding:3px}\n#inema-fc .fc-seg button{border:0;background:transparent;padding:.35rem .85rem;border-radius:999px;font:inherit;font-size:.86rem;color:var(--tx2);cursor:pointer}\n#inema-fc .fc-seg button[aria-pressed=true]{background:var(--bg);color:var(--tx);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}\n#inema-fc .fc-chip{border:1px solid var(--ln);background:var(--bg);padding:.32rem .75rem;border-radius:999px;font:inherit;font-size:.84rem;cursor:pointer;color:var(--tx)}\n#inema-fc .fc-chip[aria-pressed=true]{background:var(--tx);border-color:var(--tx);color:#fff}\n#inema-fc .fc-chip .bola{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;margin-right:.35rem;vertical-align:baseline}\n#inema-fc select,#inema-fc input[type=date],#inema-fc input[type=text]{font:inherit;font-size:.86rem;padding:.32rem .6rem;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx)}\n#inema-fc .fc-datas{display:none;gap:.35rem;align-items:center;font-size:.84rem;color:var(--tx2)}\n#inema-fc .fc-datas.vis{display:inline-flex}\n#inema-fc .fc-dica{font-size:.78rem;color:var(--tx2)}\n/* indicadores */\n#inema-fc .fc-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.8rem;margin:1rem 0}\n#inema-fc .fc-kpi{background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:.85rem 1rem}\n#inema-fc .fc-kpi .t{font-size:.76rem;color:var(--tx2);font-weight:600}\n#inema-fc .fc-kpi .v{font-size:1.75rem;font-weight:700;letter-spacing:-.02em;margin-top:.15rem;font-variant-numeric:tabular-nums}\n#inema-fc .fc-kpi .s{font-size:.78rem;color:var(--tx2);margin-top:.1rem}\n#inema-fc .fc-kpi.destaque{background:linear-gradient(135deg,#fff 0%,var(--fogo2) 100%);border-color:#f6c9bb}\n#inema-fc .fc-kpi.destaque .v{color:var(--fogo)}\n#inema-fc .sobe{color:var(--ruim);font-weight:700}\n#inema-fc .desce{color:var(--ok);font-weight:700}\n/* cartões */\n#inema-fc .fc-grade{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:1rem}\n#inema-fc .fc-card{background:var(--bg);border:1px solid var(--ln);border-radius:14px;padding:1rem;min-width:0}\n#inema-fc .fc-card h3{font-size:1rem;margin:0 0 .15rem}\n#inema-fc .fc-card .sub{font-size:.78rem;color:var(--tx2);margin:0 0 .6rem}\n#inema-fc .c12{grid-column:span 12}#inema-fc .c8{grid-column:span 8}#inema-fc .c7{grid-column:span 7}#inema-fc .c6{grid-column:span 6}#inema-fc .c5{grid-column:span 5}#inema-fc .c4{grid-column:span 4}\n#inema-fc .fc-graf{position:relative;height:260px}\n#inema-fc .fc-graf.alto{height:320px}\n#inema-fc #fc-mapa{height:520px;border-radius:10px;overflow:hidden;background:#e9eef3}\n#inema-fc .fc-mapa-topo{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem;align-items:center;margin-bottom:.5rem}\n#inema-fc .fc-aviso{font-size:.82rem;color:#7a4b00;background:#fff4e5;border-radius:8px;padding:.45rem .7rem;margin-bottom:.5rem}\n/* rankings */\n#inema-fc .fc-abas{display:flex;gap:.3rem;margin-bottom:.6rem;flex-wrap:wrap}\n#inema-fc .fc-rank{display:flex;flex-direction:column;gap:.3rem;max-height:420px;overflow:auto;padding-right:.3rem}\n#inema-fc .fc-item{display:grid;grid-template-columns:1.6rem minmax(0,1fr) auto;gap:.5rem;align-items:center;font-size:.86rem}\n#inema-fc .fc-item .p{color:var(--tx2);text-align:right;font-variant-numeric:tabular-nums}\n#inema-fc .fc-item .nome{position:relative;padding:.28rem .5rem;border-radius:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}\n#inema-fc .fc-item .nome i{position:absolute;inset:0 auto 0 0;background:var(--fogo2);z-index:0;border-radius:6px}\n#inema-fc .fc-item .nome span{position:relative;z-index:1}\n#inema-fc .fc-item .n{font-weight:700;font-variant-numeric:tabular-nums;text-align:right;min-width:3.2rem}\n#inema-fc .fc-item .n small{display:block;font-weight:400;color:var(--tx2);font-size:.72rem}\n#inema-fc .fc-vazio{color:var(--tx2);font-size:.88rem;padding:1rem 0}\n#inema-fc .fc-acoes{display:flex;gap:.5rem;flex-wrap:wrap}\n#inema-fc .fc-bt{border:1px solid var(--az);background:var(--bg);color:var(--az);padding:.4rem .9rem;border-radius:8px;font:inherit;font-size:.86rem;cursor:pointer}\n#inema-fc .fc-bt:hover{background:var(--az2)}\n#inema-fc .fc-rodape{font-size:.78rem;color:var(--tx2);margin-top:1rem;line-height:1.5}\n#inema-fc .leaflet-container{font:inherit}\n/* unidades de conservação */\n#inema-fc .fc-uc{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:1.2rem}\n#inema-fc .fc-uc-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem;margin-bottom:.8rem}\n#inema-fc .fc-uc-kpis .fc-kpi{padding:.65rem .8rem}\n#inema-fc .fc-uc-kpis .fc-kpi .v{font-size:1.4rem}\n#inema-fc .fc-uc-tab{width:100%;border-collapse:collapse;font-size:.84rem}\n#inema-fc .fc-uc-tab th{text-align:left;font-size:.72rem;color:var(--tx2);font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:.3rem .4rem;border:0;border-bottom:1px solid var(--ln);background:none;position:sticky;top:0;background:var(--bg)}\n#inema-fc .fc-uc-tab td{padding:.32rem .4rem;border:0;border-bottom:1px solid #f0f2f5;vertical-align:middle}\n#inema-fc .fc-uc-tab td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}\n#inema-fc .fc-uc-tab tr.lin{cursor:pointer}\n#inema-fc .fc-uc-tab tr.lin:hover td{background:#f7f9fb}\n#inema-fc .fc-uc-rol{max-height:430px;overflow:auto}\n#inema-fc .fc-tag{display:inline-block;font-size:.68rem;padding:.05rem .4rem;border-radius:999px;margin-left:.3rem;vertical-align:1px;white-space:nowrap}\n#inema-fc .fc-tag.Federal{background:#e3ecf7;color:#0b4f8a}#inema-fc .fc-tag.Estadual{background:#e3f3e9;color:#1f6b40}#inema-fc .fc-tag.Municipal{background:#f3ece0;color:#7a5418}\n#inema-fc .fc-tag.pi{background:#fde8e4;color:#9a2a17}#inema-fc .fc-tag.us{background:#eef0f3;color:#4b5563}\n@media (max-width:1100px){#inema-fc .fc-uc{grid-template-columns:1fr}}\n@media (min-height:1000px) and (min-width:1100px){#inema-fc .fc-filtros{position:sticky;top:0}}\n@media (max-width:1100px){#inema-fc .fc-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#inema-fc .c8,#inema-fc .c7,#inema-fc .c6,#inema-fc .c5,#inema-fc .c4{grid-column:span 12}}\n@media (max-width:640px){#inema-fc .fc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-fc .fc-filtros{grid-template-columns:1fr;position:static}#inema-fc #fc-mapa{height:380px}}"; document.head.appendChild(s); })();
 /* INEMA · Meteorologia — Painel de focos de calor da Bahia (dados abertos INPE / Programa Queimadas).
    Dados preparados pelo robô do GitHub (focos/gerar_focos.py) e publicados no ramo "focos".
    Bibliotecas: Chart.js (gráficos), Leaflet (mapa) e SheetJS (planilha), carregadas do jsDelivr.
@@ -25,15 +25,14 @@
   function anoDe(n) { return new Date(n * 864e5).getUTCFullYear(); }
 
   var META, REF, TODOS, MUN, HOJE, D0REF, D0TODOS;
-  var sel = { serie: "ref", periodo: "ano", de: null, ate: null, biomas: {}, tipo: "estado", valor: "", sats: {}, rank: "mun", corMapa: "bioma" };
+  var UC = null, UCREF = null, UCTODOS = null, camadaUC = null, ucLayers = {}, ucDestaque = null;
+  var sel = { serie: "ref", periodo: "ano", de: null, ate: null, biomas: {}, tipo: "estado", valor: "", sats: {}, rank: "mun", corMapa: "bioma", ucGrupo: "-1", mapaUC: "todos" };
   try { var g = JSON.parse(localStorage.getItem("inemaFocos") || "{}"); ["serie", "periodo", "rank"].forEach(function (k) { if (g[k]) sel[k] = g[k]; }); } catch (e) {}
   var graficos = {}, mapa = null, camadaPontos = null, camadasRef = {}, cachePontos = {};
 
   raiz.innerHTML =
-    "<div class='fc-topo'><h2>Focos de calor <span>· Bahia</span></h2><div class='fc-atual' id='fc-atual'>Carregando dados do INPE…</div></div>" +
-    "<div class='fc-nav'><b>Meteorologia:</b><a href='/inema/meteorologia'>Início</a><a href='/inema/meteorologia/previsao-temperaturas'>Previsão de temperaturas e extremos</a>" +
-    "<a href='/inema/meteorologia/modelos'>Mapas dos modelos</a><a href='/inema/meteorologia/satelite'>Satélite</a><a href='/inema/meteorologia/focos-de-calor'>Focos de calor</a></div>" +
-    "<div id='fc-corpo'><div class='fc-carregando'>Carregando o histórico de focos (2003 até hoje)…</div></div>";
+    "<div class='fc-topo'><h2>Painel de focos de calor <span>· Bahia</span></h2><div class='fc-atual' id='fc-atual'>Carregando dados do INPE…</div></div>" +
+    "<div id='fc-corpo' style='margin-top:.6rem'><div class='fc-carregando'>Carregando o histórico de focos (2003 até hoje)…</div></div>";
 
   function montaEstrutura() {
     $("fc-corpo").innerHTML =
@@ -53,12 +52,16 @@
         "<div class='fc-card c6'><h3 id='fc-t-acum'>Acumulado no ano</h3><p class='sub' id='fc-s-acum'></p><div class='fc-graf'><canvas id='g-acum'></canvas></div></div>" +
         "<div class='fc-card c6'><h3 id='fc-t-mes'>Focos por mês</h3><p class='sub' id='fc-s-mes'></p><div class='fc-graf'><canvas id='g-mes'></canvas></div></div>" +
         "<div class='fc-card c7'><div class='fc-mapa-topo'><div><h3>Mapa dos focos</h3><p class='sub' id='fc-s-mapa' style='margin:0'></p></div>" +
-          "<div class='fc-seg' id='fc-cor-mapa'></div></div><div id='fc-aviso-mapa'></div><div id='fc-mapa'></div></div>" +
+          "<div class='fc-linha'><div class='fc-seg' id='fc-mapa-uc'></div><div class='fc-seg' id='fc-cor-mapa'></div></div></div><div id='fc-aviso-mapa'></div><div id='fc-mapa'></div></div>" +
         "<div class='fc-card c5'><h3>Onde mais queimou</h3><p class='sub'>Ranking do período — clique para filtrar</p><div class='fc-abas fc-seg' id='fc-abas'></div><div class='fc-rank' id='fc-rank'></div></div>" +
+        "<div class='fc-card c12' id='fc-card-uc'><div class='fc-mapa-topo'><div><h3>Focos em unidades de conservação</h3><p class='sub' id='fc-s-uc' style='margin:0'>Carregando…</p></div>" +
+          "<div class='fc-seg' id='fc-uc-grupo'></div></div><div id='fc-aviso-uc'></div><div class='fc-uc'><div><div class='fc-uc-kpis' id='fc-uc-kpis'></div>" +
+          "<div class='fc-graf' style='height:220px'><canvas id='g-uc'></canvas></div></div><div class='fc-uc-rol' id='fc-uc-rank'></div></div></div>" +
         "<div class='fc-card c12' id='fc-card-sat' hidden><h3>Por satélite</h3><p class='sub'>Focos detectados por cada satélite no período (um mesmo fogo pode ser detectado por vários)</p><div class='fc-graf'><canvas id='g-sat'></canvas></div></div>" +
       "</div>" +
       "<div class='fc-card' style='margin-top:1rem'><div class='fc-acoes'><button type='button' class='fc-bt' id='fc-xls'>Baixar focos do período (XLS)</button>" +
-        "<button type='button' class='fc-bt' id='fc-xls-mun'>Baixar totais por município (XLS)</button></div></div>" +
+        "<button type='button' class='fc-bt' id='fc-xls-mun'>Baixar totais por município (XLS)</button>" +
+        "<button type='button' class='fc-bt' id='fc-xls-uc'>Baixar totais por unidade de conservação (XLS)</button></div></div>" +
       "<p class='fc-rodape' id='fc-rodape'></p>";
   }
 
@@ -274,8 +277,87 @@
 
     $("fc-rodape").innerHTML = "Fonte: INPE — Programa Queimadas (dados abertos). Satélite de referência: AQUA_M-T (passagem da tarde), série usada pelo INPE para comparar anos desde 2003. " +
       "\"Todos os satélites\" soma as detecções de todos os sensores, inclusive geoestacionários (GOES), e por isso um mesmo fogo pode aparecer várias vezes; use-o para monitoramento, não para comparar anos. " +
-      "Datas em UTC, como no INPE. Região climática e Território de Identidade atribuídos pelo município do foco.";
+      "Datas em UTC, como no INPE. Região climática e Território de Identidade atribuídos pelo município do foco. " +
+      "Unidades de conservação: 113 UCs federais, estaduais e municipais da Bahia (base do INEMA); o foco é atribuído pela sua localização dentro do limite da UC. " +
+      "Como há UCs sobrepostas (ex.: parque dentro de APA), um foco pode contar em mais de uma UC na tabela; os totais \"em UCs\" contam cada foco uma vez.";
+    desenhaUC(de, ate, total);
     desenhaMapa(de, ate);
+  }
+
+  // ---------- unidades de conservação
+  // uc.json: contagem por dia e UC (um foco conta em cada UC que o contém; as uniões, índices negativos, contam cada foco uma vez)
+  function preparaUC(tab, temSat) {
+    var L = tab.linhas, n = L.length, o = { dia: new Int32Array(n), uc: new Int16Array(n), q: new Int32Array(n) };
+    if (temSat) { o.sat = new Int8Array(n); o.frp = new Float32Array(n); }
+    for (var i = 0; i < n; i++) { var r = L[i]; o.dia[i] = r[0]; o.uc[i] = r[1]; if (temSat) { o.sat[i] = r[2]; o.q[i] = r[3]; o.frp[i] = r[4]; } else o.q[i] = r[2]; }
+    o.n = n; o.d0 = d2n(tab.d0); return o;
+  }
+  var GRUPOS_UC = [["-1", "Todas"], ["-2", "Federais"], ["-3", "Estaduais"], ["-4", "Municipais"], ["-5", "Proteção Integral"], ["-6", "Uso Sustentável"]];
+  function ucNoGrupo(u, g) {   // a UC u pertence à união g (-1..-6)?
+    var p = UC.ucs[u]; g = +g;
+    return g === -1 || (g === -2 && p[1] === "Federal") || (g === -3 && p[1] === "Estadual") || (g === -4 && p[1] === "Municipal") ||
+      (g === -5 && p[2] === "Proteção Integral") || (g === -6 && p[2] === "Uso Sustentável");
+  }
+  function somaUC(de, ate) {   // {u: focos} no período, respeitando o filtro de satélite
+    var D = sel.serie === "ref" ? UCREF : UCTODOS, fs = D.sat && algumSat(), out = {};
+    for (var i = 0; i < D.n; i++) {
+      var d = D.d0 + D.dia[i];
+      if (d < de || d > ate || (fs && !sel.sats[D.sat[i]])) continue;
+      out[D.uc[i]] = (out[D.uc[i]] || 0) + D.q[i];
+    }
+    return out;
+  }
+  function totalBahia(de, ate) {   // total do estado (só filtro de satélite), para o percentual em UC
+    var D = dados(), fs = D.sat && algumSat(), t = 0;
+    for (var i = 0; i < D.n; i++) { var d = D.d0 + D.dia[i]; if (d >= de && d <= ate && !(fs && !sel.sats[D.sat[i]])) t += D.q[i]; }
+    return t;
+  }
+  function tagsUC(p) { return "<span class='fc-tag " + esc(p[1]) + "'>" + esc(p[1]) + "</span><span class='fc-tag " + (p[2] === "Proteção Integral" ? "pi" : "us") + "'>" + (p[2] === "Proteção Integral" ? "Prot. Integral" : "Uso Sust.") + "</span>"; }
+  function desenhaUC(de, ate) {
+    if (!UC || (sel.serie === "todos" && !UCTODOS)) { $("fc-s-uc").textContent = UC === false ? "Dados das unidades de conservação indisponíveis no momento." : "Carregando…"; return; }
+    seg("fc-uc-grupo", GRUPOS_UC, sel.ucGrupo, function (v) { sel.ucGrupo = v; atualiza(); });
+    var g = sel.ucGrupo, nomeG = GRUPOS_UC.filter(function (x) { return x[0] === g; })[0][1];
+    var atual = somaUC(de, ate), antes = somaUC(d2n((anoDe(de) - 1) + n2d(de).slice(4)), d2n((anoDe(ate) - 1) + n2d(ate).slice(4)));
+    var tot = totalBahia(de, ate), emUC = atual[g] || 0, emUCant = antes[g] || 0, pi = atual[-5] || 0, us = atual[-6] || 0;
+    var txtPer = de === ate ? br(n2d(de)) : br(n2d(de)) + " a " + br(n2d(ate));
+    $("fc-s-uc").textContent = (g === "-1" ? "113 UCs federais, estaduais e municipais" : "UCs: " + nomeG) + " · Bahia · " + txtPer + " · clique numa UC para vê-la no mapa";
+    $("fc-aviso-uc").innerHTML = (algumBioma() || (sel.tipo !== "estado" && sel.valor !== "")) ? "<div class='fc-aviso'>Esta seção considera a Bahia inteira e todos os biomas (os filtros de bioma e recorte não se aplicam às UCs).</div>" : "";
+    $("fc-uc-kpis").innerHTML =
+      kpi("Focos em UCs" + (g === "-1" ? "" : " · " + nomeG), fmt(emUC), tot ? (emUC / tot * 100).toFixed(1).replace(".", ",") + "% dos " + fmt(tot) + " focos da Bahia" : "nenhum foco na Bahia no período", "destaque") +
+      kpi("Vs. mesmo período de " + (anoDe(de) - 1), delta(emUC, emUCant), fmt(emUCant) + " focos em UCs") +
+      kpi("Proteção Integral", fmt(pi), "parques, estações ecológicas, refúgios, monumentos e reservas biológicas") +
+      kpi("Uso Sustentável", fmt(us), "APAs, florestas, reservas extrativistas, RPPNs e outras");
+    var esf = [["Federais", atual[-2] || 0, "#0b4f8a"], ["Estaduais", atual[-3] || 0, "#2e8b57"], ["Municipais", atual[-4] || 0, "#b7791f"]];
+    grafico("g-uc", { type: "bar", data: { labels: esf.map(function (x) { return x[0]; }), datasets: [{ label: "Focos", data: esf.map(function (x) { return x[1]; }), backgroundColor: esf.map(function (x) { return x[2]; }), borderRadius: 4, maxBarThickness: 46 }] },
+      options: baseOpc({ indexAxis: "y", plugins: { legend: { display: false }, title: { display: true, text: "Focos por esfera de gestão", font: { size: 12 } } } }) });
+    var lista = [];
+    UC.ucs.forEach(function (p, u) { if (atual[u] && ucNoGrupo(u, g)) lista.push([u, atual[u], antes[u] || 0]); });
+    lista.sort(function (a, b) { return b[1] - a[1]; });
+    var T = "t" + "able", R = "t" + "r", H = "t" + "h", C = "t" + "d";   // o editor do site altera essas marcas se escritas por extenso
+    $("fc-uc-rank").innerHTML = lista.length ? "<" + T + " class='fc-uc-tab'><thead><" + R + "><" + H + ">Unidade de conservação</" + H + "><" + H + " style='text-align:right'>Focos</" + H + "><" + H + " style='text-align:right' title='Focos por 100 km² da UC'>/100 km²</" + H + "><" + H + " style='text-align:right'>" + (anoDe(de) - 1) + "</" + H + "></" + R + "></thead><tbody>" +
+      lista.map(function (it) {
+        var p = UC.ucs[it[0]];
+        return "<" + R + " class='lin' data-u='" + it[0] + "' title='Ver no mapa'><" + C + ">" + esc(p[0]) + " " + tagsUC(p) + "</" + C + "><" + C + " class='n'><b>" + fmt(it[1]) + "</b></" + C + "><" + C + " class='n'>" + (p[3] ? (it[1] / p[3] * 100).toFixed(1).replace(".", ",") : "–") + "</" + C + "><" + C + " class='n' style='color:var(--tx2)'>" + fmt(it[2]) + "</" + C + "></" + R + ">";
+      }).join("") + "</tbody></" + T + ">" : "<div class='fc-vazio'>Nenhum foco em unidades de conservação neste período.</div>";
+  }
+  function mostraUCnoMapa(u) {
+    var nome = UC.ucs[u][0], lay = ucLayers[nome];
+    if (!mapa || !lay) return;
+    if (camadaUC && !mapa.hasLayer(camadaUC)) camadaUC.addTo(mapa);
+    if (ucDestaque) camadaUC.resetStyle(ucDestaque);
+    ucDestaque = lay; lay.setStyle({ color: "#0f5132", weight: 3, fillOpacity: .18 }); lay.bringToFront();
+    mapa.fitBounds(lay.getBounds(), { padding: [20, 20], maxZoom: 11 });
+    $("fc-mapa").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function baixaUC() {
+    if (!UC) return alert("Dados das unidades de conservação ainda não carregados.");
+    var iv = intervalo(), at = somaUC(iv[0], iv[1]), an = somaUC(d2n((anoDe(iv[0]) - 1) + n2d(iv[0]).slice(4)), d2n((anoDe(iv[1]) - 1) + n2d(iv[1]).slice(4)));
+    var linhas = [["Unidade de conservação", "Esfera", "Grupo", "Área (km²)", "Focos", "Focos por 100 km²", "Focos no mesmo período de " + (anoDe(iv[0]) - 1)]];
+    UC.ucs.map(function (p, u) { return [p[0], p[1], p[2], p[3], at[u] || 0, p[3] ? +((at[u] || 0) / p[3] * 100).toFixed(2) : "", an[u] || 0]; })
+      .sort(function (a, b) { return b[4] - a[4]; }).forEach(function (r) { linhas.push(r); });
+    linhas.push([]); UC.unioes.forEach(function (n, j) { linhas.push(["Total sem duplicidade — " + n, "", "", "", at[-1 - j] || 0, "", an[-1 - j] || 0]); });
+    linhas.push([]); linhas.push([UC.nota]);
+    xls("focos-por-uc-" + n2d(iv[0]) + "-a-" + n2d(iv[1]) + ".xls", [["Unidades de conservação", linhas]]);
   }
 
   // ---------- mapa
@@ -283,13 +365,23 @@
     mapa = L.map("fc-mapa", { preferCanvas: true, zoomSnap: .25, attributionControl: true }).setView([-12.6, -41.7], 6);
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, attribution: "Mapa base © Esri" }).addTo(mapa);
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, pane: "overlayPane", opacity: .9 }).addTo(mapa);
-    Promise.all([json("regioes_ba.geojson"), json("ti_ba.geojson")]).then(function (g) {
+    Promise.all([json("regioes_ba.geojson"), json("ti_ba.geojson"), json("uc_ba_mapa.geojson").catch(function () { return null; })]).then(function (g) {
       camadasRef.reg = L.geoJSON(g[0], { style: { color: "#0b4f8a", weight: 1.4, fill: false }, interactive: false }).addTo(mapa);
       camadasRef.ti = L.geoJSON(g[1], { style: { color: "#6b7a8f", weight: .8, dashArray: "3 3", fill: false }, interactive: false });
-      L.control.layers(null, { "Regiões climáticas": camadasRef.reg, "Territórios de Identidade": camadasRef.ti }, { collapsed: true, position: "topright" }).addTo(mapa);
+      var camadas = { "Regiões climáticas": camadasRef.reg, "Territórios de Identidade": camadasRef.ti };
+      if (g[2]) {
+        mapa.createPane("ucs"); mapa.getPane("ucs").style.zIndex = 390;   // abaixo dos focos
+        camadaUC = L.geoJSON(g[2], { pane: "ucs", style: function (f) { var c = f.properties.dominio === "Federal" ? "#0b4f8a" : f.properties.dominio === "Estadual" ? "#2e8b57" : "#b7791f"; return { color: c, weight: 1.1, fillColor: c, fillOpacity: .07 }; },
+          onEachFeature: function (f, l) { ucLayers[f.properties.nome] = l; l.bindTooltip("<b>" + esc(f.properties.nome) + "</b><br>UC " + esc(f.properties.dominio).toLowerCase() + " · " + esc(f.properties.grupo) + "<br>" + fmt(f.properties.area_km2) + " km²", { sticky: true }); } }).addTo(mapa);
+        camadas["Unidades de conservação"] = camadaUC;
+      }
+      L.control.layers(null, camadas, { collapsed: true, position: "topright" }).addTo(mapa);
       mapa.fitBounds(camadasRef.reg.getBounds(), { padding: [10, 10] });
     }).catch(function () {});
+  }
+  function controlesMapa() {
     seg("fc-cor-mapa", [["bioma", "Cor por bioma"], ["frp", "Cor por intensidade"]], sel.corMapa, function (v) { sel.corMapa = v; atualiza(); });
+    seg("fc-mapa-uc", [["todos", "Todos os focos"], ["uc", "Só em UCs"]], sel.mapaUC, function (v) { sel.mapaUC = v; atualiza(); });
   }
   function pontosRef(anos) {
     return Promise.all(anos.map(function (y) { if (!cachePontos["r" + y]) cachePontos["r" + y] = json("pontos_ref_" + y + ".json"); return cachePontos["r" + y]; }));
@@ -300,16 +392,16 @@
     if (!window.L) return;
     if (!mapa) iniciaMapa();
     var minha = ++geracaoMapa, fm = filtroMun(), fb = algumBioma(), aviso = $("fc-aviso-mapa"); aviso.innerHTML = "";
-    seg("fc-cor-mapa", [["bioma", "Cor por bioma"], ["frp", "Cor por intensidade"]], sel.corMapa, function (v) { sel.corMapa = v; atualiza(); });
+    controlesMapa();
     var prom, anos = [];
     if (sel.serie === "ref") {
       for (var y = anoDe(de); y <= anoDe(ate); y++) anos.push(y);
       if (anos.length > 3) { anos = anos.slice(-3); aviso.innerHTML = "<div class='fc-aviso'>Período longo: o mapa mostra só os últimos 3 anos do intervalo.</div>"; }
-      prom = pontosRef(anos).then(function (lst) { var out = []; lst.forEach(function (arr) { arr.forEach(function (p) { var d = D0REF + p[2]; out.push({ la: p[0], lo: p[1], d: d, h: p[3], m: p[4], b: p[5], s: META.sat_ref, f: p.length > 6 ? p[6] : null }); }); }); return out; });
+      prom = pontosRef(anos).then(function (lst) { var out = []; lst.forEach(function (arr) { arr.forEach(function (p) { var d = D0REF + p[2]; out.push({ la: p[0], lo: p[1], d: d, h: p[3], m: p[4], b: p[5], s: META.sat_ref, f: p.length > 6 ? p[6] : null, u: p.length > 7 ? p[7] : -1 }); }); }); return out; });
     } else {
       if (de < HOJE - META.dias_pontos_todos + 1) aviso.innerHTML = "<div class='fc-aviso'>O mapa de todos os satélites cobre só os últimos " + META.dias_pontos_todos + " dias; períodos anteriores aparecem nas estatísticas.</div>";
       if (!cachePontos.todos) cachePontos.todos = json("pontos_todos.json");
-      prom = cachePontos.todos.then(function (arr) { return arr.map(function (p) { return { la: p[0], lo: p[1], d: D0TODOS + p[2], h: p[3], s: META.satelites[p[4]], si: p[4], m: p[5], b: p[6], f: p[7] }; }); });
+      prom = cachePontos.todos.then(function (arr) { return arr.map(function (p) { return { la: p[0], lo: p[1], d: D0TODOS + p[2], h: p[3], s: META.satelites[p[4]], si: p[4], m: p[5], b: p[6], f: p[7], u: p.length > 8 ? p[8] : -1 }; }); });
     }
     $("fc-s-mapa").textContent = "Carregando focos…";
     prom.then(function (pts) {
@@ -321,11 +413,13 @@
         if (fb && !sel.biomas[p.b]) return;
         if (fm && !fm[p.m]) return;
         if (fs && !sel.sats[p.si]) return;
+        if (sel.mapaUC === "uc" && !(p.u >= 0)) return;
         n++;
         var cor = sel.corMapa === "frp" ? corFrp(p.f) : (CORES_BIOMA[META.biomas[p.b]] || "#999");
         grupo.push(L.circleMarker([p.la, p.lo], { radius: n > 20000 ? 2 : 3.5, color: "#fff", weight: n > 20000 ? 0 : .6, fillColor: cor, fillOpacity: .85 })
           .bindTooltip("<b>" + esc(MUN[p.m][0]) + "</b><br>" + br(n2d(p.d)) + " " + String(p.h).padStart(4, "0").replace(/(\d\d)(\d\d)/, "$1:$2") + " UTC<br>" + esc(p.s) +
-            (p.f != null ? "<br>FRP " + p.f + " MW" : "") + "<br>" + esc(META.biomas[p.b]), { sticky: true }));
+            (p.f != null ? "<br>FRP " + p.f + " MW" : "") + "<br>" + esc(META.biomas[p.b]) +
+            (p.u >= 0 && UC ? "<br><span style='color:#1f6b40'>UC: " + esc(UC.ucs[p.u][0]) + "</span>" : ""), { sticky: true }));
       });
       camadaPontos = L.layerGroup(grupo).addTo(mapa);
       $("fc-s-mapa").textContent = fmt(n) + " focos no mapa" + (sel.corMapa === "frp" ? " · cor pela intensidade (FRP): amarelo < 10 MW, laranja < 50, vermelho < 150, vinho ≥ 150" + " · cinza = sem FRP informado" : " · cor pelo bioma");
@@ -344,16 +438,16 @@
   function baixaFocos() {
     var iv = intervalo(), de = iv[0], ate = iv[1], fm = filtroMun(), fb = algumBioma();
     var prom = sel.serie === "ref"
-      ? (function () { var anos = []; for (var y = anoDe(de); y <= anoDe(ate); y++) anos.push(y); return pontosRef(anos).then(function (l) { var o = []; l.forEach(function (a) { a.forEach(function (p) { o.push([p[0], p[1], D0REF + p[2], p[3], META.sat_ref, p[4], p[5], p.length > 6 && p[6] != null ? p[6] : null]); }); }); return o; }); })()
-      : (cachePontos.todos || (cachePontos.todos = json("pontos_todos.json"))).then(function (a) { return a.map(function (p) { return [p[0], p[1], D0TODOS + p[2], p[3], META.satelites[p[4]], p[5], p[6], p[7]]; }); });
+      ? (function () { var anos = []; for (var y = anoDe(de); y <= anoDe(ate); y++) anos.push(y); return pontosRef(anos).then(function (l) { var o = []; l.forEach(function (a) { a.forEach(function (p) { o.push([p[0], p[1], D0REF + p[2], p[3], META.sat_ref, p[4], p[5], p.length > 6 && p[6] != null ? p[6] : null, p.length > 7 ? p[7] : -1]); }); }); return o; }); })()
+      : (cachePontos.todos || (cachePontos.todos = json("pontos_todos.json"))).then(function (a) { return a.map(function (p) { return [p[0], p[1], D0TODOS + p[2], p[3], META.satelites[p[4]], p[5], p[6], p[7], p.length > 8 ? p[8] : -1]; }); });
     prom.then(function (pts) {
-      var linhas = [["Data (UTC)", "Hora (UTC)", "Latitude", "Longitude", "Satélite", "Município", "Região climática", "Território de Identidade", "Bioma", "FRP (MW)"]];
+      var linhas = [["Data (UTC)", "Hora (UTC)", "Latitude", "Longitude", "Satélite", "Município", "Região climática", "Território de Identidade", "Bioma", "FRP (MW)", "Unidade de conservação"]];
       var fs = sel.serie === "todos" && algumSat();
       pts.forEach(function (p) {
         if (p[2] < de || p[2] > ate || (fb && !sel.biomas[p[6]]) || (fm && !fm[p[5]])) return;
         if (fs && !sel.sats[META.satelites.indexOf(p[4])]) return;
         var mu = MUN[p[5]];
-        linhas.push([br(n2d(p[2])), String(p[3]).padStart(4, "0").replace(/(\d\d)(\d\d)/, "$1:$2"), p[0], p[1], p[4], mu[0], META.regioes[mu[1]], META.territorios[mu[2]], META.biomas[p[6]], p[7] === null ? "" : p[7]]);
+        linhas.push([br(n2d(p[2])), String(p[3]).padStart(4, "0").replace(/(\d\d)(\d\d)/, "$1:$2"), p[0], p[1], p[4], mu[0], META.regioes[mu[1]], META.territorios[mu[2]], META.biomas[p[6]], p[7] === null ? "" : p[7], p[8] >= 0 && UC ? UC.ucs[p[8]][0] : ""]);
       });
       xls("focos-bahia-" + n2d(de) + "-a-" + n2d(ate) + ".xls", [["Focos", linhas]]);
     });
@@ -375,7 +469,8 @@
     $("fc-valor").onchange = function () { sel.valor = this.value; atualiza(); };
     $("fc-busca").onchange = function () { var v = this.value.trim().toLowerCase(), i = MUN.findIndex(function (m) { return m[0].toLowerCase() === v; }); if (i >= 0) { sel.valor = i; atualiza(); } };
     $("fc-rank").onclick = function (e) { var n = e.target.closest(".nome"); if (!n) return; sel.tipo = sel.rank; sel.valor = n.getAttribute("data-k"); atualiza(); window.scrollTo({ top: raiz.getBoundingClientRect().top + window.scrollY - 10, behavior: "smooth" }); };
-    $("fc-xls").onclick = baixaFocos; $("fc-xls-mun").onclick = baixaMunicipios;
+    $("fc-xls").onclick = baixaFocos; $("fc-xls-mun").onclick = baixaMunicipios; $("fc-xls-uc").onclick = baixaUC;
+    $("fc-uc-rank").onclick = function (e) { var r = e.target.closest("tr[data-u]"); if (r) mostraUCnoMapa(+r.getAttribute("data-u")); };
     $("fc-lista-mun").innerHTML = MUN.map(function (m) { return "<option value='" + esc(m[0]) + "'>"; }).join("");
   }
 
@@ -399,6 +494,8 @@
       if (window.Chart) { Chart.defaults.font.family = getComputedStyle(raiz).fontFamily; Chart.defaults.color = "#5b6773"; }
       montaEstrutura(); ligaEventos();
       if (sel.serie === "todos") carregaTodos(); else atualiza();
+      json("uc.json").then(function (u) { UC = u; UCREF = preparaUC(u.ref, false); UCTODOS = preparaUC(u.todos, true); atualiza(); })
+        .catch(function () { UC = false; atualiza(); });
     })
     .catch(function (e) { $("fc-corpo").innerHTML = "<div class='fc-erro'>Não foi possível carregar os dados (" + esc(e.message) + "). Tente recarregar a página.</div>"; });
 })();
