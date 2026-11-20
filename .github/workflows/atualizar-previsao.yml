@@ -56,8 +56,12 @@ jobs:
 
       - name: Limpar cache do jsDelivr
         if: steps.commit.outputs.mudou == 'true'
+        # Duas limpezas: logo após o push o jsDelivr ainda pode apontar para a versão anterior do ramo
+        # e guardá-la de novo; a segunda, 2 min depois, garante a versão nova.
         run: |
-          sleep 20
-          for f in previsao.json iuv.json; do
-            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" || echo "Aviso: purge de $f falhou; o jsDelivr atualiza sozinho em até 12 h."
+          for espera in 20 120; do
+            sleep $espera
+            for f in previsao.json iuv.json; do
+              curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" || echo "Aviso: purge de $f falhou; o jsDelivr atualiza sozinho em até 12 h."
+            done
           done
