@@ -445,11 +445,15 @@ def desenha_regioes(ax, nomes=True):
 
 def mapa_bahia(campo, var, titulo1, titulo2, arq):
     est = ESTILOS[var]
-    cm = cmap_de(est)
     fig, ax = base_mapa(EXT_BA, (8.2, 8.6))
     # sombreado contínuo, recortado no contorno da Bahia
-    cs = ax.contourf(LONS, LATS, campo, levels=est["niveis"], cmap=cm, extend=est["ext"],
-                     transform=ccrs.PlateCarree(), zorder=1)
+    if "cores" in est:   # escala de faixas fixas (chuva): uma cor por intervalo
+        cs = ax.contourf(LONS, LATS, campo, levels=est["niveis"], colors=est["cores"], extend=est["ext"],
+                         transform=ccrs.PlateCarree(), zorder=1)
+        cs.cmap.set_over(est["cores"][-1])
+    else:
+        cs = ax.contourf(LONS, LATS, campo, levels=est["niveis"], cmap=cmap_de(est), extend=est["ext"],
+                         transform=ccrs.PlateCarree(), zorder=1)
     recorte = PathPatch(CAMINHO_BA, transform=ax.transData, facecolor="none", edgecolor="none")
     ax.add_patch(recorte)
     cs.set_clip_path(recorte)
