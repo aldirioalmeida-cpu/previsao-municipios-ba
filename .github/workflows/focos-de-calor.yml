@@ -26,7 +26,7 @@ jobs:
           python-version: "3.12"
 
       - name: Instalar bibliotecas
-        run: pip install numpy
+        run: pip install numpy matplotlib
 
       - name: Cache dos anos e meses fechados (só Bahia)
         uses: actions/cache@v4
@@ -40,7 +40,7 @@ jobs:
 
       - name: Publicar no ramo focos (substitui a versão anterior, sem acumular histórico)
         run: |
-          cp focos/municipios.json focos/ti_ba.geojson focos/painel.js mapas/regioes_ba.geojson saida_focos/
+          cp focos/municipios.json focos/ti_ba.geojson focos/uc_ba_mapa.geojson focos/painel.js mapas/regioes_ba.geojson saida_focos/
           cd saida_focos
           git init -q
           git checkout -q -b focos
@@ -55,7 +55,7 @@ jobs:
         run: |
           for espera in 15 120; do
             sleep $espera
-            for f in painel.js meta.json ref.json todos.json pontos_todos.json pontos_ref_$(date -u +%Y).json; do
+            for f in painel.js meta.json ref.json todos.json uc.json uc_ba_mapa.geojson pontos_todos.json pontos_ref_$(date -u +%Y).json; do
               curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}@focos/$f" > /dev/null || echo "purge de $f falhou"
             done
           done
