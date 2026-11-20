@@ -54,6 +54,10 @@ jobs:
           git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" mapas
 
       - name: Limpar cache do jsDelivr
+        # Duas limpezas: logo após publicar o jsDelivr ainda pode apontar para a versão anterior do ramo
+        # e guardá-la de novo; a segunda, 2 min depois, garante a versão nova.
         run: |
-          sleep 15
-          curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}@mapas/info.json" || echo "purge falhou; o jsDelivr atualiza sozinho em até 12 h."
+          for espera in 15 120; do
+            sleep $espera
+            curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}@mapas/info.json" || echo "purge falhou; o jsDelivr atualiza sozinho em até 12 h."
+          done
