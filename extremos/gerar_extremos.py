@@ -166,20 +166,26 @@ def modelo_ecmwf(c, ini):
     def junta(p, nome):
         d = campos.get(p, {})
         return d.get(nome)
+    vazio = np.full((len(LATS), len(LONS)), np.nan)
+    def pilha(lst):   # empilha só os passos que têm o campo (ex.: a rajada 10fg não sai em todos os passos)
+        lst = [x for x in lst if x is not None]
+        return np.array(lst) if lst else vazio[None]
     dias = []
     for k in range(NDIAS):
         i0, i1 = a + 24 * k, a + 24 * (k + 1)
         dentro = [p for p in passos if i0 < p <= i1]
-        tmax = np.nanmax([junta(p, "mx2t3" if p <= 144 else "mx2t6") for p in dentro], axis=0) - 273.15
-        tmin = np.nanmin([junta(p, "mn2t3" if p <= 144 else "mn2t6") for p in dentro], axis=0) - 273.15
-        raj = np.nanmax([junta(p, "10fg") for p in dentro], axis=0) * 3.6
-        t = np.array([junta(p, "2t") for p in dentro]) - 273.15
-        td = np.array([junta(p, "2d") for p in dentro]) - 273.15
+        tmax = np.nanmax(pilha([junta(p, "mx2t3" if p <= 144 else "mx2t6") for p in dentro]), axis=0) - 273.15
+        tmin = np.nanmin(pilha([junta(p, "mn2t3" if p <= 144 else "mn2t6") for p in dentro]), axis=0) - 273.15
+        raj = np.nanmax(pilha([junta(p, "10fg") for p in dentro]), axis=0) * 3.6
+        ok = [p for p in dentro if junta(p, "2t") is not None and junta(p, "2d") is not None]
+        t = pilha([junta(p, "2t") for p in ok]) - 273.15
+        td = pilha([junta(p, "2d") for p in ok]) - 273.15
         rh = np.clip(100 * np.exp(17.625 * td / (243.04 + td)) / np.exp(17.625 * t / (243.04 + t)), 0, 100)
-        vel = np.hypot(np.array([junta(p, "10u") for p in dentro]), np.array([junta(p, "10v") for p in dentro])) * 3.6
+        okv = [p for p in dentro if junta(p, "10u") is not None and junta(p, "10v") is not None]
+        vel = np.hypot(pilha([junta(p, "10u") for p in okv]), pilha([junta(p, "10v") for p in okv])) * 3.6
         # chuva: acumulado desde o início da rodada; usa o passo disponível mais próximo das viradas de dia
         def tp_em(h):
-            p = min(campos, key=lambda x: (abs(x - h), x))
+            p = min((x for x in campos if campos[x].get("tp") is not None), key=lambda x: (abs(x - h), x))
             return campos[p]["tp"] * 1000.0
         chuva = np.maximum(tp_em(i1) - tp_em(i0), 0)
         dias.append({"max": tmax, "min": tmin, "mm": chuva, "raj": raj, "urmin": np.nanmin(rh, axis=0), "v": np.nanmean(vel, axis=0)})
@@ -218,6 +224,10 @@ def modelo_gfs(c, ini):
             campos[p] = d
     def g(p, *k):
         return campos.get(p, {}).get(k)
+    vazio = np.full((len(LATS), len(LONS)), np.nan)
+    def pilha(lst):
+        lst = [x for x in lst if x is not None]
+        return np.array(lst) if lst else vazio[None]
     # chuva acumulada: GFS zera o balde a cada 6 h (f003 = 0-3 h; f006 = 0-6 h; ...)
     acc, A = 0.0, {}
     for p in range(3, fim + 1, 3):
@@ -232,11 +242,12 @@ def modelo_gfs(c, ini):
     for k in range(NDIAS):
         i0, i1 = a + 24 * k, a + 24 * (k + 1)
         dentro = [p for p in passos if i0 < p <= i1]
-        tmax = np.nanmax([g(p, "tmax", "heightAboveGround", 2) for p in dentro], axis=0) - 273.15
-        tmin = np.nanmin([g(p, "tmin", "heightAboveGround", 2) for p in dentro], axis=0) - 273.15
-        raj = np.nanmax([g(p, "gust", "surface", 0) for p in dentro], axis=0) * 3.6
-        rh = np.nanmin([g(p, "2r", "heightAboveGround", 2) for p in dentro], axis=0)
-        vel = np.nanmean([np.hypot(g(p, "10u", "heightAboveGround", 10), g(p, "10v", "heightAboveGround", 10)) for p in dentro], axis=0) * 3.6
+        tmax = np.nanmax(pilha([g(p, "tmax", "heightAboveGround", 2) for p in dentro]), axis=0) - 273.15
+        tmin = np.nanmin(pilha([g(p, "tmin", "heightAboveGround", 2) for p in dentro]), axis=0) - 273.15
+        raj = np.nanmax(pilha([g(p, "gust", "surface", 0) for p in dentro]), axis=0) * 3.6
+        rh = np.nanmin(pilha([g(p, "2r", "heightAboveGround", 2) for p in dentro]), axis=0)
+        okv = [p for p in dentro if g(p, "10u", "heightAboveGround", 10) is not None and g(p, "10v", "heightAboveGround", 10) is not None]
+        vel = np.nanmean(pilha([np.hypot(g(p, "10u", "heightAboveGround", 10), g(p, "10v", "heightAboveGround", 10)) for p in okv]), axis=0) * 3.6
         chuva = np.maximum(A.get(i1, 0) - A.get(i0, 0), 0)
         dias.append({"max": tmax, "min": tmin, "mm": chuva, "raj": raj, "urmin": rh, "v": vel})
     return dias
