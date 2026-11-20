@@ -26,8 +26,10 @@
 
   var META, REF, TODOS, MUN, HOJE, D0REF, D0TODOS;
   var UC = null, UCREF = null, UCTODOS = null, camadaUC = null, ucLayers = {}, ucDestaque = null;
-  var sel = { serie: "ref", periodo: "ano", de: null, ate: null, biomas: {}, tipo: "estado", valor: "", sats: {}, rank: "mun", corMapa: "bioma", ucGrupo: "-1", mapaUC: "todos" };
-  try { var g = JSON.parse(localStorage.getItem("inemaFocos") || "{}"); ["serie", "periodo", "rank"].forEach(function (k) { if (g[k]) sel[k] = g[k]; }); } catch (e) {}
+  // Ao abrir: últimos 7 dias e mapa colorido pela intensidade (FRP), para todos.
+  // Do navegador só se lembra a série de satélites e a aba do ranking.
+  var sel = { serie: "ref", periodo: "7d", de: null, ate: null, biomas: {}, tipo: "estado", valor: "", sats: {}, rank: "mun", corMapa: "frp", ucGrupo: "-1", mapaUC: "todos" };
+  try { var g = JSON.parse(localStorage.getItem("inemaFocos") || "{}"); ["serie", "rank"].forEach(function (k) { if (g[k]) sel[k] = g[k]; }); } catch (e) {}
   var graficos = {}, mapa = null, camadaPontos = null, camadasRef = {}, cachePontos = {};
 
   raiz.innerHTML =
