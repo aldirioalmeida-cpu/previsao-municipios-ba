@@ -161,8 +161,10 @@ def modelo_ecmwf(ciclo):
     passos, ini = passos_necessarios(ciclo)
     sup = [("2t", "sfc", None), ("2d", "sfc", None), ("10u", "sfc", None), ("10v", "sfc", None), ("tp", "sfc", None)]
     sin = [("msl", "sfc", None), ("u", "pl", 850), ("v", "pl", 850), ("u", "pl", 200), ("v", "pl", 200)]
-    passos_sin = {p + 9 for p in ini}  # 12 UTC de cada dia
+    passos_sin = {p + 9 for p in ini} | {0}  # 12 UTC de cada dia + análise (hora 0)
     def um(p):
+        if p == 0:
+            return p, ecmwf_baixar(ciclo, p, sin)
         return p, ecmwf_baixar(ciclo, p, sup + (sin if p in passos_sin else []))
     campos = {}
     with ThreadPoolExecutor(6) as ex:
@@ -279,7 +281,7 @@ def modelo_icon(ciclo):
     _, viz = arvore.query(np.c_[GLON.ravel(), GLAT.ravel()], k=1)
     mapa = sel[viz].reshape(GLON.shape)
     passos, ini = passos_necessarios(ciclo)
-    passos_sin = {p + 9 for p in ini}
+    passos_sin = {p + 9 for p in ini} | {0}   # 12 UTC de cada dia + análise (hora 0)
     limites = set(ini) | {ini[-1] + 24}     # chuva acumulada só nas viradas de dia
     tarefas = []
     for p in passos:
@@ -508,6 +510,17 @@ def gerar_modelo(nome, ciclo, F, saida, info):
     P = produtos(F, ciclo)
     rod = f"rodada {ciclo.strftime('%d/%m %H')} UTC"
     feitos = 0
+    # Análise (hora 0 da rodada)
+    analise = False
+    if ("msl", 0) in F and ("u", 200, 0) in F:
+        sin0 = {"msl": F[("msl", 0)], "u850": F[("u", 850, 0)], "v850": F[("v", 850, 0)],
+                "u200": F[("u", 200, 0)], "v200": F[("v", 200, 0)]}
+        hora = f"Análise {ciclo.strftime('%d/%m/%Y %H')} UTC (hora 0)"
+        mapa_sinotico(sin0, "pnmm850", f"{NOMES[nome]} · Pressão e vento em 850 hPa", hora,
+                      os.path.join(saida, f"{nome}_pnmm850_an.png"))
+        mapa_sinotico(sin0, "v200", f"{NOMES[nome]} · Escoamento em 200 hPa", hora,
+                      os.path.join(saida, f"{nome}_v200_an.png"))
+        feitos += 2; analise = True
     for k, d in enumerate(P):
         for var in ("chuva", "tmax", "tmin", "urmin", "vento"):
             if var in d:
@@ -520,7 +533,7 @@ def gerar_modelo(nome, ciclo, F, saida, info):
             mapa_sinotico(d["sin"], "v200", f"{NOMES[nome]} · Escoamento em 200 hPa", hora,
                           os.path.join(saida, f"{nome}_v200_d{k}.png"))
             feitos += 2
-    info["modelos"][nome] = {"rodada": ciclo.strftime("%Y-%m-%dT%HZ"), "mapas": feitos,
+    info["modelos"][nome] = {"rodada": ciclo.strftime("%Y-%m-%dT%HZ"), "mapas": feitos, "analise": analise,
                              "dias": [d["dia"].isoformat() for d in P]}
     log(f"{nome}: {feitos} mapas")
 
