@@ -58,6 +58,11 @@ jobs:
           pip install numpy matplotlib eccodes
           python extremos/gerar_extremos.py --saida extremos.json
 
+      - name: Chuva dos cards = maior pixel do ECMWF no município
+        if: steps.verifica.outputs.rodar == 'true'
+        continue-on-error: true   # se falhar, fica a chuva do Open-Meteo (sede)
+        run: python extremos/aplicar_chuva.py
+
       - name: Publicar no repositório
         if: steps.verifica.outputs.rodar == 'true'
         id: commit
