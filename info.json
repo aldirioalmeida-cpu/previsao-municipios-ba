@@ -1,0 +1,53 @@
+{
+ "gerado_em": "2026-11-21T04:58-03:00",
+ "rodada_comum": "2026-11-21T00Z",
+ "modelos": {
+  "gfs": {
+   "rodada": "2026-11-21T00Z",
+   "mapas": 37,
+   "analise": true,
+   "dias": [
+    "2026-11-21",
+    "2026-11-22",
+    "2026-11-23",
+    "2026-11-24",
+    "2026-11-25"
+   ]
+  },
+  "ecmwf": {
+   "rodada": "2026-11-21T00Z",
+   "mapas": 37,
+   "analise": true,
+   "dias": [
+    "2026-11-21",
+    "2026-11-22",
+    "2026-11-23",
+    "2026-11-24",
+    "2026-11-25"
+   ]
+  },
+  "icon": {
+   "rodada": "2026-11-21T00Z",
+   "mapas": 37,
+   "analise": true,
+   "dias": [
+    "2026-11-21",
+    "2026-11-22",
+    "2026-11-23",
+    "2026-11-24",
+    "2026-11-25"
+   ]
+  }
+ },
+ "erros": {},
+ "variaveis": {
+  "chuva": "Chuva acumulada no dia (mm)",
+  "tmax": "Temperatura máxima (°C)",
+  "tmin": "Temperatura mínima (°C)",
+  "urmin": "Umidade relativa mínima (%)",
+  "vento": "Vento máximo a 10 m (km/h)",
+  "pnmm850": "Pressão ao nível do mar e vento em 850 hPa (12 UTC)",
+  "v200": "Linhas de corrente e vento em 200 hPa (12 UTC)"
+ },
+ "analise": "2026-11-21T00Z"
+}
