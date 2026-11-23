@@ -60,6 +60,13 @@ jobs:
           pip install numpy matplotlib eccodes
           python extremos/gerar_extremos.py --saida extremos.tmp.json && mv extremos.tmp.json extremos.json
 
+      # Painel agrometeorológico: ET0, balanço hídrico, umidade do solo e condições para manejo (Open-Meteo).
+      - name: Gerar agro.json (painel agrometeorológico)
+        if: steps.verifica.outputs.rodar == 'true'
+        continue-on-error: true
+        timeout-minutes: 10
+        run: python agro/gerar_agro.py
+
       - name: Publicar no repositório
         if: steps.verifica.outputs.rodar == 'true'
         id: commit
@@ -69,6 +76,7 @@ jobs:
           git add previsao.json
           if [ -f iuv.json ]; then git add iuv.json; fi
           if [ -f extremos.json ]; then git add extremos.json; fi
+          if [ -f agro.json ]; then git add agro.json; fi
           if git diff --cached --quiet; then
             echo "Sem mudanças."
             echo "mudou=false" >> "$GITHUB_OUTPUT"
@@ -86,7 +94,7 @@ jobs:
         run: |
           for espera in 20 120; do
             sleep $espera
-            for f in previsao.json iuv.json extremos.json; do
+            for f in previsao.json iuv.json extremos.json agro.json; do
               curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" || echo "Aviso: purge de $f falhou; o jsDelivr atualiza sozinho em até 12 h."
             done
           done

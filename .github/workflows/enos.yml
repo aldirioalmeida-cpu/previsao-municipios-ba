@@ -1,0 +1,46 @@
+name: ENOS e oceanos
+
+# Índices de El Niño / La Niña (NOAA/CPC) e do Atlântico Tropical (NOAA/PSL) para o painel do INEMA.
+# Os dados da NOAA mudam no máximo uma vez por semana (segunda/terça) e uma vez por mês;
+# o robô roda todo dia às 10:41 UTC e só publica se algo mudou.
+on:
+  schedule:
+    - cron: "41 10 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: enos
+  cancel-in-progress: false
+
+jobs:
+  enos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Gerar enos.json
+        run: python enos/gerar_enos.py
+      - name: Publicar no repositório
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add enos.json
+          if git diff --cached --quiet; then echo "mudou=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "ENOS atualizado em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+          git pull --rebase -q || true
+          git push
+          echo "mudou=true" >> "$GITHUB_OUTPUT"
+      - name: Limpar cache do jsDelivr
+        if: steps.commit.outputs.mudou == 'true'
+        run: |
+          for espera in 20 120; do
+            sleep $espera
+            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/enos.json" || echo "purge falhou"
+          done
