@@ -1,5 +1,5 @@
-/* INEMA · Meteorologia — Satélite (página /inema/meteorologia/satelite). Carregado pela página do portal. Gerado a partir de satelite-inema.html. */
-(function () { if (document.getElementById('inema-sat-css')) return; var s = document.createElement('style'); s.id = 'inema-sat-css'; s.textContent = "#inema-sat{--az:#0b4f8a;--az2:#e8f0f8;--tx:#1d2733;--tx2:#5b6773;--ln:#d7dee6;--bg:#fff;font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;color:var(--tx);font-size:15px;line-height:1.4;max-width:1400px;margin:0 auto}\n#inema-sat *{box-sizing:border-box}\n#inema-sat h2{font-size:1.45rem;margin:0 0 .25rem;color:var(--az)}\n#inema-sat .is-nav{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.85rem;margin:0 0 .8rem}\n#inema-sat .is-nav a{color:var(--az)}\n#inema-sat .is-nav b{color:var(--tx)}\n#inema-sat .is-status{padding:.8rem 1rem;border-radius:6px;background:var(--az2);margin:1rem 0}\n#inema-sat .is-rot{font-size:.78rem;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.03em;margin:.6rem 0 .25rem}\n#inema-sat .is-bts{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}\n#inema-sat .is-bts button{border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:.42rem .8rem;border-radius:999px;cursor:pointer;font:inherit;font-size:.88rem}\n#inema-sat .is-bts button[aria-pressed=true]{background:var(--az);border-color:var(--az);color:#fff}\n#inema-sat .is-bts.modo button[aria-pressed=true]{background:#2e6b4f;border-color:#2e6b4f}\n#inema-sat .is-bts.fonte button[aria-pressed=true]{background:#7a4b00;border-color:#7a4b00}\n#inema-sat .is-bts.passo button[aria-pressed=true]{background:#4b5563;border-color:#4b5563}\n#inema-sat .is-bts button:disabled{opacity:.4;cursor:not-allowed}\n#inema-sat .is-camadas{display:flex;flex-wrap:wrap;gap:.35rem}\n#inema-sat .is-camadas label{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--ln);border-radius:999px;padding:.32rem .75rem;font-size:.86rem;cursor:pointer;background:var(--bg);user-select:none}\n#inema-sat .is-camadas label.on{border-color:var(--az);background:var(--az2)}\n#inema-sat .is-camadas label.off{opacity:.45;cursor:not-allowed}\n#inema-sat .is-camadas input{margin:0;accent-color:var(--az)}\n#inema-sat .is-camadas i{display:inline-block;width:14px;height:3px;border-radius:2px}\n#inema-sat figure{margin:.8rem 0 0;border:1px solid var(--ln);border-radius:8px;overflow:hidden;background:#111}\n#inema-sat figcaption{padding:.45rem .7rem;font-size:.85rem;background:#f3f6f9;color:var(--tx);border-bottom:1px solid var(--ln);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.4rem .8rem}\n#inema-sat figcaption span{color:var(--tx2)}\n#inema-sat .is-cab-dir{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}\n#inema-sat button.is-max{border:1px solid var(--ln);background:#fff;color:var(--tx);border-radius:6px;padding:.3rem .6rem;font:inherit;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem}\n#inema-sat button.is-max:hover{background:var(--az2)}\n#inema-sat button.is-max svg{width:15px;height:15px}\n#inema-sat figure img{display:block;width:100%;height:auto}\n#inema-sat .is-desc{color:var(--tx2);font-size:.85rem;margin:.4rem 0 0}\n#inema-sat .is-palco{background:#000}\n#inema-sat .is-mosaico{position:relative;background:#000;line-height:0;max-width:1100px;margin:0 auto}\n#inema-sat .is-quadro{position:absolute;inset:0;display:grid}\n#inema-sat .is-quadro.oculto{visibility:hidden}\n#inema-sat .is-cel{position:relative;width:100%;height:100%;overflow:hidden}\n#inema-sat .is-cel img{position:absolute;inset:0;width:100%;height:100%;display:block}\n#inema-sat .is-cel img.raios{filter:brightness(0) saturate(100%) invert(84%) sepia(68%) saturate(1000%) hue-rotate(359deg) brightness(105%)}\n#inema-sat .is-ref{pointer-events:none}\n#inema-sat svg.is-vetor{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}\n#inema-sat svg.is-radar{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}\n#inema-sat .is-leg-radar{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .7rem;font-size:.8rem;color:var(--tx2);margin-top:.5rem}\n#inema-sat .is-leg-radar .barra{width:220px;height:10px;border-radius:3px;border:1px solid var(--ln)}\n#inema-sat .is-leg-radar .escala{display:flex;flex-direction:column;gap:1px}\n#inema-sat .is-leg-radar .marcas{display:flex;justify-content:space-between;width:220px;font-size:.72rem}\n#inema-sat .is-leg-radar .fontes{flex-basis:100%;font-size:.75rem}\n#inema-sat svg.is-vetor path{fill:none;pointer-events:fill;vector-effect:non-scaling-stroke;stroke-linejoin:round}\n#inema-sat svg.is-vetor path.hl{stroke-width:3;stroke-opacity:1;fill:rgba(255,255,255,.08)}\n#inema-sat svg.is-vetor .l-barragens path{fill:rgba(59,130,246,.55)}\n#inema-sat svg.is-vetor .l-barragens circle{fill:#60a5fa;stroke:#fff;stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:all}\n#inema-sat svg.is-vetor .l-barragens .hl{fill:#facc15;stroke:#fff}\n#inema-sat .is-etiq{position:absolute;z-index:6;background:rgba(15,23,32,.9);color:#fff;padding:.45rem .65rem;border-radius:8px;font-size:.82rem;line-height:1.45;pointer-events:none;max-width:320px;box-shadow:0 4px 14px rgba(0,0,0,.35)}\n#inema-sat .is-etiq[hidden]{display:none}\n#inema-sat .is-etiq i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.35rem;vertical-align:-1px}\n#inema-sat .is-etiq span{color:#cbd5e1}\n#inema-sat .is-player{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem;padding:.5rem .7rem;background:#f3f6f9;border-top:1px solid var(--ln);font-size:.85rem}\n#inema-sat .is-player[hidden]{display:none}\n#inema-sat .is-player button{border:1px solid var(--ln);background:#fff;border-radius:6px;padding:.3rem .55rem;cursor:pointer;font:inherit;font-size:.85rem;min-width:2.2rem}\n#inema-sat .is-player input[type=range]{flex:1;min-width:140px;accent-color:var(--az)}\n#inema-sat .is-player .vel{display:inline-flex;align-items:center;gap:.3rem;color:var(--tx2)}\n#inema-sat .is-player .vel input{flex:none;width:90px;min-width:0}\n#inema-sat .is-carga{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.7);color:#fff;padding:.6rem 1rem;border-radius:8px;font-size:.9rem;line-height:1.3;z-index:5;text-align:center}\n#inema-sat .is-falta{padding:3rem 1rem;text-align:center;color:var(--tx2);background:#fff;line-height:1.4}\n#inema-sat .is-nota{color:var(--tx2);font-size:.8rem;margin-top:.8rem}\n#inema-sat .is-nota a{color:var(--az)}\n/* tela cheia */\n#inema-sat figure:fullscreen,#inema-sat figure.is-cheia{display:flex;flex-direction:column;border-radius:0;border:0;width:100vw;height:100vh;max-width:none}\n#inema-sat figure.is-cheia{position:fixed;inset:0;z-index:2147483000}\n#inema-sat figure:fullscreen .is-palco,#inema-sat figure.is-cheia .is-palco{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}\n#inema-sat figure:fullscreen #is-area,#inema-sat figure.is-cheia #is-area{width:100%;height:100%;display:flex;align-items:center;justify-content:center}\n#inema-sat figure:fullscreen .is-mosaico,#inema-sat figure.is-cheia .is-mosaico{max-width:none;max-height:none;height:auto;width:min(100vw,calc(100vh * var(--ar,1)))}\n#inema-sat figure:fullscreen #is-area \u003e a img,#inema-sat figure.is-cheia #is-area \u003e a img{max-height:100%;width:auto;max-width:100%;margin:0 auto}\n/* tela cheia: título e controles flutuam sobre a imagem e somem quando o mouse para */\n#inema-sat figure:fullscreen{position:relative}\n#inema-sat figure:fullscreen figcaption,#inema-sat figure.is-cheia figcaption{position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(243,246,249,.9);transition:opacity .35s}\n#inema-sat figure:fullscreen .is-player,#inema-sat figure.is-cheia .is-player{position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(243,246,249,.9);transition:opacity .35s}\n#inema-sat figure.is-ocioso figcaption,#inema-sat figure.is-ocioso .is-player{opacity:0;pointer-events:none}\n#inema-sat figure.is-ocioso .is-palco{cursor:none}\n/* logo do INEMA no canto inferior direito da imagem (oceano nos recortes da Bahia e do Nordeste) */\n#inema-sat .is-logo{position:absolute;right:1.6%;bottom:1.6%;width:14%;min-width:78px;max-width:170px;z-index:4;pointer-events:none;\n  background:rgba(255,255,255,.62);border-radius:8px;padding:.45% .7%;line-height:0;opacity:.82}\n#inema-sat .is-logo img{width:100%;height:auto;display:block}\n#inema-sat figure:fullscreen .is-logo,#inema-sat figure.is-cheia .is-logo{transition:bottom .35s}\n#inema-sat figure:fullscreen:not(.is-ocioso) .is-logo,#inema-sat figure.is-cheia:not(.is-ocioso) .is-logo{bottom:calc(1.6% + 46px)}\n@media (max-width:640px){#inema-sat .is-player .vel{display:none}}"; document.head.appendChild(s); })();
+/* INEMA · Meteorologia — Satélite e Radar (página /inema/meteorologia/satelite). Carregado pela página do portal. Gerado a partir de satelite-inema.html. */
+(function () { if (document.getElementById('inema-sat-css')) return; var s = document.createElement('style'); s.id = 'inema-sat-css'; s.textContent = "#inema-sat{--az:#0b4f8a;--az2:#e8f0f8;--tx:#1d2733;--tx2:#5b6773;--ln:#d7dee6;--bg:#fff;font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;color:var(--tx);font-size:15px;line-height:1.4;max-width:1400px;margin:0 auto}\n#inema-sat *{box-sizing:border-box}\n#inema-sat h2{font-size:1.45rem;margin:0 0 .25rem;color:var(--az)}\n#inema-sat .is-nav{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.85rem;margin:0 0 .8rem}\n#inema-sat .is-nav a{color:var(--az)}\n#inema-sat .is-nav b{color:var(--tx)}\n#inema-sat .is-status{padding:.8rem 1rem;border-radius:6px;background:var(--az2);margin:1rem 0}\n#inema-sat .is-rot{font-size:.78rem;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.03em;margin:.6rem 0 .25rem}\n#inema-sat .is-bts{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}\n#inema-sat .is-bts button{border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:.42rem .8rem;border-radius:999px;cursor:pointer;font:inherit;font-size:.88rem}\n#inema-sat .is-bts button[aria-pressed=true]{background:var(--az);border-color:var(--az);color:#fff}\n#inema-sat .is-bts.modo button[aria-pressed=true]{background:#2e6b4f;border-color:#2e6b4f}\n#inema-sat .is-bts.fonte button[aria-pressed=true]{background:#7a4b00;border-color:#7a4b00}\n#inema-sat .is-bts.passo button[aria-pressed=true]{background:#4b5563;border-color:#4b5563}\n#inema-sat .is-bts button:disabled{opacity:.4;cursor:not-allowed}\n#inema-sat .is-camadas{display:flex;flex-wrap:wrap;gap:.35rem}\n#inema-sat .is-camadas label{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--ln);border-radius:999px;padding:.32rem .75rem;font-size:.86rem;cursor:pointer;background:var(--bg);user-select:none}\n#inema-sat .is-camadas label.on{border-color:var(--az);background:var(--az2)}\n#inema-sat .is-camadas label.off{opacity:.45;cursor:not-allowed}\n#inema-sat .is-camadas input{margin:0;accent-color:var(--az)}\n#inema-sat .is-camadas i{display:inline-block;width:14px;height:3px;border-radius:2px}\n#inema-sat figure{margin:.8rem 0 0;border:1px solid var(--ln);border-radius:8px;overflow:hidden;background:#111}\n#inema-sat figcaption{padding:.45rem .7rem;font-size:.85rem;background:#f3f6f9;color:var(--tx);border-bottom:1px solid var(--ln);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.4rem .8rem}\n#inema-sat figcaption span{color:var(--tx2)}\n#inema-sat .is-cab-dir{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}\n#inema-sat button.is-max{border:1px solid var(--ln);background:#fff;color:var(--tx);border-radius:6px;padding:.3rem .6rem;font:inherit;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem}\n#inema-sat button.is-max:hover{background:var(--az2)}\n#inema-sat button.is-max svg{width:15px;height:15px}\n#inema-sat figure img{display:block;width:100%;height:auto}\n#inema-sat .is-desc{color:var(--tx2);font-size:.85rem;margin:.4rem 0 0}\n#inema-sat .is-palco{background:#000}\n#inema-sat .is-mosaico{position:relative;background:#000;line-height:0;max-width:1100px;margin:0 auto}\n#inema-sat .is-quadro{position:absolute;inset:0;display:grid}\n#inema-sat .is-quadro.oculto{visibility:hidden}\n#inema-sat .is-cel{position:relative;width:100%;height:100%;overflow:hidden}\n#inema-sat .is-cel img{position:absolute;inset:0;width:100%;height:100%;display:block}\n#inema-sat .is-cel img.raios{filter:brightness(0) saturate(100%) invert(84%) sepia(68%) saturate(1000%) hue-rotate(359deg) brightness(105%)}\n#inema-sat .is-ref{pointer-events:none}\n#inema-sat svg.is-vetor{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}\n#inema-sat svg.is-radar{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}\n#inema-sat .is-leg-radar{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .7rem;font-size:.8rem;color:var(--tx2);margin-top:.5rem}\n#inema-sat .is-leg-radar .barra{width:220px;height:10px;border-radius:3px;border:1px solid var(--ln)}\n#inema-sat .is-leg-radar .escala{display:flex;flex-direction:column;gap:1px}\n#inema-sat .is-leg-radar .marcas{display:flex;justify-content:space-between;width:220px;font-size:.72rem}\n#inema-sat .is-leg-radar .fontes{flex-basis:100%;font-size:.75rem}\n#inema-sat svg.is-vetor path{fill:none;pointer-events:fill;vector-effect:non-scaling-stroke;stroke-linejoin:round}\n#inema-sat svg.is-vetor path.hl{stroke-width:3;stroke-opacity:1;fill:rgba(255,255,255,.08)}\n#inema-sat svg.is-vetor .l-barragens path{fill:rgba(59,130,246,.55)}\n#inema-sat svg.is-vetor .l-barragens circle{fill:#60a5fa;stroke:#fff;stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:all}\n#inema-sat svg.is-vetor .l-barragens .hl{fill:#facc15;stroke:#fff}\n#inema-sat .is-etiq{position:absolute;z-index:6;background:rgba(15,23,32,.9);color:#fff;padding:.45rem .65rem;border-radius:8px;font-size:.82rem;line-height:1.45;pointer-events:none;max-width:320px;box-shadow:0 4px 14px rgba(0,0,0,.35)}\n#inema-sat .is-etiq[hidden]{display:none}\n#inema-sat .is-etiq i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.35rem;vertical-align:-1px}\n#inema-sat .is-etiq span{color:#cbd5e1}\n#inema-sat .is-player{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem;padding:.5rem .7rem;background:#f3f6f9;border-top:1px solid var(--ln);font-size:.85rem}\n#inema-sat .is-player[hidden]{display:none}\n#inema-sat .is-player button{border:1px solid var(--ln);background:#fff;border-radius:6px;padding:.3rem .55rem;cursor:pointer;font:inherit;font-size:.85rem;min-width:2.2rem}\n#inema-sat .is-player input[type=range]{flex:1;min-width:140px;accent-color:var(--az)}\n#inema-sat .is-player .vel{display:inline-flex;align-items:center;gap:.3rem;color:var(--tx2)}\n#inema-sat .is-player .vel input{flex:none;width:90px;min-width:0}\n#inema-sat .is-carga{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.7);color:#fff;padding:.6rem 1rem;border-radius:8px;font-size:.9rem;line-height:1.3;z-index:5;text-align:center}\n#inema-sat .is-falta{padding:3rem 1rem;text-align:center;color:var(--tx2);background:#fff;line-height:1.4}\n#inema-sat .is-nota{color:var(--tx2);font-size:.8rem;margin-top:.8rem}\n#inema-sat .is-nota a{color:var(--az)}\n/* tela cheia */\n#inema-sat figure:fullscreen,#inema-sat figure.is-cheia{display:flex;flex-direction:column;border-radius:0;border:0;width:100vw;height:100vh;max-width:none}\n#inema-sat figure.is-cheia{position:fixed;inset:0;z-index:2147483000}\n#inema-sat figure:fullscreen .is-palco,#inema-sat figure.is-cheia .is-palco{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}\n#inema-sat figure:fullscreen #is-area,#inema-sat figure.is-cheia #is-area{width:100%;height:100%;display:flex;align-items:center;justify-content:center}\n#inema-sat figure:fullscreen .is-mosaico,#inema-sat figure.is-cheia .is-mosaico{max-width:none;max-height:none;height:auto;width:min(100vw,calc(100vh * var(--ar,1)))}\n#inema-sat figure:fullscreen #is-area \u003e a img,#inema-sat figure.is-cheia #is-area \u003e a img{max-height:100%;width:auto;max-width:100%;margin:0 auto}\n/* tela cheia: título e controles flutuam sobre a imagem e somem quando o mouse para */\n#inema-sat figure:fullscreen{position:relative}\n#inema-sat figure:fullscreen figcaption,#inema-sat figure.is-cheia figcaption{position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(243,246,249,.9);transition:opacity .35s}\n#inema-sat figure:fullscreen .is-player,#inema-sat figure.is-cheia .is-player{position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(243,246,249,.9);transition:opacity .35s}\n#inema-sat figure.is-ocioso figcaption,#inema-sat figure.is-ocioso .is-player{opacity:0;pointer-events:none}\n#inema-sat figure.is-ocioso .is-palco{cursor:none}\n/* logo do INEMA no canto inferior direito da imagem (oceano nos recortes da Bahia e do Nordeste) */\n#inema-sat .is-logo{position:absolute;right:1.6%;bottom:1.6%;width:14%;min-width:78px;max-width:170px;z-index:4;pointer-events:none;\n  background:rgba(255,255,255,.62);border-radius:8px;padding:.45% .7%;line-height:0;opacity:.82}\n#inema-sat .is-logo img{width:100%;height:auto;display:block}\n#inema-sat figure:fullscreen .is-logo,#inema-sat figure.is-cheia .is-logo{transition:bottom .35s}\n#inema-sat figure:fullscreen:not(.is-ocioso) .is-logo,#inema-sat figure.is-cheia:not(.is-ocioso) .is-logo{bottom:calc(1.6% + 46px)}\n@media (max-width:640px){#inema-sat .is-player .vel{display:none}}\n/* painel de controles em blocos */\n#inema-sat .is-sub{color:var(--tx2);font-size:.9rem;margin:0 0 .8rem}\n#inema-sat .is-painel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}\n#inema-sat .is-grupo{border:1px solid var(--ln);border-radius:10px;padding:.55rem .8rem .7rem;background:#fbfcfd;min-width:0}\n#inema-sat .is-grupo h3{margin:0 0 .2rem;font-size:.95rem;color:var(--az);display:flex;align-items:center;justify-content:space-between;gap:.6rem}\n#inema-sat .is-grupo.desl .is-corpo{opacity:.45;pointer-events:none}\n#inema-sat .is-liga{display:inline-flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:600;color:var(--tx);cursor:pointer;user-select:none}\n#inema-sat .is-liga input{width:2.1rem;height:1.15rem;appearance:none;-webkit-appearance:none;background:#cbd5e1;border-radius:999px;position:relative;cursor:pointer;margin:0;transition:background .2s}\n#inema-sat .is-liga input::after{content:\"\";position:absolute;top:2px;left:2px;width:calc(1.15rem - 4px);height:calc(1.15rem - 4px);border-radius:50%;background:#fff;transition:left .2s}\n#inema-sat .is-liga input:checked{background:#2e6b4f}\n#inema-sat .is-liga input:checked::after{left:calc(100% - 1.15rem + 2px)}\n#inema-sat .is-bts.radar button[aria-pressed=true]{background:#7a1f5c;border-color:#7a1f5c}\n#inema-sat .is-desc-radar{color:var(--tx2);font-size:.8rem;margin:.35rem 0 0}\n@media (max-width:900px){#inema-sat .is-painel{grid-template-columns:minmax(0,1fr)}}\n/* zoom */\n#inema-sat .is-zoom{position:absolute;inset:0;transform-origin:0 0;will-change:transform}\n#inema-sat .is-mosaico{overflow:hidden;touch-action:none}\n#inema-sat .is-mosaico.sem-sat{background:#16202b}\n#inema-sat .is-mosaico.zoom-on{cursor:grab}\n#inema-sat .is-mosaico.arrastando{cursor:grabbing}\n#inema-sat .is-zbt{position:absolute;left:10px;top:10px;z-index:7;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:opacity .35s}\n#inema-sat .is-zbt button{width:34px;height:32px;border:0;border-bottom:1px solid #d7dee6;background:rgba(255,255,255,.92);font:700 18px/1 system-ui,sans-serif;color:#1d2733;cursor:pointer;padding:0}\n#inema-sat .is-zbt button:last-child{border-bottom:0;font-size:13px}\n#inema-sat .is-zbt button:hover{background:#fff}\n#inema-sat .is-zbt button:disabled{opacity:.4;cursor:default}\n#inema-sat .is-znivel{position:absolute;left:52px;top:14px;z-index:7;background:rgba(15,23,32,.75);color:#fff;font-size:.75rem;padding:.15rem .45rem;border-radius:6px;pointer-events:none}\n#inema-sat .is-znivel[hidden]{display:none}\n#inema-sat figure.is-ocioso .is-zbt,#inema-sat figure.is-ocioso .is-znivel{opacity:0;pointer-events:none}\n#inema-sat figure:fullscreen .is-zbt,#inema-sat figure.is-cheia .is-zbt{top:56px}\n#inema-sat figure:fullscreen .is-znivel,#inema-sat figure.is-cheia .is-znivel{top:60px}"; document.head.appendChild(s); })();
 /* INEMA · Meteorologia — Satélite GOES-19.
    Fontes: CPTEC/INPE DSAT (mosaico de blocos com realces do CPTEC) e NOAA/NESDIS/STAR (imagens prontas).
    O site só permite carregar IMAGENS de fora (não dados): a hora da imagem mais recente do CPTEC é descoberta
@@ -36,7 +36,6 @@
     ["labels", "Nomes", "bloco", "#fff"],
     ["grid", "Latitude/longitude", "bloco", "#cbd5e1"],
     ["glm", "Raios (GLM)", "raios", "#ffd60a"],
-    ["radar", "Radar (chuva)", "radar", "#23ff00"],
     ["regioes", "Regiões climáticas", "vetor", "#00e676", "main/mapas/regioes_ba.geojson", "Região climática"],
     ["rpga", "RPGAs", "vetor", "#38bdf8", "main/mapas/rpga_ba.geojson", "RPGA"],
     ["ti", "Territórios de Identidade", "vetor", "#ff9f43", "main/focos/ti_ba.geojson", "Território de Identidade"],
@@ -51,14 +50,22 @@
   var ICO_MAX = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round'><path d='M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'/></svg>";
   var ICO_MIN = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round'><path d='M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5'/></svg>";
   raiz.innerHTML =
-    "<h2>Satélite</h2>" +
-    "<div class='is-rot'>Fonte</div><div class='is-bts fonte' id='is-fonte'></div>" +
-    "<div class='is-rot'>Recorte</div><div class='is-bts' id='is-setor'></div>" +
-    "<div class='is-rot'>Canal / produto</div><div class='is-bts' id='is-canal'></div>" +
-    "<div class='is-rot'>Exibição</div><div class='is-bts modo' id='is-modo'></div>" +
-    "<div id='is-passo-bloco'><div class='is-rot'>Intervalo entre imagens</div><div class='is-bts passo' id='is-passo'></div></div>" +
-    "<div class='is-rot'>Camadas</div><div class='is-camadas' id='is-camadas'></div>" +
-    "<p class='is-desc' id='is-desc'></p>" +
+    "<h2>Satélite e Radar</h2>" +
+    "<p class='is-sub'>Imagens do satélite GOES-19 e dos radares meteorológicos que cobrem a Bahia, a cada 10 minutos, com as divisões do estado.</p>" +
+    "<div class='is-painel'>" +
+      "<div class='is-grupo' id='is-g-sat'><h3>Satélite <label class='is-liga'><input type='checkbox' id='is-sat-on'>mostrar</label></h3><div class='is-corpo'>" +
+        "<div class='is-rot'>Fonte</div><div class='is-bts fonte' id='is-fonte'></div>" +
+        "<div class='is-rot'>Canal</div><div class='is-bts' id='is-canal'></div><p class='is-desc' id='is-desc'></p></div></div>" +
+      "<div class='is-grupo' id='is-g-rad'><h3>Radar <label class='is-liga'><input type='checkbox' id='is-rad-on'>mostrar</label></h3><div class='is-corpo'>" +
+        "<div class='is-rot'>Produto</div><div class='is-bts radar' id='is-rprod'></div><p class='is-desc-radar' id='is-rdesc'></p></div></div>" +
+      "<div class='is-grupo'><h3>Área e camadas</h3>" +
+        "<div class='is-rot'>Recorte</div><div class='is-bts' id='is-setor'></div>" +
+        "<div class='is-rot'>Camadas</div><div class='is-camadas' id='is-camadas'></div></div>" +
+      "<div class='is-grupo'><h3>Exibição</h3>" +
+        "<div class='is-bts modo' id='is-modo'></div>" +
+        "<div id='is-passo-bloco'><div class='is-rot'>Intervalo entre imagens</div><div class='is-bts passo' id='is-passo'></div></div>" +
+        "<p class='is-desc'>Zoom: role o mouse sobre a imagem, use os botões + e − ou o gesto de pinça; arraste para mover.</p></div>" +
+    "</div>" +
     "<figure id='is-fig'><figcaption><b id='is-tit'></b><span class='is-cab-dir'><span id='is-hora'></span>" +
       "<button type='button' class='is-max' id='is-max' title='Maximizar a imagem (Esc para sair)'>" + ICO_MAX + "<span>Maximizar</span></button></span></figcaption>" +
       "<div class='is-palco'><div id='is-area'></div></div>" +
@@ -71,11 +78,15 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var sel = { f: "cptec", s: { noaa: "nsa", cptec: "ba" }, c: { noaa: "GEOCOLOR", cptec: "ch13_cpt_DSA" }, m: "atual", p: 10,
+              sat: true, rad: false, rp: "cappi~cappi3km",
               cam: { countries: true, labels: true, grid: false, glm: false, regioes: false, ti: false, mun: false } };
   try {
-    var g = JSON.parse(localStorage.getItem("inemaSatelite3") || "{}");
+    var g = JSON.parse(localStorage.getItem("inemaSatRadar1") || localStorage.getItem("inemaSatelite3") || "{}");
     if (g.f) { for (var k in g) if (k !== "cam") sel[k] = g[k]; for (var k2 in g.cam || {}) sel.cam[k2] = g.cam[k2]; }
+    if (g.cam && g.cam.radar && g.rad === undefined) sel.rad = true;   // versão anterior: radar era uma camada
+    delete sel.cam.radar;
   } catch (e) {}
+  function salva() { try { localStorage.setItem("inemaSatRadar1", JSON.stringify(sel)); } catch (e) {} }
   var geracao = 0, animTimer = null, horaCache = {}, vetores = {}, anim = null;
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -91,6 +102,67 @@
     return dois(t.getUTCDate()) + "/" + dois(t.getUTCMonth() + 1) + " " + dois(t.getUTCHours()) + ":" + dois(t.getUTCMinutes()) +
       " UTC (" + dois(l.getUTCHours()) + ":" + dois(l.getUTCMinutes()) + " na Bahia)";
   }
+
+  // ---------- zoom (roda do mouse, arrastar, pinça, duplo clique e botões) — até 4×
+  var ZMAX = 4, zoom = { s: 1, x: 0, y: 0, rec: null };
+  var ZOOM_BTS = "<div class='is-zbt'><button type='button' data-z='mais' title='Aproximar'>+</button><button type='button' data-z='menos' title='Afastar'>−</button>" +
+    "<button type='button' data-z='zero' title='Voltar ao tamanho original'>⟲</button></div><div class='is-znivel' id='is-znivel' hidden></div>";
+  function mosaico() { return $("is-area").querySelector(".is-mosaico"); }
+  function aplicaZoom() {
+    var m = mosaico(); if (!m) return;
+    var w = m.clientWidth, h = m.clientHeight;
+    zoom.s = Math.min(ZMAX, Math.max(1, zoom.s));
+    zoom.x = Math.min(0, Math.max(w - w * zoom.s, zoom.x)); zoom.y = Math.min(0, Math.max(h - h * zoom.s, zoom.y));
+    var z = m.querySelector(".is-zoom"); if (z) z.style.transform = "translate(" + zoom.x.toFixed(1) + "px," + zoom.y.toFixed(1) + "px) scale(" + zoom.s.toFixed(3) + ")";
+    m.classList.toggle("zoom-on", zoom.s > 1.001);
+    var nv = $("is-znivel"); if (nv) { nv.hidden = zoom.s <= 1.001; nv.textContent = zoom.s.toFixed(1).replace(".", ",") + "×"; }
+    var b = m.querySelectorAll(".is-zbt button"); if (b.length) { b[0].disabled = zoom.s >= ZMAX - .001; b[1].disabled = b[2].disabled = zoom.s <= 1.001; }
+  }
+  function zoomEm(novo, cx, cy) {   // muda a escala mantendo parado o ponto (cx, cy) do mosaico
+    var m = mosaico(); if (!m) return;
+    if (cx == null) { cx = m.clientWidth / 2; cy = m.clientHeight / 2; }
+    novo = Math.min(ZMAX, Math.max(1, novo));
+    var px = (cx - zoom.x) / zoom.s, py = (cy - zoom.y) / zoom.s;
+    zoom.s = novo; zoom.x = cx - px * novo; zoom.y = cy - py * novo; aplicaZoom();
+  }
+  (function ligaZoom() {
+    var area = $("is-area"), toques = {}, arr = null, pinca = null;
+    function local(ev) { var r = mosaico().getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; }
+    area.addEventListener("click", function (e) {
+      var b = e.target.closest(".is-zbt button"); if (!b) return;
+      var a = b.getAttribute("data-z");
+      if (a === "mais") zoomEm(zoom.s * 1.5); else if (a === "menos") zoomEm(zoom.s / 1.5); else { zoom.s = 1; zoom.x = zoom.y = 0; aplicaZoom(); }
+    });
+    area.addEventListener("wheel", function (e) {
+      if (!e.target.closest(".is-mosaico") || e.target.closest(".is-zbt")) return;
+      e.preventDefault();
+      var p = local(e); zoomEm(zoom.s * Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.0018)), p[0], p[1]);
+    }, { passive: false });
+    area.addEventListener("dblclick", function (e) {
+      if (!e.target.closest(".is-mosaico") || e.target.closest(".is-zbt")) return;
+      var p = local(e); zoomEm(zoom.s >= ZMAX - .01 ? 1 : zoom.s * 2, p[0], p[1]);
+    });
+    area.addEventListener("pointerdown", function (e) {
+      if (!e.target.closest(".is-mosaico") || e.target.closest(".is-zbt")) return;
+      toques[e.pointerId] = local(e);
+      var ids = Object.keys(toques);
+      if (ids.length === 2) { var a = toques[ids[0]], b = toques[ids[1]]; pinca = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), s: zoom.s }; arr = null; }
+      else if (zoom.s > 1.001) { arr = { x: e.clientX, y: e.clientY, zx: zoom.x, zy: zoom.y }; mosaico().classList.add("arrastando"); }
+      try { area.setPointerCapture(e.pointerId); } catch (er) {}
+    });
+    area.addEventListener("pointermove", function (e) {
+      if (!toques[e.pointerId]) return;
+      toques[e.pointerId] = local(e);
+      var ids = Object.keys(toques);
+      if (pinca && ids.length === 2) {
+        var a = toques[ids[0]], b = toques[ids[1]], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        zoomEm(pinca.s * d / pinca.d, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+      } else if (arr) { zoom.x = arr.zx + e.clientX - arr.x; zoom.y = arr.zy + e.clientY - arr.y; aplicaZoom(); }
+    });
+    function solta(e) { delete toques[e.pointerId]; if (Object.keys(toques).length < 2) pinca = null; if (!Object.keys(toques).length) { arr = null; var m = mosaico(); if (m) m.classList.remove("arrastando"); } }
+    area.addEventListener("pointerup", solta); area.addEventListener("pointercancel", solta);
+    window.addEventListener("resize", aplicaZoom); document.addEventListener("fullscreenchange", function () { setTimeout(aplicaZoom, 50); });
+  })();
 
   // ---------- projeção do GOES-19 (grade fixa) -> pixel global dos blocos do CPTEC
   // Coeficientes ajustados à grade lat/lon do CPTEC no zoom 5 (91% dos pontos sobre as linhas da grade).
@@ -154,7 +226,8 @@
           s += "</g>";
         });
       });
-      area2.insertAdjacentHTML("beforeend", s + "</svg><div class='is-etiq' id='is-etiq' hidden></div>");
+      (area2.querySelector(".is-zoom") || area2).insertAdjacentHTML("beforeend", s + "</svg>");
+      area2.insertAdjacentHTML("beforeend", "<div class='is-etiq' id='is-etiq' hidden></div>");
       ligaEtiqueta(area2);
     });
   }
@@ -212,38 +285,59 @@
   function quadro(prod, t, r, oculto, k) {
     var h = "<div class='is-quadro" + (oculto ? " oculto" : "") + "' data-k='" + k + "' style='" + grade(r) + "'>";
     for (var y = r[5]; y <= r[6]; y++) for (var x = r[3]; x <= r[4]; x++) {
-      h += "<div class='is-cel'><img alt='' class='base' src='" + bloco(prod, t, r[2], x, y) + "'>" +
+      h += "<div class='is-cel'>" + (sel.sat ? "<img alt='' class='base' src='" + bloco(prod, t, r[2], x, y) + "'>" : "") +
         (sel.cam.glm ? "<img alt='' class='raios' src='" + bloco("glm_density_group_pixel", t, r[2], x, y) + "' onerror=\"this.style.display='none'\">" : "") + "</div>";
     }
-    return h + (sel.cam.radar ? radarSvg(t, r) : "") + "</div>";
+    return h + (sel.rad ? radarSvg(t, r) : "") + "</div>";
   }
   // ---------- radares meteorológicos (Nowcasting CPTEC/INPE): refletividade CAPPI 3 km, a cada 10 min
   // Cada imagem cobre um retângulo de latitude/longitude; é encaixada na projeção do satélite pelos cantos.
   var NOWCAST = "https://nowcasting.cptec.inpe.br/api/v1/paths/frames/radar/";
-  var RADARES = [   // [camada, nome, lat sul, lat norte, lon oeste, lon leste]
-    ["cemaden~saofrancisco~cappi~cappi3km", "São Francisco (MG) – CEMADEN", -18.24, -13.74, -47.01, -42.33],
-    ["decea~gama~cappi~cappi3km", "Gama (DF) – DECEA", -18.21, -13.71, -50.37, -45.66],
-    ["cemaden~santatereza~cappi~cappi3km", "Santa Teresa (ES) – CEMADEN", -22.22, -17.72, -42.94, -38.16],
-    ["cemaden~maceio~cappi~cappi3km", "Maceió – CEMADEN", -11.79, -7.29, -38.04, -33.48],
-    ["cemaden~petrolina~cappi~cappi3km", "Petrolina – CEMADEN", -11.6040, -7.1087, -42.8416, -38.2817],
-    ["cemaden~salvador~cappi~cappi3km", "Salvador – CEMADEN", -15.1355, -10.6403, -40.6184, -36.0027]
+  var RADARES = [   // [radar, nome, lat sul, lat norte, lon oeste, lon leste]
+    ["cemaden~saofrancisco", "São Francisco (MG) – CEMADEN", -18.24, -13.74, -47.01, -42.33],
+    ["decea~gama", "Gama (DF) – DECEA", -18.21, -13.71, -50.37, -45.66],
+    ["cemaden~santatereza", "Santa Teresa (ES) – CEMADEN", -22.22, -17.72, -42.94, -38.16],
+    ["cemaden~maceio", "Maceió – CEMADEN", -11.79, -7.29, -38.04, -33.48],
+    ["cemaden~petrolina", "Petrolina – CEMADEN", -11.6040, -7.1087, -42.8416, -38.2817],
+    ["cemaden~salvador", "Salvador – CEMADEN", -15.1355, -10.6403, -40.6184, -36.0027]
   ];
+  // produtos dos radares: [caminho, nome, descrição, unidade, legenda "valor|cor ..."]
+  var RPRODUTOS = [
+    ["cappi~cappi3km", "Chuva agora (refletividade)", "Refletividade a 3 km de altura (CAPPI): quanto mais forte a cor, mais intensa a chuva. Acima de 45 dBZ: chuva forte, possível granizo.", "dBZ",
+      "5|#c6cccc 10|#00f3f8 15|#006cbc 20|#23ff00 25|#00b400 30|#007600 35|#ffff00 40|#ffc900 45|#ff9c00 50|#f30000 55|#b70000 60|#7b0000 65|#dd22b8 70|#a522dd"],
+    ["chuva~chuva24h", "Chuva 24 h", "Chuva acumulada nas últimas 24 horas estimada pelo radar (mm). Estimativa: pode diferir dos pluviômetros.", "mm",
+      "1|#ffffff 5|#adadff 10|#8f8fff 15|#6666ff 20|#3d3dff 30|#079e2c 40|#50c90b 50|#b7e904 60|#ffe000 70|#ffad00 80|#ff7a00 90|#ff1400 100|#810000 120|#ffbbff 140|#ff86ff 160|#ff50ff 180|#bb00bb 200|#500050"],
+    ["chuva~chuva48h", "Chuva 48 h", "Chuva acumulada nas últimas 48 horas estimada pelo radar (mm).", "mm",
+      "1|#ffffff 5|#adadff 10|#8f8fff 15|#6666ff 20|#3d3dff 30|#079e2c 40|#50c90b 50|#b7e904 60|#ffe000 70|#ffad00 80|#ff7a00 90|#ff1400 100|#810000 120|#ffbbff 140|#ff86ff 160|#ff50ff 180|#bb00bb 200|#500050"],
+    ["chuva~chuva72h", "Chuva 72 h", "Chuva acumulada nas últimas 72 horas estimada pelo radar (mm).", "mm",
+      "1|#ffffff 5|#adadff 10|#8f8fff 15|#6666ff 20|#3d3dff 30|#079e2c 40|#50c90b 50|#b7e904 60|#ffe000 70|#ffad00 80|#ff7a00 90|#ff1400 100|#810000 120|#ffbbff 140|#ff86ff 160|#ff50ff 180|#bb00bb 200|#500050"],
+    ["echotop~echotop35dbz", "Altura da chuva forte", "Altura máxima do eco de 35 dBZ (km): torres altas indicam tempestades mais intensas.", "km",
+      "1|#190cf3 2|#505df7 3|#6fe9b3 4|#50aa28 5|#73c31d 6|#f9fe29 7|#e3c221 8|#ca601a 9|#bd0317 10|#71023c 11|#2c045e"],
+    ["agua_liquida~vil", "Água na nuvem (VIL)", "Líquido integrado verticalmente (mm): valores altos indicam tempestades fortes e risco de granizo.", "mm",
+      "1|#00bfff 2|#00b2ee 3|#009acd 4|#00688b 5|#00ff7f 6|#00d266 7|#00b955 8|#008b45 9|#ffff00 10|#cdcd00 11|#d7b400 12|#c88700 13|#e13c00 14|#960000 15|#bf3eff 16|#b23aee 17|#9a32cd 18|#68228b"],
+    ["echotop~waldvogel", "Granizo (Waldvogel)", "Indicador de granizo pelo método de Waldvogel: diferença entre a altura do eco de 45 dBZ e a do nível de congelamento. Quanto maior, mais provável o granizo.", "",
+      "1|#99f0b2 2|#53bd9f 3|#32a696 4|#3296b4 5|#05508c 6|#0a1f96 7|#2c0246 8|#642c5a"],
+    ["ppi~ppivr", "Vento Doppler", "Velocidade radial (m/s) na 1ª elevação: verde = vento se aproximando do radar, vermelho = se afastando. Útil para rajadas e rotação.", "m/s",
+      "-50|#299b29 -40|#56b056 -30|#83c583 -20|#b0dab0 -10|#ddefdd 0|#faf4f4 10|#e5c7c7 20|#d09a9a 30|#bb6d6d 40|#a64040 50|#9b2929"]
+  ];
+  function rprod() { return RPRODUTOS.filter(function (p) { return p[0] === sel.rp; })[0] || RPRODUTOS[0]; }
   function horaRadar(t) { return t.getUTCFullYear() + dois(t.getUTCMonth() + 1) + dois(t.getUTCDate()) + dois(t.getUTCHours()) + dois(t.getUTCMinutes()); }
   function radarSvg(t, r) {
-    var w = (r[4] - r[3] + 1) * 256, h = (r[6] - r[5] + 1) * 256, ox = r[3] * 256, oy = r[5] * 256, s = "";
+    var w = (r[4] - r[3] + 1) * 256, h = (r[6] - r[5] + 1) * 256, ox = r[3] * 256, oy = r[5] * 256, s = "", p = rprod()[0];
     RADARES.forEach(function (rd) {
       var nw = projeta(rd[4], rd[3], r[2]), ne = projeta(rd[5], rd[3], r[2]), sw = projeta(rd[4], rd[2], r[2]);
       var m = [ne[0] - nw[0], ne[1] - nw[1], sw[0] - nw[0], sw[1] - nw[1], nw[0] - ox, nw[1] - oy].map(function (v) { return v.toFixed(2); }).join(" ");
-      s += "<image href='" + NOWCAST + rd[0] + "/" + horaRadar(t) + "/full' x='0' y='0' width='1' height='1' preserveAspectRatio='none' transform='matrix(" + m + ")'" +
+      s += "<image href='" + NOWCAST + rd[0] + "~" + p + "/" + horaRadar(t) + "/full' x='0' y='0' width='1' height='1' preserveAspectRatio='none' transform='matrix(" + m + ")'" +
         " onerror=\"this.style.display='none'\"><title>Radar " + esc(rd[1]) + "</title></image>";
     });
     return "<svg class='is-radar' viewBox='0 0 " + w + " " + h + "' preserveAspectRatio='none' aria-hidden='true'>" + s + "</svg>";
   }
   function legendaRadar() {
-    var cores = ["#c6cccc", "#00f3f8", "#006cbc", "#23ff00", "#00b400", "#007600", "#ffff00", "#ffc900", "#ff9c00", "#f30000", "#b70000", "#7b0000", "#dd22b8", "#a522dd"];
-    return "<div class='is-leg-radar'><span>Radar · refletividade (dBZ)</span><div class='escala'><div class='barra' style='background:linear-gradient(90deg," + cores.join(",") + ")'></div>" +
-      "<div class='marcas'><span>5</span><span>20</span><span>35</span><span>50</span><span>65+</span></div></div>" +
-      "<span class='fontes'>Radares CEMADEN e DECEA via Nowcasting CPTEC/INPE: Salvador, Petrolina, Maceió, São Francisco (MG), Santa Teresa (ES) e Gama (DF)</span></div>";
+    var p = rprod(), itens = p[4].split(" ").map(function (x) { return x.split("|"); }), n = itens.length;
+    var marcas = [0, Math.round((n - 1) / 3), Math.round(2 * (n - 1) / 3), n - 1].map(function (i) { return "<span>" + itens[i][0] + (i === n - 1 ? "+" : "") + "</span>"; }).join("");
+    return "<div class='is-leg-radar'><span>Radar · " + esc(p[1]) + (p[3] ? " (" + p[3] + ")" : "") + "</span><div class='escala'><div class='barra' style='background:linear-gradient(90deg," +
+      itens.map(function (x) { return x[1]; }).join(",") + ")'></div><div class='marcas'>" + marcas + "</div></div>" +
+      "<span class='fontes'>Radares CEMADEN e DECEA via Nowcasting CPTEC/INPE: Salvador, Petrolina, Maceió, São Francisco (MG), Santa Teresa (ES) e Gama (DF). Os radares guardam cerca de 3 horas de imagens.</span></div>";
   }
   function referencias(r) {   // camadas fixas do CPTEC (não mudam com a hora): uma vez só, por cima das imagens
     var ativas = CAMADAS.filter(function (c) { return c[2] === "bloco" && sel.cam[c[0]]; });
@@ -263,23 +357,30 @@
       if (minha !== geracao) return;
       if (!t) { $("is-area").innerHTML = "<div class='is-falta'>Imagens do CPTEC indisponíveis no momento. Tente a fonte NOAA.</div>"; return; }
       var proporcao = "aspect-ratio:" + (r[4] - r[3] + 1) + "/" + (r[6] - r[5] + 1) + ";--ar:" + ((r[4] - r[3] + 1) / (r[6] - r[5] + 1)).toFixed(4);
+      var abre = "<div class='is-mosaico" + (sel.sat ? "" : " sem-sat") + "' style='" + proporcao + "'><div class='is-zoom'>";
+      var fecha = "</div>" + LOGO + ZOOM_BTS + "</div>";
+      if (zoom.rec !== r[0]) { zoom.s = 1; zoom.x = 0; zoom.y = 0; zoom.rec = r[0]; }
       if (sel.m === "atual") {
-        $("is-area").innerHTML = "<div class='is-mosaico' style='" + proporcao + "'>" + quadro(prod, t, r, false, 0) + referencias(r) + LOGO + "</div>";
+        $("is-area").innerHTML = abre + quadro(prod, t, r, false, 0) + referencias(r) + fecha;
         $("is-hora").textContent = rotHora(t);
+        aplicaZoom();
         desenhaVetores(r, minha);
         return;
       }
       // animação: últimas 3 ou 6 h, de 10, 20 ou 30 em 30 min
       var horas = sel.m === "a6" ? 6 : 3, passo = sel.p, n = horas * 60 / passo + 1, quadros = [];
       for (var i = n - 1; i >= 0; i--) quadros.push(new Date(t.getTime() - i * passo * 6e4));
-      var h = "<div class='is-mosaico' style='" + proporcao + "'>";
+      var h = abre;
       quadros.forEach(function (q, k) { h += quadro(prod, q, r, k !== quadros.length - 1, k); });
-      h += referencias(r) + LOGO + "<div class='is-carga' id='is-carga'>Carregando as imagens… 0/" + n + "</div></div>";
+      h += referencias(r) + "</div>" + LOGO + ZOOM_BTS + "<div class='is-carga' id='is-carga'>Carregando as imagens… 0/" + n + "</div></div>";
       $("is-area").innerHTML = h;
+      aplicaZoom();
       desenhaVetores(r, minha);
       var els = [].slice.call($("is-area").querySelectorAll(".is-quadro:not(.is-ref)")), ok = [], prontos = 0;
       els.forEach(function (el, k) {
-        var imgs = el.querySelectorAll("img.base"), faltam = imgs.length, falhou = false;
+        // com o satélite desligado, o quadro espera as imagens do radar (as que existirem)
+        var imgs = el.querySelectorAll(sel.sat ? "img.base" : "svg.is-radar image"), faltam = imgs.length, falhou = false;
+        if (!faltam) { faltam = 1; setTimeout(function () { fim(); }, 0); }
         var fim = function () {
           if (--faltam > 0) return;
           prontos++; if (!falhou) ok[k] = true;
@@ -287,10 +388,13 @@
           var c = $("is-carga"); if (c) c.textContent = "Carregando as imagens… " + prontos + "/" + n;
           if (prontos === n) inicia();
         };
+        var bons = 0;
         [].forEach.call(imgs, function (im) {
-          if (im.complete && im.naturalWidth) return fim();
-          im.addEventListener("load", fim); im.addEventListener("error", function () { falhou = true; fim(); });
+          if (im.complete && im.naturalWidth) { bons++; return fim(); }
+          im.addEventListener("load", function () { bons++; fim(); });
+          im.addEventListener("error", function () { if (sel.sat) falhou = true; fim(); });
         });
+        if (!sel.sat && imgs.length) { var fim0 = fim; fim = function () { if (faltam === 1 && !bons) falhou = true; fim0(); }; }   // só radar: vale se algum radar respondeu
       });
       function inicia() {
         var c = $("is-carga"); if (c) c.remove();
@@ -383,11 +487,23 @@
     $("is-passo-bloco").hidden = !(f === "cptec" && sel.m !== "atual");
     botoes("is-passo", [[10, "10 min"], [20, "20 min"], [30, "30 min"]], sel.p, "p");
     desenhaCamadas();
-    $("is-leg").innerHTML = f === "cptec" && sel.cam.radar ? legendaRadar() : "";
+    // satélite e radar (o radar e o "só radar" funcionam com a fonte CPTEC, que tem a projeção usada nas sobreposições)
+    if (f === "noaa") sel.sat = true;
+    $("is-sat-on").checked = sel.sat; $("is-sat-on").disabled = f === "noaa";
+    $("is-rad-on").checked = sel.rad && f === "cptec"; $("is-rad-on").disabled = f === "noaa";
+    $("is-g-sat").classList.toggle("desl", !sel.sat);
+    $("is-g-rad").classList.toggle("desl", !(sel.rad && f === "cptec"));
+    botoes("is-rprod", RPRODUTOS.map(function (p) { return [p[0], p[1]]; }), sel.rp, "rp");
+    $("is-rdesc").textContent = f === "noaa" ? "O radar fica disponível com a fonte CPTEC/INPE." : rprod()[2];
+    $("is-leg").innerHTML = f === "cptec" && sel.rad ? legendaRadar() : "";
     var c = CANAIS[f].filter(function (x) { return x[0] === sel.c[f]; })[0] || CANAIS[f][0];
     var r = REC[f].filter(function (x) { return x[0] === sel.s[f]; })[0] || REC[f][0];
     $("is-desc").textContent = c[2];
-    $("is-tit").textContent = (f === "cptec" ? "CPTEC/INPE · " : "NOAA · ") + "GOES-19 · " + c[1] + (f === "cptec" && sel.cam.glm ? " + raios" : "") + " · " + r[1];
+    var partes = [];
+    if (sel.sat) partes.push((f === "cptec" ? "CPTEC/INPE · " : "NOAA · ") + "GOES-19 · " + c[1] + (f === "cptec" && sel.cam.glm ? " + raios" : ""));
+    if (f === "cptec" && sel.rad) partes.push("Radar · " + rprod()[1]);
+    if (!partes.length) partes.push("Mapa");
+    $("is-tit").textContent = partes.join(" + ") + " · " + r[1];
     $("is-hora").textContent = "";
     var nImg = sel.m === "atual" ? 0 : (sel.m === "a6" ? 6 : 3) * 60 / sel.p + 1;
     $("is-nota").textContent = f === "cptec"
@@ -395,9 +511,28 @@
         (nImg ? " Animação com " + nImg + " imagens de " + sel.p + " em " + sel.p + " minutos." : "") +
         " Limites da Bahia desenhados com a projeção do satélite (podem diferir alguns quilômetros nas bordas)."
       : "Fonte: NOAA/NESDIS/STAR — GOES-19 (GOES-Leste), domínio público. A animação dos recortes cobre as últimas horas (~10 MB). O disco completo não tem animação. As camadas só estão disponíveis na fonte CPTEC.";
-    try { localStorage.setItem("inemaSatelite3", JSON.stringify(sel)); } catch (e) {}
+    salva();
     if (f === "cptec") mostraCptec(geracao); else mostraNoaa();
   }
+  $("is-sat-on").onchange = function () { sel.sat = this.checked; desenha(); };
+  $("is-rad-on").onchange = function () { sel.rad = this.checked; desenha(); };
+  $("is-rprod").onclick = function (e) { var b = e.target.closest("button"); if (b) { sel.rp = b.getAttribute("data-rp"); sel.rad = true; desenha(); } };
+  // atalhos de teclado (como no Nowcasting): espaço/K = tocar/pausar, J/← = anterior, L/→ = próxima, F = tela cheia, + e − = zoom, 0 = zoom original
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || /input|textarea|select/i.test((e.target.tagName || "")) || e.target.isContentEditable) return;
+    var f = $("is-fig"), visivel = f.getBoundingClientRect().bottom > 0 && f.getBoundingClientRect().top < innerHeight;
+    if (!visivel && !cheia()) return;
+    var k = e.key.toLowerCase(), feito = true;
+    if ((k === " " || k === "k") && anim) $("is-play").click();
+    else if ((k === "j" || k === "arrowleft") && anim) $("is-ant").click();
+    else if ((k === "l" || k === "arrowright") && anim) $("is-prox").click();
+    else if (k === "f") $("is-max").click();
+    else if (k === "+" || k === "=") zoomEm(zoom.s * 1.5);
+    else if (k === "-") zoomEm(zoom.s / 1.5);
+    else if (k === "0") { zoom.s = 1; zoom.x = zoom.y = 0; aplicaZoom(); }
+    else feito = false;
+    if (feito) e.preventDefault();
+  });
   $("is-fonte").onclick = function (e) { var b = e.target.closest("button"); if (b) { sel.f = b.getAttribute("data-f"); desenha(); } };
   $("is-setor").onclick = function (e) { var b = e.target.closest("button"); if (b) { sel.s[sel.f] = b.getAttribute("data-s"); desenha(); } };
   $("is-canal").onclick = function (e) { var b = e.target.closest("button"); if (b) { sel.c[sel.f] = b.getAttribute("data-c"); desenha(); } };
@@ -408,7 +543,7 @@
     sel.cam[cb.getAttribute("data-cam")] = cb.checked;
     var tipo = CAMADAS.filter(function (c) { return c[0] === cb.getAttribute("data-cam"); })[0][2];
     if (tipo === "vetor" && sel.f === "cptec" && $("is-area").querySelector(".is-mosaico")) {   // só redesenha a sobreposição
-      desenhaCamadas(); try { localStorage.setItem("inemaSatelite3", JSON.stringify(sel)); } catch (e2) {}
+      desenhaCamadas(); salva();
       var r = REC.cptec.filter(function (x) { return x[0] === sel.s.cptec; })[0] || REC.cptec[0];
       desenhaVetores(r, geracao); return;
     }
