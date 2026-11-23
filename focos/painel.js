@@ -143,7 +143,7 @@
         "<div class='fc-card c6'><h3 id='fc-t-mes'>Focos por mês</h3><p class='sub' id='fc-s-mes'></p><div class='fc-graf'><canvas id='g-mes'></canvas></div></div>" +
         "<div class='fc-card c7'><div class='fc-mapa-topo'><div><h3>Mapa dos focos</h3><p class='sub' id='fc-s-mapa' style='margin:0'></p></div>" +
           "<div class='fc-linha'><div class='fc-seg' id='fc-mapa-uc'></div><div class='fc-seg' id='fc-cor-mapa'></div></div></div><div id='fc-aviso-mapa'></div><div id='fc-mapa'></div></div>" +
-        "<div class='fc-card c5'><h3>Onde mais queimou</h3><p class='sub'>Ranking do período — clique para filtrar</p><div class='fc-abas fc-seg' id='fc-abas'></div><div class='fc-rank' id='fc-rank'></div></div>" +
+        "<div class='fc-card c5'><h3 id='fc-t-rank'>Municípios com o maior número de registros</h3><p class='sub'>Ranking do período — clique para filtrar</p><div class='fc-abas fc-seg' id='fc-abas'></div><div class='fc-rank' id='fc-rank'></div></div>" +
         "<div class='fc-card c12' id='fc-card-uc'><div class='fc-mapa-topo'><div><h3>Focos em unidades de conservação</h3><p class='sub' id='fc-s-uc' style='margin:0'>Carregando…</p></div>" +
           "<div class='fc-seg' id='fc-uc-grupo'></div></div><div id='fc-aviso-uc'></div><div class='fc-uc'><div><div class='fc-uc-kpis' id='fc-uc-kpis'></div>" +
           "<div class='fc-graf' style='height:220px'><canvas id='g-uc'></canvas></div></div><div class='fc-uc-rol' id='fc-uc-rank'></div></div></div>" +
@@ -355,6 +355,7 @@
 
     // Rankings
     seg("fc-abas", [["mun", "Municípios"], ["reg", "Regiões climáticas"], ["ti", "Territórios"]], sel.rank, function (v) { sel.rank = v; atualiza(); });
+    $("fc-t-rank").textContent = (sel.rank === "mun" ? "Municípios" : sel.rank === "reg" ? "Regiões climáticas" : "Territórios de Identidade") + " com o maior número de registros";
     var grupos = {};
     MUN.forEach(function (mu, i) { if (!porMun[i]) return; var kk = sel.rank === "mun" ? i : sel.rank === "reg" ? mu[1] : mu[2]; grupos[kk] = (grupos[kk] || 0) + porMun[i]; });
     var lista = Object.keys(grupos).map(function (kk) { return [kk, grupos[kk]]; }).sort(function (a, b) { return b[1] - a[1]; });
