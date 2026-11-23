@@ -155,6 +155,47 @@
       #inema-prev .lay-lista .ip-p .n{font-size:13px}
       #inema-prev .lay-lista .ip-p .c span.v::after{content:" mm"}
     }
+    /* celular: cards estreitos (2 por linha) com a fonte do portal */
+    #inema-prev .ip-lin b.ip-vento small .cu{display:none}
+    @media (max-width:640px){
+      #inema-prev .ip-dias{gap:8px}
+      #inema-prev .ip-dia{padding:10px 8px 9px;border-radius:12px}
+      #inema-prev .ip-sem{font-size:15px}
+      #inema-prev .ip-data{font-size:12px}
+      #inema-prev .ip-ico svg{width:60px;height:60px}
+      #inema-prev .ip-cond{font-size:13px;min-height:3.9em}
+      #inema-prev .ip-temp{gap:10px;margin:6px 0 8px}
+      #inema-prev .ip-temp b{font-size:21px}
+      #inema-prev .ip-det{font-size:11.5px;gap:5px}
+      #inema-prev .ip-lin{gap:4px;min-width:0}
+      #inema-prev .ip-lin svg{width:14px;height:14px}
+      #inema-prev .ip-lin span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+      #inema-prev .ip-lin b{min-width:0;font-size:11.5px}
+      #inema-prev .ip-lin b .ip-seta{width:11px;height:11px;margin-left:2px}
+      #inema-prev .ip-lin b.ip-vento small{font-size:10px}
+      #inema-prev .ip-lin b.ip-vento small .lg{display:none}
+      #inema-prev .ip-lin b.ip-vento small .cu{display:inline}
+      #inema-prev .ip-sol{font-size:11px;gap:3px}
+      #inema-prev .ip-sol svg{width:14px;height:14px}
+      #inema-prev .ip-sol .sep{width:6px}
+      #inema-prev .ip-alertas{gap:3px}
+      #inema-prev .ip-al{font-size:10px;padding:2px 6px}
+      #inema-prev button.ip-per-bt{padding:5px 8px;font-size:12px}
+      #inema-prev .ip-uv{font-size:11px;padding:4px 6px}
+      #inema-prev .ip-p{grid-template-columns:minmax(0,1fr) 18px 24px 24px;gap:2px;padding:2px 2px}
+      #inema-prev .ip-p svg{width:18px;height:18px}
+      #inema-prev .ip-p .n{font-size:10.5px}
+      #inema-prev .ip-p .t,#inema-prev .ip-p .c{font-size:11px}
+      #inema-prev .ip-p.cab{font-size:10px}
+    }
+    #inema-prev .ip-p .n .cu{display:none}
+    @media (max-width:350px){
+      #inema-prev .ip-dia{padding:9px 6px 8px}
+      #inema-prev .ip-det,#inema-prev .ip-lin b{font-size:11px}
+      #inema-prev .ip-lin b .ip-seta{width:10px;height:10px;margin-left:1px}
+      #inema-prev .ip-p .n .lg{display:none}
+      #inema-prev .ip-p .n .cu{display:inline}
+    }
   </style>
   <form class="ip-busca" id="ip-busca-form" onsubmit="return false">
     <label for="ip-mun">Digite o nome do município da Bahia:</label>
@@ -409,7 +450,7 @@
         '<div class="ip-per-lista"><div class="ip-p cab"><span></span><span></span><span>°C</span><span>mm</span></div>';
       ps.forEach(function (p) {
         s += '<div class="ip-p' + (p.passou ? " passou" : "") + (p.agora ? " agora" : "") + '" title="' + p.nome + ': ' + p.texto + (p.agora ? " (agora)" : "") + '">' +
-          '<span class="n">' + (p.agora ? '<i class="ip-ponto"></i>' : "") + p.nome + '</span>' + p.svg +
+          '<span class="n">' + (p.agora ? '<i class="ip-ponto"></i>' : "") + (p.nome === "Madrugada" ? '<span class="lg">Madrugada</span><span class="cu">Madrug.</span>' : p.nome) + '</span>' + p.svg +
           '<span class="t">' + num(p.temp) + '°</span><span class="c">' + txtChuva(p.mm, 1) + '</span></div>';
       });
       return s + '</div></div>';
@@ -553,7 +594,7 @@
             linha("chuva", "Chuva", txtChuva(m.mm[i], 1, true)) +
             (m.urmin ? linha("umid", "Umidade", num(m.urmin[i]) + "–" + num(m.urmax[i]) + "%") : "") +
             (m.v ? '<div class="ip-lin">' + MINI.vento + '<span>Vento</span><b class="ip-vento">' + num(m.v[i]) + ' km/h' + direcao(m.dir[i]) +
-              (m.raj ? '<small>rajadas de ' + num(m.raj[i]) + ' km/h</small>' : "") + '</b></div>' : "") +
+              (m.raj ? '<small><span class="lg">rajadas de </span><span class="cu">raj. </span>' + num(m.raj[i]) + ' km/h</small>' : "") + '</b></div>' : "") +
             (m.nasc ? '<div class="ip-sol">' + MINI.nascer + (m.nasc[i] || "–") + '<span class="sep"></span>' + MINI.por + (m.por[i] || "–") + '</div>' : "") +
           '</div>' +
           blocoPeriodos(ps) +
