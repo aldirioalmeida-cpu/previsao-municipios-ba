@@ -220,8 +220,10 @@
     var o = "<svg viewBox='0 0 300 190' role='img' aria-label='Medidor da anomalia do Niño 3.4: " + f1(v) + " °C'>";
     o += arco(-3, -1.5, "#2166ac") + arco(-1.5, -0.5, "#67a9cf") + arco(-0.5, 0.5, "#d5dbe1") + arco(0.5, 1.5, "#ef8a62") + arco(1.5, 3, "#b2182b");
     [-3, -1.5, -0.5, 0.5, 1.5, 3].forEach(function (x) { var p = pt(ang(x), R + 10); o += "<text x='" + p[0] + "' y='" + (p[1] + 3) + "' font-size='10' text-anchor='middle' fill='#5b6773'>" + (x > 0 ? "+" : "") + t1(x).replace(",0", "") + "</text>"; });
-    var pl = pt(ang(-2.2), (R + r0) / 2), pr = pt(ang(2.2), (R + r0) / 2);
-    o += "<text x='" + pl[0] + "' y='" + (pl[1] + 4) + "' font-size='10' fill='#fff' text-anchor='middle' font-weight='700'>LA NIÑA</text><text x='" + pr[0] + "' y='" + (pr[1] + 4) + "' font-size='10' fill='#fff' text-anchor='middle' font-weight='700'>EL NIÑO</text>";
+    [[-2.25, "LA NIÑA"], [2.25, "EL NIÑO"]].forEach(function (l) {
+      var a = ang(l[0]), p = pt(a, (R + r0) / 2), g = 90 - a * 180 / Math.PI;
+      o += "<text x='" + p[0].toFixed(1) + "' y='" + p[1].toFixed(1) + "' transform='rotate(" + g.toFixed(1) + " " + p[0].toFixed(1) + " " + p[1].toFixed(1) + ")' dy='3.5' font-size='10' fill='#fff' text-anchor='middle' font-weight='700'>" + l[1] + "</text>";
+    });
     var a = ang(v), pn = pt(a, R - 4), b1 = pt(a + Math.PI / 2, 7), b2 = pt(a - Math.PI / 2, 7);
     o += "<path d='M" + b1 + "L" + pn + "L" + b2 + "Z' fill='#1d2733'/><circle cx='" + cx + "' cy='" + cy + "' r='9' fill='#1d2733'/>";
     o += "<text x='" + cx + "' y='" + (cy + 34) + "' font-size='24' font-weight='700' text-anchor='middle' fill='" + corV(v) + "'>" + f1(v) + " °C</text>";
