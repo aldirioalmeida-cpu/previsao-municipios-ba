@@ -1,0 +1,416 @@
+/* INEMA — Previsão do tempo por município (página /inema/previsao-do-tempo-por-municipio).
+   Carregado pela página do portal; lê previsao.json (robô no GitHub). Gerado a partir de previsao-cidades-final.html. */
+(function () {
+  var raiz = document.getElementById("inema-prev");
+  if (!raiz || raiz.getAttribute("data-pronto")) return;
+  raiz.setAttribute("data-pronto", "1");
+  if (!document.getElementById("inema-prev-css")) { var s = document.createElement("style"); s.id = "inema-prev-css"; s.textContent = "    #inema-prev{font-family:inherit;max-width:1200px;margin:0 auto;color:#1f2a33}\n    #inema-prev .ip-busca{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}\n    #inema-prev .ip-busca label{width:100%;font-weight:600}\n    #inema-prev input{flex:1;min-width:220px;padding:10px 12px;font-size:16px;border:1px solid #9aa5b1;border-radius:8px}\n    #inema-prev input:focus{outline:2px solid #00566e;outline-offset:1px}\n    #inema-prev button{padding:10px 20px;font-size:16px;border:0;border-radius:8px;background:#00566e;color:#fff;cursor:pointer}\n    #inema-prev button:hover{background:#00404f}\n    #inema-prev button:disabled{background:#9aa5b1;cursor:wait}\n    #inema-prev .ip-msg{margin:4px 0 12px;font-size:15px}\n    #inema-prev .ip-msg strong{font-size:20px}\n    #inema-prev .ip-erro{color:#b00020}\n    #inema-prev .ip-dias{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}\n    @media (max-width:640px){#inema-prev .ip-dias{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#inema-prev .ip-dia{padding:12px 10px 10px}}\n    #inema-prev .ip-dia{background:#fff;border:1px solid #dde3e8;border-radius:14px;padding:14px 14px 12px;\n      box-shadow:0 1px 3px rgba(16,40,60,.08);display:flex;flex-direction:column}\n    #inema-prev .ip-dia.ip-hoje{border-color:#00566e;box-shadow:0 0 0 1px #00566e,0 2px 6px rgba(0,86,110,.15)}\n    #inema-prev .ip-cab{display:flex;justify-content:space-between;align-items:baseline}\n    #inema-prev .ip-sem{font-weight:700;font-size:16px;text-transform:capitalize}\n    #inema-prev .ip-data{font-size:13px;color:#5b6b78}\n    #inema-prev .ip-ico{display:flex;justify-content:center;margin:6px 0 2px}\n    #inema-prev .ip-ico svg{width:72px;height:72px}\n    #inema-prev .ip-cond{text-align:center;font-size:14px;line-height:1.3;min-height:3.9em;color:#33424e;\n      display:flex;align-items:center;justify-content:center}   /* reserva 3 linhas: dados alinhados entre os cartões */\n    #inema-prev .ip-det{margin-top:auto}\n    #inema-prev .ip-temp{display:flex;justify-content:center;gap:14px;margin:8px 0 10px}\n    #inema-prev .ip-temp div{text-align:center}\n    #inema-prev .ip-temp small{display:block;font-size:11px;color:#5b6b78;text-transform:uppercase;letter-spacing:.04em}\n    #inema-prev .ip-temp b{font-size:24px;font-weight:700}\n    #inema-prev .ip-tmin b{color:#1f6fb2}\n    #inema-prev .ip-tmax b{color:#c62828}\n    #inema-prev .ip-det{border-top:1px solid #e6ebef;padding-top:8px;display:grid;gap:6px;font-size:13px}\n    #inema-prev .ip-lin{display:flex;align-items:center;gap:6px;white-space:nowrap}\n    #inema-prev .ip-lin svg{width:18px;height:18px;flex:none}\n    #inema-prev .ip-lin span{color:#5b6b78;flex:none}\n    #inema-prev .ip-lin b{font-weight:600;margin-left:auto;text-align:right;display:flex;align-items:center;gap:2px}\n    #inema-prev .ip-lin b .ip-seta{width:13px;height:13px;margin-left:3px}\n    #inema-prev .ip-uv{margin-top:10px;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;text-align:center;color:#fff;white-space:nowrap}\n    #inema-prev .ip-fonte{font-size:12px;color:#5b6b78;margin-top:14px}\n    #inema-prev .ip-per{margin-top:10px;border-top:1px solid #e6ebef;padding-top:8px}\n    #inema-prev button.ip-per-bt{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;background:#f0f5f8;color:#00566e;\n      border:1px solid #d3e0e8;border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:700;cursor:pointer}\n    #inema-prev button.ip-per-bt:hover{background:#e3eef4}\n    #inema-prev button.ip-per-bt svg{width:14px;height:14px;transition:transform .2s}\n    #inema-prev button.ip-per-bt[aria-expanded=true] svg{transform:rotate(180deg)}\n    #inema-prev .ip-per-lista{display:grid;gap:2px;overflow:hidden;max-height:0;transition:max-height .25s ease,margin .25s ease}\n    #inema-prev .ip-per.aberto .ip-per-lista{max-height:220px;margin-top:6px}\n    #inema-prev .ip-p{display:grid;grid-template-columns:minmax(0,1fr) 24px 28px 30px;align-items:center;gap:3px;font-size:12px;padding:2px 4px;border-radius:6px}\n    #inema-prev .ip-p .n{font-size:11.5px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n    #inema-prev .ip-p .c{white-space:nowrap}\n    #inema-prev .ip-p.cab{background:none;font-size:10.5px;color:#5b6b78;padding-top:0;padding-bottom:0}\n    #inema-prev .ip-p.cab span{text-align:right;font-weight:600}\n    #inema-prev .ip-p:nth-child(even){background:#f5f8fa}\n    #inema-prev .ip-p svg{width:22px;height:22px}\n    #inema-prev .ip-p .n{color:#33424e;font-weight:600}\n    #inema-prev .ip-p .t{font-weight:700;text-align:right}\n    #inema-prev .ip-p .c{color:#2b7bd6;text-align:right;font-variant-numeric:tabular-nums}\n    #inema-prev .ip-p.passou{opacity:.4}\n    #inema-prev .ip-aviso{background:#fff4e5;color:#7a4b00;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:12px}\n    @media (max-width:640px){#inema-prev .ip-p{grid-template-columns:minmax(0,1fr) 20px 24px 24px;gap:2px;padding:2px 3px}#inema-prev .ip-p svg{width:20px;height:20px}#inema-prev .ip-p .n{font-size:11px}}\n    /* topo: nome, ações, favoritos, resumo */\n    #inema-prev .ip-msg{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}\n    #inema-prev .ip-acoes{display:flex;gap:6px}\n    #inema-prev button.ip-bt2{padding:6px 12px;font-size:13px;font-weight:600;background:#fff;color:#00566e;border:1px solid #9fc0cf;border-radius:999px}\n    #inema-prev button.ip-bt2:hover{background:#eef5f8}\n    #inema-prev button.ip-bt2.on{background:#fff7d6;border-color:#e8c547;color:#7a5a00}\n    #inema-prev .ip-favs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:-6px 0 12px}\n    #inema-prev .ip-favs:empty{display:none}\n    #inema-prev .ip-favs-rot{font-size:13px;color:#5b6b78;font-weight:600}\n    #inema-prev button.ip-fav-chip{padding:5px 12px;font-size:13px;background:#f0f5f8;color:#1f2a33;border:1px solid #d3e0e8;border-radius:999px}\n    #inema-prev button.ip-fav-chip:hover{background:#e3eef4}\n    #inema-prev button.ip-fav-chip.ativo{background:#00566e;border-color:#00566e;color:#fff}\n    #inema-prev .ip-resumo-caixa{background:#eef6f9;border-left:4px solid #00566e;border-radius:8px;padding:10px 14px;font-size:15px;line-height:1.45;margin:0 0 14px}\n    #inema-prev .ip-res-alerta{color:#a12a12;font-weight:700}\n    /* alertas no card */\n    #inema-prev .ip-alertas{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:-4px 0 8px}\n    #inema-prev .ip-al{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}\n    #inema-prev .ip-al.calor{background:#fde3dc;color:#a12a12}#inema-prev .ip-al.seco{background:#fbefd5;color:#7a5200}\n    #inema-prev .ip-al.chuva{background:#dbe9fb;color:#1a4f9c}#inema-prev .ip-al.vento{background:#e6e8f5;color:#3b3f8f}\n    /* vento + rajada numa linha; nascer/pôr numa linha */\n    #inema-prev .ip-lin b.ip-vento{flex-wrap:wrap;justify-content:flex-end;row-gap:0}\n    #inema-prev .ip-lin b.ip-vento small{flex-basis:100%;text-align:right;font-weight:400;font-size:11px;color:#5b6b78}\n    #inema-prev .ip-sol{display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;color:#33424e;font-weight:600}\n    #inema-prev .ip-sol svg{width:16px;height:16px}\n    #inema-prev .ip-sol .sep{width:10px}\n    /* período atual */\n    #inema-prev .ip-p.agora{box-shadow:inset 0 0 0 1.5px #00566e;background:#eaf4f7}\n    #inema-prev .ip-ponto{display:inline-block;width:6px;height:6px;border-radius:50%;background:#00566e;margin-right:4px;vertical-align:1px}\n    /* gráfico */\n    #inema-prev .ip-graf{margin-top:14px}\n    #inema-prev .ip-graf .ip-graf-bt{max-width:320px}\n    #inema-prev .ip-graf-caixa{margin-top:8px;background:#fff;border:1px solid #dde3e8;border-radius:14px;padding:8px 0 10px;overflow:hidden}\n    #inema-prev .ip-graf-svg{display:block}\n    #inema-prev .ip-graf-svg text{font-size:11px;font-family:inherit}\n    #inema-prev .ip-graf-svg .eT{fill:#c0501f}#inema-prev .ip-graf-svg .eM{fill:#2b7bd6}\n    #inema-prev .ip-graf-svg .eD{fill:#1f2a33;font-weight:700;font-size:12px}#inema-prev .ip-graf-svg .eS{fill:#5b6b78;font-size:10.5px}\n    #inema-prev .ip-graf-svg .eX{fill:#c62828;font-weight:700;font-size:10.5px}#inema-prev .ip-graf-svg .eN{fill:#1f6fb2;font-weight:700;font-size:10.5px}\n    #inema-prev .ip-graf-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:#5b6b78;padding:4px 14px 0}\n    #inema-prev .ip-graf-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}\n    /* ajuda */\n    #inema-prev .ip-ajuda-det{margin-top:12px;background:#f7f9fb;border:1px solid #e1e7ec;border-radius:10px;padding:8px 14px;font-size:13.5px}\n    #inema-prev .ip-ajuda-det summary{cursor:pointer;font-weight:700;color:#00566e}\n    #inema-prev .ip-ajuda-det ul{margin:8px 0 2px;padding-left:18px;line-height:1.5}\n    #inema-prev .ip-ajuda-det li{margin-bottom:4px}\n    @media (max-width:640px){#inema-prev .ip-resumo-caixa{font-size:14px}#inema-prev .ip-msg strong{font-size:18px}}\n    /* barra de visualização (só no computador) */\n    #inema-prev .ip-barra{display:none}\n    #inema-prev .ip-barra-rot{font-size:13px;color:#5b6b78;font-weight:600}\n    #inema-prev .ip-seg{display:inline-flex;background:#f0f5f8;border:1px solid #d3e0e8;border-radius:999px;padding:3px}\n    #inema-prev .ip-seg button{padding:5px 12px;font-size:13px;background:transparent;color:#5b6b78;border-radius:999px;display:flex;align-items:center}\n    #inema-prev .ip-seg button svg{width:20px;height:20px}\n    #inema-prev .ip-seg button[aria-pressed=true]{background:#fff;color:#00566e;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}\n    #inema-prev button.ip-barra-per{margin-left:auto;padding:6px 14px;font-size:13px;font-weight:700;background:#f0f5f8;color:#00566e;border:1px solid #d3e0e8;border-radius:8px}\n    @media (min-width:900px){\n      #inema-prev .ip-barra{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 12px}\n      /* ---- seis colunas ---- */\n      #inema-prev .ip-dias.lay-seis{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}\n      #inema-prev .lay-seis .ip-dia{padding:12px 10px 10px}\n      #inema-prev .lay-seis .ip-ico svg{width:60px;height:60px}\n      #inema-prev .lay-seis .ip-cond{font-size:13px}\n      #inema-prev .lay-seis .ip-temp b{font-size:22px}\n      #inema-prev .lay-seis .ip-p{grid-template-columns:minmax(0,1fr) 20px 24px 26px;gap:2px;padding:2px 3px}\n      #inema-prev .lay-seis .ip-p svg{width:20px;height:20px}\n      #inema-prev .lay-seis .ip-p .n{font-size:11px}\n      #inema-prev .lay-seis .ip-per-bt,#inema-prev .lay-lista .ip-per-bt{display:none}\n      #inema-prev .lay-seis .ip-per{border-top:0;padding-top:0;margin-top:4px}\n      /* ---- um dia por linha ---- */\n      #inema-prev .ip-dias.lay-lista{grid-template-columns:1fr;gap:8px}\n      #inema-prev .lay-lista .ip-dia{display:grid;grid-template-columns:96px 56px minmax(150px,1.1fr) 104px minmax(0,3fr) 130px;\n        grid-template-areas:\"cab ico cond temp det uv\" \"cab ico al temp det uv\" \"per per per per per per\";column-gap:16px;align-items:center;padding:10px 16px}\n      #inema-prev .lay-lista .ip-cab{grid-area:cab;flex-direction:column;align-items:flex-start;gap:2px}\n      #inema-prev .lay-lista .ip-ico{grid-area:ico;margin:0}\n      #inema-prev .lay-lista .ip-ico svg{width:56px;height:56px}\n      #inema-prev .lay-lista .ip-cond{grid-area:cond;justify-content:flex-start;text-align:left;min-height:0;font-size:14px;align-self:end}\n      #inema-prev .lay-lista .ip-dia:not(:has(.ip-alertas)) .ip-cond{grid-row:1 / 3;align-self:center}\n      #inema-prev .lay-lista .ip-alertas{grid-area:al;justify-content:flex-start;margin:4px 0 0;align-self:start}\n      #inema-prev .lay-lista .ip-temp{grid-area:temp;margin:0}\n      #inema-prev .lay-lista .ip-det{grid-area:det;margin:0;border:0;padding:0;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}\n      #inema-prev .lay-lista .ip-lin{flex-wrap:wrap;white-space:normal;row-gap:2px}\n      #inema-prev .lay-lista .ip-lin b{margin-left:0;flex-basis:100%;justify-content:flex-start;font-size:14px}\n      #inema-prev .lay-lista .ip-lin b.ip-vento{justify-content:flex-start}\n      #inema-prev .lay-lista .ip-lin b.ip-vento small{text-align:left}\n      #inema-prev .lay-lista .ip-sol{flex-direction:column;align-items:flex-start;gap:3px}\n      #inema-prev .lay-lista .ip-sol .sep{display:none}\n      #inema-prev .lay-lista .ip-uv{grid-area:uv;margin:0}\n      #inema-prev .lay-lista .ip-per{grid-area:per;margin:0;border:0;padding:0}\n      #inema-prev .lay-lista .ip-per.aberto{margin-top:8px;padding-top:8px;border-top:1px solid #e6ebef}\n      #inema-prev .lay-lista .ip-per.aberto .ip-per-lista{margin-top:0}\n      #inema-prev .lay-lista .ip-per-lista{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}\n      #inema-prev .lay-lista .ip-p.cab{display:none}\n      #inema-prev .lay-lista .ip-p{grid-template-columns:minmax(0,1fr) 28px auto 54px;gap:8px;padding:5px 10px;background:#f5f8fa;font-size:13px}\n      #inema-prev .lay-lista .ip-p.agora{background:#eaf4f7}\n      #inema-prev .lay-lista .ip-p svg{width:28px;height:28px}\n      #inema-prev .lay-lista .ip-p .n{font-size:13px}\n      #inema-prev .lay-lista .ip-p .c span.v::after{content:\" mm\"}\n    }"; document.head.appendChild(s); }
+  raiz.innerHTML = "\u003cform class=\"ip-busca\" id=\"ip-busca-form\" onsubmit=\"return false\"\u003e\n    \u003clabel for=\"ip-mun\"\u003eDigite o nome do município da Bahia:\u003c/label\u003e\n    \u003cinput id=\"ip-mun\" list=\"ip-lista\" placeholder=\"Ex.: Feira de Santana\" autocomplete=\"off\"\u003e\n    \u003cdatalist id=\"ip-lista\"\u003e\u003c/datalist\u003e\n    \u003cbutton type=\"submit\" id=\"ip-btn\" disabled\u003eCarregando…\u003c/button\u003e\n  \u003c/form\u003e\n  \u003cdiv class=\"ip-msg\" id=\"ip-msg\" aria-live=\"polite\"\u003e\u003c/div\u003e\n  \u003cdiv class=\"ip-dias\" id=\"ip-dias\"\u003e\u003c/div\u003e\n  \u003cdiv class=\"ip-fonte\" id=\"ip-fonte\"\u003e\u003c/div\u003e";
+})();
+  (function () {
+    /* ===== Configuração: endereço do previsao.json no GitHub via jsDelivr ===== */
+    var URL_JSON = "https://cdn.jsdelivr.net/gh/aldirioalmeida-cpu/previsao-municipios-ba@main/previsao.json";
+    var DIAS = 6;   /* hoje + 5 dias: 3 por linha no computador, 2 por linha no celular */
+
+    var $ = function (id) { return document.getElementById(id); };
+    var norm = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); };
+    var num = function (v, casas) { return v == null ? "–" : Number(v).toFixed(casas || 0).replace(".", ","); };
+    var dados = null, indice = {};
+
+    /* ---------- Ícones (SVG desenhados, iguais em qualquer aparelho) ---------- */
+    var NOITE = false;   /* períodos noturnos: lua no lugar do sol */
+    function sol(cx, cy, r) {
+      if (NOITE) return '<path d="M' + (cx + r * .35) + ' ' + (cy - r) + 'a' + r + ' ' + r + ' 0 1 0 ' + (r * .65) + ' ' + (r * 1.6) + 'a' + (r * .85) + ' ' + (r * .85) + ' 0 0 1 -' + (r * .65) + ' -' + (r * 1.6) + 'z" fill="#f3e6a6" stroke="#c9b25a" stroke-width="2"/>';
+      var raios = "";
+      for (var a = 0; a < 360; a += 45) {
+        var t = a * Math.PI / 180, x1 = cx + Math.cos(t) * (r + 4), y1 = cy + Math.sin(t) * (r + 4),
+            x2 = cx + Math.cos(t) * (r + 9), y2 = cy + Math.sin(t) * (r + 9);
+        raios += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '"/>';
+      }
+      return '<g stroke="#f5a623" stroke-width="3" stroke-linecap="round">' + raios + '</g>' +
+             '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#ffc83d" stroke="#f5a623" stroke-width="2"/>';
+    }
+    function nuvem(dx, dy, cor, borda) {
+      return '<path transform="translate(' + dx + ' ' + dy + ')" d="M18 50h30a11 11 0 0 0 1.5-21.9A15 15 0 0 0 20.6 24 11 11 0 0 0 18 50z" fill="' + cor + '" stroke="' + borda + '" stroke-width="2" stroke-linejoin="round"/>';
+    }
+    function gotas(n) {   /* 1 = fraca, 2 = moderada, 3 = forte */
+      var xs = n === 1 ? [26, 38] : [21, 32, 43], larg = n === 3 ? 4 : 3.2;
+      var s = '<g stroke="#2b7bd6" stroke-width="' + larg + '" stroke-linecap="round">';
+      xs.forEach(function (x, k) { var y = 48 + (k % 2) * 3; s += '<line x1="' + x + '" y1="' + y + '" x2="' + (x - 4) + '" y2="' + (y + 10) + '"/>'; });
+      return s + '</g>';
+    }
+    var raio = '<path d="M33 44l-7 10h6l-3 9 9-12h-6l3-7z" fill="#ffc83d" stroke="#e09b00" stroke-width="1.5" stroke-linejoin="round"/>';
+    function icone(tipo, intensidade) {
+      var c;
+      switch (tipo) {
+        case "claro":   c = sol(32, 32, 12); break;
+        case "poucas":  c = sol(24, 24, 10) + nuvem(4, 6, "#ffffff", "#9fb2c1"); break;
+        case "parcial": c = sol(22, 22, 10) + nuvem(4, 4, "#e9eef2", "#8ea3b3"); break;
+        case "nublado": c = nuvem(-5, -4, "#cfd8df", "#8ea3b3") + nuvem(4, 4, "#b8c5cf", "#7d93a4"); break;
+        case "chuva_sol": c = sol(22, 18, 9) + nuvem(2, -6, "#e3e9ee", "#8ea3b3") + gotas(intensidade); break;
+        case "chuva":   c = nuvem(0, -6, "#b8c5cf", "#7d93a4") + gotas(intensidade); break;
+        case "trovoada": c = nuvem(0, -8, "#8fa1b0", "#5f7686") + raio; break;
+        case "nevoeiro": c = nuvem(0, -10, "#d6dee4", "#9fb2c1") +
+          '<g stroke="#9fb2c1" stroke-width="3" stroke-linecap="round"><line x1="14" y1="46" x2="50" y2="46"/><line x1="18" y1="53" x2="46" y2="53"/><line x1="22" y1="60" x2="42" y2="60"/></g>'; break;
+      }
+      return '<svg viewBox="0 0 64 64" aria-hidden="true">' + c + '</svg>';
+    }
+    var MINI = {
+      chuva: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" fill="#2b7bd6"/></svg>',
+      umid: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" fill="none" stroke="#2b7bd6" stroke-width="2"/><text x="12" y="17" font-size="8" font-weight="700" text-anchor="middle" fill="#2b7bd6">%</text></svg>',
+      vento: '<svg viewBox="0 0 24 24" fill="none" stroke="#5b7a8f" stroke-width="2" stroke-linecap="round"><path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 14h15a3 3 0 1 1-3 3"/><path d="M3 19h7"/></svg>',
+      rajada: '<svg viewBox="0 0 24 24" fill="none" stroke="#5b7a8f" stroke-width="2" stroke-linecap="round"><path d="M3 8h13a3 3 0 1 0-3-3"/><path d="M3 13h17"/><path d="M3 18h11a3 3 0 1 1-3 3"/></svg>',
+      nascer: '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M5 18a7 7 0 0 1 14 0" fill="#ffc83d" stroke="#f5a623" stroke-width="2"/><path d="M2 21h20" stroke="#5b7a8f" stroke-width="2"/><path d="M12 3v5M9 6l3-3 3 3" stroke="#f5a623" stroke-width="2"/></svg>',
+      por: '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M5 18a7 7 0 0 1 14 0" fill="#ffb27a" stroke="#e8743b" stroke-width="2"/><path d="M2 21h20" stroke="#5b7a8f" stroke-width="2"/><path d="M12 8V3M9 5l3 3 3-3" stroke="#e8743b" stroke-width="2"/></svg>'
+    };
+
+    /* ---------- Texto do tempo = nuvens (cobertura média, %) + chuva (código WMO) ---------- */
+    var CHUVA = {45:"com nevoeiro",48:"com nevoeiro",
+      51:"com chuva fraca",53:"com chuva fraca",55:"com chuva fraca",61:"com chuva fraca",
+      63:"com chuva moderada",65:"com chuva forte",
+      80:"com pancadas de chuva fracas",81:"com pancadas de chuva",82:"com pancadas de chuva fortes",
+      95:"com trovoadas",96:"com trovoadas",99:"com trovoadas"};
+    var INTENS = {51:1,53:1,55:1,61:1,80:1,63:2,81:2,65:3,82:3};
+    var NUVEM_POR_CODIGO = {0:10, 1:30, 2:55, 3:85};
+
+    function condicao(codigo, nuvem) {
+      if (nuvem == null) nuvem = NUVEM_POR_CODIGO[codigo] != null ? NUVEM_POR_CODIGO[codigo] : 85;
+      var ceu = nuvem <= 20 ? "Céu claro" : nuvem <= 40 ? "Poucas nuvens" : nuvem <= 70 ? "Parcialmente nublado" : "Nublado";
+      var chuva = CHUVA[codigo] || "", tipo;
+      if (codigo >= 95) tipo = "trovoada";
+      else if (codigo === 45 || codigo === 48) tipo = "nevoeiro";
+      else if (chuva) tipo = nuvem > 70 ? "chuva" : "chuva_sol";
+      else tipo = nuvem <= 20 ? "claro" : nuvem <= 40 ? "poucas" : nuvem <= 70 ? "parcial" : "nublado";
+      return { svg: icone(tipo, INTENS[codigo] || 1), texto: chuva ? ceu + " " + chuva : ceu };
+    }
+
+    /* ---------- Vento e UV ---------- */
+    var PONTOS = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"];
+    function direcao(g) {
+      if (g == null) return "";
+      /* seta aponta para onde o vento vai (vem de "g") */
+      return '<svg class="ip-seta" viewBox="0 0 24 24" style="transform:rotate(' + ((g + 180) % 360) + 'deg)"><path d="M12 3l6 10h-4v8h-4v-8H6z" fill="#00566e"/></svg>' +
+             PONTOS[Math.round(g / 45) % 8];
+    }
+    function uv(v) {
+      if (v == null) return "";
+      var f = v <= 2 ? ["Baixo", "#2e7d32"] : v <= 5 ? ["Moderado", "#c99700"] : v <= 7 ? ["Alto", "#e65100"] :
+              v <= 10 ? ["Muito alto", "#c62828"] : ["Extremo", "#6a1b9a"];
+      return '<div class="ip-uv" style="background:' + f[1] + '" title="Índice ultravioleta (UV)">UV ' + v + ' · ' + f[0] + '</div>';
+    }
+    function linha(ico, rotulo, valor) {
+      return '<div class="ip-lin">' + MINI[ico] + '<span>' + rotulo + '</span><b>' + valor + '</b></div>';
+    }
+
+
+    function msg(t, erro) { $("ip-msg").innerHTML = t; $("ip-msg").className = "ip-msg" + (erro ? " ip-erro" : ""); }
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+    /* ---------- Áreas da página (criadas aqui: o editor do site apaga elementos vazios) ---------- */
+    function area(id, depoisDe) {
+      var el = $(id); if (el) return el;
+      el = document.createElement("div"); el.id = id; el.className = id;
+      var ref = $(depoisDe); ref.parentNode.insertBefore(el, ref.nextSibling); return el;
+    }
+    area("ip-favs", "ip-busca-form"); area("ip-atraso", "ip-favs"); area("ip-resumo", "ip-msg");
+    area("ip-graf", "ip-dias"); area("ip-ajuda", "ip-fonte");
+
+    /* ---------- Memória no aparelho do visitante (último município e favoritos) ---------- */
+    function lsGet(k, def) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? def : v; } catch (e) { return def; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    var favoritos = lsGet("inemaPrevFav", []), atual = null;
+
+    fetch(URL_JSON, { cache: "no-cache" })   /* sempre confere se há versão nova (o jsDelivr manda o navegador guardar por 7 dias) */
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) {
+        dados = j;
+        var nomes = Object.keys(j.municipios).sort(function (a, b) { return a.localeCompare(b, "pt"); });
+        nomes.forEach(function (n) { indice[norm(n)] = n; });
+        $("ip-lista").innerHTML = nomes.map(function (n) { return '<option value="' + n + '">'; }).join("");
+        $("ip-btn").disabled = false; $("ip-btn").textContent = "Ver previsão";
+        favoritos = favoritos.filter(function (f) { return j.municipios[f]; });
+        desenhaFavs(); avisoAtraso(); desenhaAjuda();
+        /* prioridade: município no endereço da página > último consultado > localização do visitante */
+        var pedido = new URLSearchParams(location.search).get("municipio");
+        var alvo = pedido && indice[norm(pedido)];
+        if (alvo) { $("ip-mun").value = alvo; buscar(); return; }
+        var ultimo = indice[norm(lsGet("inemaPrevUltimo", ""))];
+        localizar(function () { if (!jaBuscou && ultimo) { $("ip-mun").value = ultimo; buscar(); } });
+      })
+      .catch(function () {
+        $("ip-btn").textContent = "Indisponível";
+        msg("A previsão por município está temporariamente indisponível. Tente novamente mais tarde.", true);
+      });
+
+    $("ip-btn").addEventListener("click", function () { buscar(); });
+    $("ip-mun").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); buscar(); } });
+
+    /* ---------- Previsão atrasada (o robô atualiza 2 vezes por dia) ---------- */
+    function avisoAtraso() {
+      var h = (Date.now() - new Date(dados.gerado_em).getTime()) / 36e5;
+      $("ip-atraso").innerHTML = h > 15 ? '<div class="ip-aviso">Esta previsão foi gerada há ' + Math.floor(h) + ' horas e ainda não foi atualizada. Os valores podem estar desatualizados.</div>' : "";
+    }
+
+    /* ---------- Abre no município mais próximo do visitante (se ele permitir a localização) ---------- */
+    var jaBuscou = false, RAIO_KM = 60;   /* fora da Bahia (mais de 60 km de qualquer sede) não faz nada */
+    function distKm(a, b, c, d) {
+      var r = Math.PI / 180, x = Math.sin((c - a) * r / 2), y = Math.sin((d - b) * r / 2);
+      return 12742 * Math.asin(Math.sqrt(x * x + Math.cos(a * r) * Math.cos(c * r) * y * y));
+    }
+    /* Abre no município de onde a página está sendo acessada. Se o visitante não permitir a localização,
+       estiver fora da Bahia ou o aparelho demorar, usa o último município consultado (semSaida). */
+    function localizar(semSaida) {
+      var feito = false, falhou = function () { if (!feito) { feito = true; if (semSaida) semSaida(); } };
+      if (!navigator.geolocation || !window.isSecureContext) return falhou();
+      if (!jaBuscou) msg('<span style="font-size:14px;color:#5b6b78">Localizando o município mais próximo de você…</span>');
+      var limite = setTimeout(falhou, 8000);
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        clearTimeout(limite);
+        if (jaBuscou) return;   /* o visitante já pesquisou algo: não troca */
+        var lat = pos.coords.latitude, lon = pos.coords.longitude, melhor = null, menor = Infinity;
+        Object.keys(dados.municipios).forEach(function (n) {
+          var ll = dados.municipios[n].ll; if (!ll) return;
+          var dk = distKm(lat, lon, ll[0], ll[1]); if (dk < menor) { menor = dk; melhor = n; }
+        });
+        if (!melhor || menor > RAIO_KM) { if (!jaBuscou) msg(""); return falhou(); }
+        feito = true;
+        $("ip-mun").value = melhor;
+        buscar(true);
+      }, function () { clearTimeout(limite); if (!jaBuscou) msg(""); falhou(); },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 3600000 });
+    }
+
+    /* ---------- Favoritos ---------- */
+    function desenhaFavs() {
+      $("ip-favs").innerHTML = favoritos.length ? '<span class="ip-favs-rot">Favoritos:</span>' + favoritos.map(function (f) {
+        return '<button type="button" class="ip-fav-chip' + (f === atual ? " ativo" : "") + '" data-m="' + esc(f) + '">' + esc(f) + '</button>';
+      }).join("") : "";
+    }
+    $("ip-favs").addEventListener("click", function (e) {
+      var b = e.target.closest(".ip-fav-chip"); if (!b) return;
+      $("ip-mun").value = b.getAttribute("data-m"); buscar();
+    });
+    function alternaFav() {
+      var i = favoritos.indexOf(atual);
+      if (i >= 0) favoritos.splice(i, 1); else { favoritos.push(atual); if (favoritos.length > 6) favoritos.shift(); }
+      lsSet("inemaPrevFav", favoritos); desenhaFavs(); botoesTopo();
+    }
+
+    /* ---------- Compartilhar (link já abre no município) ---------- */
+    function linkMunicipio() { var u = new URL(location.href); u.searchParams.set("municipio", atual); return u.toString(); }
+    function compartilhar() {
+      var url = linkMunicipio(), titulo = "Previsão do tempo – " + atual + " (INEMA)";
+      if (navigator.share) { navigator.share({ title: titulo, url: url }).catch(function () {}); return; }
+      var ok = function () { var b = $("ip-bt-comp"); if (b) { b.textContent = "Link copiado!"; setTimeout(botoesTopo, 2000); } };
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(ok, function () { prompt("Copie o link:", url); });
+      else prompt("Copie o link:", url);
+    }
+    function botoesTopo() {
+      var fav = favoritos.indexOf(atual) >= 0, el = $("ip-acoes"); if (!el) return;
+      el.innerHTML = '<button type="button" class="ip-bt2' + (fav ? " on" : "") + '" id="ip-bt-fav" aria-pressed="' + fav + '">' + (fav ? "★ Favorito" : "☆ Favoritar") + '</button>' +
+        '<button type="button" class="ip-bt2" id="ip-bt-comp">Compartilhar</button>';
+      $("ip-bt-fav").onclick = alternaFav; $("ip-bt-comp").onclick = compartilhar;
+    }
+
+    /* ---------- Chuva: cor pela intensidade ---------- */
+    function corChuva(mm) { return mm == null || mm < 0.1 ? "#8795a1" : mm < 5 ? "#5aa0e0" : mm < 20 ? "#2b7bd6" : mm < 50 ? "#1a4f9c" : "#5b2a9e"; }
+    function txtChuva(mm, casas, unid) {
+      if (mm == null) return "–";
+      return '<span class="' + (mm < 0.1 && !unid ? "z" : "v") + '" style="color:' + corChuva(mm) + (mm >= 20 ? ';font-weight:800' : '') + '">' + (mm < 0.1 && !unid ? "–" : num(Math.max(0, mm), casas) + (unid ? " mm" : "")) + '</span>';
+    }
+
+    /* ---------- Alertas automáticos (limites ajustáveis) ---------- */
+    var ALERTAS = [
+      { cls: "calor", txt: "Calor intenso", teste: function (m, i) { return m.max[i] != null && m.max[i] >= 35; }, dica: "máxima de 35 °C ou mais" },
+      { cls: "seco", txt: "Ar seco", teste: function (m, i) { return m.urmin && m.urmin[i] != null && m.urmin[i] < 30; }, dica: "umidade mínima abaixo de 30%" },
+      { cls: "chuva", txt: "Chuva forte", teste: function (m, i) { return m.mm[i] != null && m.mm[i] >= 30; }, dica: "30 mm ou mais no dia" },
+      { cls: "vento", txt: "Rajadas fortes", teste: function (m, i) { return m.raj && m.raj[i] != null && m.raj[i] >= 50; }, dica: "rajadas de 50 km/h ou mais" }
+    ];
+    function alertasDia(m, i) { return ALERTAS.filter(function (a) { return a.teste(m, i); }); }
+
+    /* ---------- Previsão por período (protótipo: dados horários do Open-Meteo, ECMWF, na sede) ---------- */
+    var PERIODOS = [["Madrugada", 0, "min", "de madrugada"], ["Manhã", 6, "med", "pela manhã"], ["Tarde", 12, "max", "à tarde"], ["Noite", 18, "med", "à noite"]];
+    /* períodos prontos no previsao.json (robô): m.p[dia] = [[temp, mm, código, nuvens] × 4] */
+    function calcPeriodos(m, i, data, agora) {
+      var out = [], lista = m.p && m.p[i];
+      if (!lista) return out;
+      PERIODOS.forEach(function (p, k) {
+        var v = lista[k]; if (!v) return;
+        NOITE = p[1] === 0 || p[1] === 18; var cnd = condicao(v[2], v[3]); NOITE = false;
+        var ini = data + "T" + String(p[1]).padStart(2, "0") + ":00", fim = p[1] === 18 ? data + "T24:00" : data + "T" + String(p[1] + 6).padStart(2, "0") + ":00";
+        out.push({ nome: p[0], quando: p[3], temp: v[0], mm: v[1], svg: cnd.svg, texto: cnd.texto, passou: fim <= agora, agora: ini <= agora && agora < fim });
+      });
+      return out;
+    }
+    function blocoPeriodos(ps) {
+      if (!ps.length) return "";
+      var s = '<div class="ip-per' + (periodosAbertos ? " aberto" : "") + '"><button type="button" class="ip-per-bt" aria-expanded="' + periodosAbertos + '">' +
+        '<span>Por período</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>' +
+        '<div class="ip-per-lista"><div class="ip-p cab"><span></span><span></span><span>°C</span><span>mm</span></div>';
+      ps.forEach(function (p) {
+        s += '<div class="ip-p' + (p.passou ? " passou" : "") + (p.agora ? " agora" : "") + '" title="' + p.nome + ': ' + p.texto + (p.agora ? " (agora)" : "") + '">' +
+          '<span class="n">' + (p.agora ? '<i class="ip-ponto"></i>' : "") + p.nome + '</span>' + p.svg +
+          '<span class="t">' + num(p.temp) + '°</span><span class="c">' + txtChuva(p.mm, 1) + '</span></div>';
+      });
+      return s + '</div></div>';
+    }
+    /* abre/fecha o detalhamento de todos os dias juntos (os cartões da mesma linha ficam alinhados) */
+    var periodosAbertos = false;
+    function alternaPeriodos() {
+      periodosAbertos = !periodosAbertos;
+      $("ip-dias").querySelectorAll(".ip-per").forEach(function (p) {
+        p.classList.toggle("aberto", periodosAbertos);
+        p.querySelector(".ip-per-bt").setAttribute("aria-expanded", periodosAbertos);
+      });
+      desenhaBarra();
+    }
+    $("ip-dias").addEventListener("click", function (e) { if (e.target.closest(".ip-per-bt")) alternaPeriodos(); });
+
+    /* ---------- Disposição no computador: seis colunas ou lista (um dia por linha) ---------- */
+    var LAYOUTS = [["seis", "Seis colunas", '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="1.5" y="4" width="2.6" height="16" rx="1"/><rect x="5.2" y="4" width="2.6" height="16" rx="1"/><rect x="8.9" y="4" width="2.6" height="16" rx="1"/><rect x="12.5" y="4" width="2.6" height="16" rx="1"/><rect x="16.2" y="4" width="2.6" height="16" rx="1"/><rect x="19.9" y="4" width="2.6" height="16" rx="1"/></g></svg>'],
+                   ["lista", "Um dia por linha", '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="2" y="3" width="20" height="3" rx="1"/><rect x="2" y="7.5" width="20" height="3" rx="1"/><rect x="2" y="12" width="20" height="3" rx="1"/><rect x="2" y="16.5" width="20" height="3" rx="1"/></g></svg>']];
+    var layout = "seis";
+    function desenhaBarra() {
+      var b = $("ip-barra"); if (!b) return;
+      b.innerHTML = '<span class="ip-barra-rot">Visualização:</span><span class="ip-seg">' + LAYOUTS.map(function (l) {
+        return '<button type="button" data-l="' + l[0] + '" aria-pressed="' + (layout === l[0]) + '" title="' + l[1] + '" aria-label="' + l[1] + '">' + l[2] + '</button>'; }).join("") + '</span>' +
+        '<button type="button" class="ip-barra-per" aria-expanded="' + periodosAbertos + '">' + (periodosAbertos ? "Ocultar" : "Mostrar") + ' previsão por período</button>';
+      $("ip-dias").className = "ip-dias lay-" + layout;
+    }
+    area("ip-barra", "ip-resumo").addEventListener("click", function (e) {
+      var l = e.target.closest("[data-l]");
+      if (l) { layout = l.getAttribute("data-l"); desenhaBarra(); if (ultimoGraf) desenhaGrafico(ultimoGraf); return; }
+      if (e.target.closest(".ip-barra-per")) alternaPeriodos();
+    });
+
+    /* ---------- Resumo de hoje (uma frase no topo) ---------- */
+    function resumo(nome, m, i, ps, ehHoje) {
+      var c = condicao(m.c[i], m.n ? m.n[i] : null).texto.toLowerCase();
+      var s = "<b>" + (ehHoje ? "Hoje" : "Amanhã") + " em " + esc(nome) + ":</b> " + c + ", mínima de " + num(m.min[i]) + "° e máxima de " + num(m.max[i]) + "°. ";
+      var chuvaP = ps.filter(function (p) { return !p.passou && p.mm >= 0.5; });
+      if (chuvaP.length) { var it = chuvaP.map(function (p) { return p.quando + " (" + num(p.mm, 1) + " mm)"; }); s += "Chuva " + (it.length > 1 ? it.slice(0, -1).join(", ") + " e " + it[it.length - 1] : it[0]) + ". "; }
+      else if (ps.length) s += "Sem chuva significativa prevista" + (ehHoje ? " no restante do dia" : "") + ". ";
+      else if (m.mm[i] >= 0.5) s += "Chuva prevista: " + num(m.mm[i], 1) + " mm. ";
+      var al = alertasDia(m, i);
+      if (al.length) s += '<span class="ip-res-alerta">Atenção: ' + al.map(function (a) { return a.txt.toLowerCase(); }).join(", ") + ".</span>";
+      return s;
+    }
+
+    /* ---------- Gráfico dos próximos dias (temperatura e chuva por período) ---------- */
+    var grafAberto = false, ultimoGraf = null;
+    function desenhaGrafico(dias) {
+      ultimoGraf = dias;
+      var slots = []; dias.forEach(function (d) { d.ps.forEach(function (p) { slots.push({ d: d, p: p }); }); });
+      if (slots.length < 8) { $("ip-graf").innerHTML = ""; return; }
+      var cab = '<button type="button" class="ip-per-bt ip-graf-bt" aria-expanded="' + grafAberto + '"><span>Gráfico dos próximos dias</span>' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>';
+      if (!grafAberto) { $("ip-graf").innerHTML = cab; return; }
+      var W = Math.max(300, $("ip-graf").clientWidth - 2), H = 230, pl = 30, pr = 30, pt = 22, pb = 40, n = slots.length, sw = (W - pl - pr) / n, ph = H - pt - pb;
+      var ts = slots.map(function (s) { return s.p.temp; }), t0 = Math.floor(Math.min.apply(null, ts)) - 2, t1 = Math.ceil(Math.max.apply(null, ts)) + 2;
+      var mmMax = Math.max(5, Math.ceil(Math.max.apply(null, slots.map(function (s) { return s.p.mm; })) / 5) * 5);
+      var yT = function (t) { return pt + ph - (t - t0) / (t1 - t0) * ph; }, yM = function (v) { return pt + ph - v / mmMax * ph; };
+      var g = '<svg class="ip-graf-svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Temperatura e chuva por período nos próximos dias">';
+      [0, .5, 1].forEach(function (f) {
+        var y = pt + ph - f * ph;
+        g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y + '" y2="' + y + '" stroke="#e6ebef"/>' +
+          '<text x="' + (pl - 4) + '" y="' + (y + 4) + '" text-anchor="end" class="eT">' + Math.round(t0 + f * (t1 - t0)) + '°</text>' +
+          '<text x="' + (W - pr + 4) + '" y="' + (y + 4) + '" class="eM">' + num(f * mmMax) + '</text>';
+      });
+      g += '<text x="' + (W - pr + 4) + '" y="' + (pt - 8) + '" class="eM">mm</text><text x="' + (pl - 4) + '" y="' + (pt - 8) + '" text-anchor="end" class="eT">°C</text>';
+      dias.forEach(function (d, k) {
+        var x0 = pl + k * 4 * sw;
+        if (k) g += '<line x1="' + x0 + '" x2="' + x0 + '" y1="' + pt + '" y2="' + (pt + ph) + '" stroke="#d3dbe2" stroke-dasharray="3 3"/>';
+        g += '<text x="' + (x0 + 2 * sw) + '" y="' + (H - pb + 16) + '" text-anchor="middle" class="eD">' + d.rot + '</text>' +
+             '<text x="' + (x0 + 2 * sw) + '" y="' + (H - pb + 30) + '" text-anchor="middle" class="eS">' + d.dm + '</text>';
+      });
+      var pts = [];
+      slots.forEach(function (s, k) {
+        var xc = pl + (k + .5) * sw, op = s.p.passou ? ' opacity=".35"' : "";
+        if (s.p.mm >= 0.1) g += '<rect x="' + (xc - sw * .32) + '" width="' + (sw * .64) + '" y="' + yM(s.p.mm) + '" height="' + (pt + ph - yM(s.p.mm)) + '" rx="2" fill="' + corChuva(s.p.mm) + '"' + op + '><title>' + s.d.rot + ', ' + s.p.nome.toLowerCase() + ': ' + num(s.p.mm, 1) + ' mm</title></rect>';
+        pts.push([xc, yT(s.p.temp), s]);
+      });
+      g += '<polyline fill="none" stroke="#e0662f" stroke-width="2.2" stroke-linejoin="round" points="' + pts.map(function (q) { return q[0].toFixed(1) + "," + q[1].toFixed(1); }).join(" ") + '"/>';
+      pts.forEach(function (q) {
+        var p = q[2].p, rotulo = p.nome === "Tarde" || p.nome === "Madrugada";
+        g += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + (p.agora ? 4.5 : 3) + '" fill="' + (p.agora ? "#00566e" : "#e0662f") + '" stroke="#fff" stroke-width="1.2"' + (p.passou ? ' opacity=".35"' : "") + '><title>' + q[2].d.rot + ', ' + p.nome.toLowerCase() + ': ' + p.temp + ' °C · ' + p.texto + '</title></circle>';
+        if (rotulo && sw > 9) g += '<text x="' + q[0].toFixed(1) + '" y="' + (p.nome === "Tarde" ? q[1] - 7 : q[1] + 14).toFixed(1) + '" text-anchor="middle" class="' + (p.nome === "Tarde" ? "eX" : "eN") + '">' + p.temp + '°</text>';
+      });
+      g += '</svg>';
+      $("ip-graf").innerHTML = cab + '<div class="ip-graf-caixa">' + g + '<div class="ip-graf-leg"><span><i style="background:#e0662f"></i>Temperatura por período</span><span><i style="background:#2b7bd6"></i>Chuva por período (mm)</span><span>Em cada dia: madrugada, manhã, tarde e noite</span></div></div>';
+    }
+    area("ip-graf", "ip-dias").addEventListener("click", function (e) {
+      if (!e.target.closest(".ip-graf-bt")) return;
+      grafAberto = !grafAberto; if (ultimoGraf) desenhaGrafico(ultimoGraf);
+    });
+    var tmRes; window.addEventListener("resize", function () { clearTimeout(tmRes); tmRes = setTimeout(function () { if (ultimoGraf && grafAberto) desenhaGrafico(ultimoGraf); }, 200); });
+
+    /* ---------- Como ler esta previsão ---------- */
+    function desenhaAjuda() {
+      $("ip-ajuda").innerHTML = '<details class="ip-ajuda-det"><summary>Como ler esta previsão</summary><ul>' +
+        '<li><b>De onde vem:</b> previsão numérica do modelo europeu ECMWF (resolução de cerca de 25 km), calculada para o ponto da sede do município. É gerada automaticamente, sem revisão de meteorologista.</li>' +
+        '<li><b>Por período:</b> madrugada (0h–6h), manhã (6h–12h), tarde (12h–18h) e noite (18h–24h), no horário da Bahia. A temperatura é a menor da madrugada, a maior da tarde e a média da manhã e da noite; a chuva é o total do período. Os valores por período são aproximados.</li>' +
+        '<li><b>Chuva:</b> as cores indicam a intensidade — <span style="color:#5aa0e0">fraca (até 5 mm)</span>, <span style="color:#2b7bd6">moderada (5 a 20 mm)</span>, <span style="color:#1a4f9c;font-weight:700">forte (20 a 50 mm)</span> e <span style="color:#5b2a9e;font-weight:700">muito forte (50 mm ou mais)</span>.</li>' +
+        '<li><b>Alertas automáticos:</b> ' + ALERTAS.map(function (a) { return a.txt.toLowerCase() + " (" + a.dica + ")"; }).join("; ") + '. São indicações do modelo, não substituem os avisos oficiais.</li>' +
+        '<li><b>Vento:</b> velocidade média a 10 m de altura; a seta indica para onde o vento sopra. Rajadas são os picos de curta duração.</li>' +
+        '<li><b>Quanto mais distante o dia,</b> maior a incerteza da previsão.</li></ul></details>';
+    }
+
+    function buscar(pelaLocalizacao) {
+      if (!dados) return;
+      var nome = indice[norm($("ip-mun").value || "")];
+      desenhar(pelaLocalizacao);
+    }
+
+    function desenhar(pelaLocalizacao) {
+      if (!dados) return;
+      jaBuscou = true;
+      var nome = indice[norm($("ip-mun").value || "")];
+      $("ip-dias").innerHTML = ""; $("ip-fonte").innerHTML = ""; $("ip-resumo").innerHTML = ""; $("ip-graf").innerHTML = "";
+      if (!nome) { msg("Município não encontrado na Bahia. Escolha um nome da lista.", true); return; }
+      atual = nome; lsSet("inemaPrevUltimo", nome);
+      try { history.replaceState(null, "", linkMunicipio()); } catch (e) {}
+      var agora = new Date().toLocaleString("sv-SE", { timeZone: "America/Bahia" }).replace(" ", "T").slice(0, 16);
+      var m = dados.municipios[nome], hoje =new Date().toLocaleDateString("sv-SE", { timeZone: "America/Bahia" }), html = "", n = 0, dias = [], res = "";
+      for (var i = 0; i < dados.datas.length && n < DIAS; i++) {
+        if (dados.datas[i] < hoje || m.max[i] == null) continue;
+        n++;
+        var data = new Date(dados.datas[i] + "T12:00:00"), ehHoje = dados.datas[i] === hoje;
+        var sem = ehHoje ? "Hoje" : data.toLocaleDateString("pt-BR", { weekday: "long" }).replace("-feira", "");
+        var dm = data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+        var ps = calcPeriodos(m, i, dados.datas[i], agora);
+        var t = condicao(m.c[i], m.n ? m.n[i] : null), al = alertasDia(m, i);
+        if (n === 1) res = resumo(nome, m, i, ps, ehHoje);
+        dias.push({ rot: ehHoje ? "Hoje" : sem.slice(0, 3), dm: dm, ps: ps });
+        html += '<div class="ip-dia' + (ehHoje ? " ip-hoje" : "") + '">' +
+          '<div class="ip-cab"><span class="ip-sem">' + sem + '</span><span class="ip-data">' + dm + '</span></div>' +
+          '<div class="ip-ico" title="' + t.texto + '">' + t.svg + '</div>' +
+          '<div class="ip-cond">' + t.texto + '</div>' +
+          '<div class="ip-temp"><div class="ip-tmin"><small>mín</small><b>' + num(m.min[i]) + '°</b></div>' +
+          '<div class="ip-tmax"><small>máx</small><b>' + num(m.max[i]) + '°</b></div></div>' +
+          (al.length ? '<div class="ip-alertas">' + al.map(function (a) { return '<span class="ip-al ' + a.cls + '" title="' + a.dica + '">' + a.txt + '</span>'; }).join("") + '</div>' : "") +
+          '<div class="ip-det">' +
+            linha("chuva", "Chuva", txtChuva(m.mm[i], 1, true)) +
+            (m.urmin ? linha("umid", "Umidade", num(m.urmin[i]) + "–" + num(m.urmax[i]) + "%") : "") +
+            (m.v ? '<div class="ip-lin">' + MINI.vento + '<span>Vento</span><b class="ip-vento">' + num(m.v[i]) + ' km/h' + direcao(m.dir[i]) +
+              (m.raj ? '<small>rajadas de ' + num(m.raj[i]) + ' km/h</small>' : "") + '</b></div>' : "") +
+            (m.nasc ? '<div class="ip-sol">' + MINI.nascer + (m.nasc[i] || "–") + '<span class="sep"></span>' + MINI.por + (m.por[i] || "–") + '</div>' : "") +
+          '</div>' +
+          blocoPeriodos(ps) +
+          (m.uv ? uv(m.uv[i]) : "") +
+          '</div>';
+      }
+      if (!html) { msg("Não há previsão disponível para " + nome + " no momento.", true); return; }
+      msg('<span class="ip-nome"><strong>' + esc(nome) + ' – BA</strong>' +
+        (pelaLocalizacao === true ? ' <span style="font-size:13px;color:#5b6b78">· município mais próximo da sua localização</span>' : "") +
+        '</span><span class="ip-acoes" id="ip-acoes"></span>');
+      botoesTopo(); desenhaFavs();
+      $("ip-resumo").innerHTML = res ? '<div class="ip-resumo-caixa">' + res + '</div>' : "";
+      $("ip-dias").innerHTML = html;
+      desenhaBarra();
+      desenhaGrafico(dias);
+      var ger = new Date(dados.gerado_em);
+      $("ip-fonte").innerHTML = "Previsão numérica do modelo " + dados.modelo + ", sem revisão de meteorologista" +
+        (dados.modelo_uv ? "; índice UV: " + dados.modelo_uv : "") + ". " +
+        "Atualizada em " + ger.toLocaleString("pt-BR", { timeZone: "America/Bahia", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + ".";
+    }
+  })();
