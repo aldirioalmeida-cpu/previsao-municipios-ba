@@ -13,7 +13,7 @@ Modelos: ECMWF IFS 0,25° (data.ecmwf.int, open data) e NOAA GFS 0,25° (nomads.
 Um pixel "toca" o município se qualquer ponto de uma subgrade 6×6 dentro dele cai no polígono.
 Saída: extremos.json (na raiz do repositório, ao lado de previsao.json).
 """
-import argparse, datetime as dt, json, os, tempfile, time, traceback, urllib.error, urllib.request
+import argparse, datetime as dt, json, os, tempfile, time, traceback, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -254,6 +254,52 @@ def modelo_gfs(c, ini):
     return dias
 
 
+# ------------------------------------------------------------ ICON (DWD) via Open-Meteo
+# A grade original do ICON (icosaédrica, ~13 km) exigiria baixar centenas de arquivos globais do DWD.
+# Aqui o Open-Meteo fornece o ICON global nos MESMOS pontos de 0,25° usados pelo ECMWF e pelo GFS
+# (só os pixels que tocam algum município), já agregados no dia local da Bahia.
+OM = "https://api.open-meteo.com/v1/forecast"
+OM_VARS = {"max": "temperature_2m_max", "min": "temperature_2m_min", "mm": "precipitation_sum",
+           "raj": "wind_gusts_10m_max", "urmin": "relative_humidity_2m_min", "v": "wind_speed_10m_mean"}
+
+
+def icon_rodada():
+    try:
+        m = json.loads(http_get("https://api.open-meteo.com/data/dwd_icon/static/meta.json", tentativas=2))
+        return dt.datetime.fromtimestamp(m["last_run_initialisation_time"], dt.timezone.utc).strftime("%Y-%m-%dT%HZ")
+    except Exception:  # noqa
+        return None
+
+
+def modelo_icon(cob, datas):
+    pix = sorted({(int(y), int(x)) for iy, ix in cob.values() for y, x in zip(iy, ix)})
+    log(f"icon: {len(pix)} pixels pelo Open-Meteo")
+    dias = [{v: np.full((len(LATS), len(LONS)), np.nan) for v in OM_VARS} for _ in range(NDIAS)]
+    alvo = [d.isoformat() for d in datas]
+    lote = 100
+    for i in range(0, len(pix), lote):
+        parte = pix[i:i + lote]
+        q = {"latitude": ",".join(f"{LATS[y]:.2f}" for y, x in parte), "longitude": ",".join(f"{LONS[x]:.2f}" for y, x in parte),
+             "daily": ",".join(OM_VARS.values()), "models": "icon_global", "timezone": "America/Bahia",
+             "start_date": alvo[0], "end_date": alvo[-1]}
+        resp = json.loads(http_get(OM + "?" + urllib.parse.urlencode(q), timeout=120))
+        resp = resp if isinstance(resp, list) else [resp]
+        if len(resp) != len(parte):
+            raise RuntimeError(f"Open-Meteo devolveu {len(resp)} pontos, esperava {len(parte)}")
+        for (y, x), r in zip(parte, resp):
+            d = r["daily"]
+            for k, dia in enumerate(d["time"]):
+                if dia not in alvo:
+                    continue
+                j = alvo.index(dia)
+                for var, nome in OM_VARS.items():
+                    val = d[nome][k]
+                    if val is not None:
+                        dias[j][var][y, x] = val
+        time.sleep(12)   # limite por minuto do Open-Meteo
+    return dias
+
+
 # ------------------------------------------------------------ estatística por município
 REGRA = {"max": ("max", 0), "min": ("min", 0), "mm": ("max", 1), "raj": ("max", 0), "urmin": ("min", 0), "v": ("max", 0)}
 
@@ -301,6 +347,15 @@ def main():
         except Exception as e:
             traceback.print_exc()
             res["erros"][nome] = f"{type(e).__name__}: {e}"[:300]
+    try:
+        dias = modelo_icon(cob, datas)
+        res["modelos"]["icon"] = {"nome": "ICON global (DWD, via Open-Meteo, pontos de 0,25°)", "rodada": icon_rodada(),
+                                  "municipios": por_municipio(dias, cob)}
+        ex = res["modelos"]["icon"]["municipios"].get("Salvador", {})
+        log(f"icon: Salvador máx {ex.get('max')} mín {ex.get('min')} chuva {ex.get('mm')}")
+    except Exception as e:
+        traceback.print_exc()
+        res["erros"]["icon"] = f"{type(e).__name__}: {e}"[:300]
     with open(a.saida, "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, separators=(",", ":"))
     log(f"OK: {a.saida} ({os.path.getsize(a.saida) // 1024} KB) | erros: {res['erros']}")
