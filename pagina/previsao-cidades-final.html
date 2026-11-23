@@ -293,8 +293,9 @@
         var pedido = new URLSearchParams(location.search).get("municipio");
         var alvo = pedido && indice[norm(pedido)];
         if (alvo) { $("ip-mun").value = alvo; buscar(); return; }
-        var ultimo = indice[norm(lsGet("inemaPrevUltimo", ""))];
-        localizar(function () { if (!jaBuscou && ultimo) { $("ip-mun").value = ultimo; buscar(); } });
+        /* sem localização: último município consultado; na primeira visita, Salvador */
+        var ultimo = indice[norm(lsGet("inemaPrevUltimo", ""))] || "Salvador";
+        localizar(function () { if (!jaBuscou && dados.municipios[ultimo]) { $("ip-mun").value = ultimo; buscar("auto"); } });
       })
       .catch(function () {
         $("ip-btn").textContent = "Indisponível";
@@ -317,7 +318,7 @@
       return 12742 * Math.asin(Math.sqrt(x * x + Math.cos(a * r) * Math.cos(c * r) * y * y));
     }
     /* Abre no município de onde a página está sendo acessada. Se o visitante não permitir a localização,
-       estiver fora da Bahia ou o aparelho demorar, usa o último município consultado (semSaida). */
+       estiver fora da Bahia ou o aparelho demorar, usa o último município consultado ou, na primeira visita, Salvador (semSaida). */
     function localizar(semSaida) {
       var feito = false, falhou = function () { if (!feito) { feito = true; if (semSaida) semSaida(); } };
       if (!navigator.geolocation || !window.isSecureContext) return falhou();
@@ -527,7 +528,8 @@
       $("ip-dias").innerHTML = ""; $("ip-fonte").innerHTML = ""; $("ip-resumo").innerHTML = ""; $("ip-graf").innerHTML = "";
       if (!nome) { msg("Município não encontrado na Bahia. Escolha um nome da lista.", true); return; }
       atual = nome; lsSet("inemaPrevUltimo", nome);
-      try { history.replaceState(null, "", linkMunicipio()); } catch (e) {}
+      /* o endereço só guarda o município escolhido pela pessoa (não o automático), para não "prender" a página */
+      if (pelaLocalizacao !== true && pelaLocalizacao !== "auto") { try { history.replaceState(null, "", linkMunicipio()); } catch (e) {} }
       var agora = new Date().toLocaleString("sv-SE", { timeZone: "America/Bahia" }).replace(" ", "T").slice(0, 16);
       var m = dados.municipios[nome], hoje =new Date().toLocaleDateString("sv-SE", { timeZone: "America/Bahia" }), html = "", n = 0, dias = [], res = "";
       for (var i = 0; i < dados.datas.length && n < DIAS; i++) {
