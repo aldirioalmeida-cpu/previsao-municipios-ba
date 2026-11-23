@@ -65,6 +65,18 @@
 #inema-sat figure:fullscreen #is-area,#inema-sat figure.is-cheia #is-area{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
 #inema-sat figure:fullscreen .is-mosaico,#inema-sat figure.is-cheia .is-mosaico{max-width:none;height:100%;width:auto;max-height:100%}
 #inema-sat figure:fullscreen #is-area > a img,#inema-sat figure.is-cheia #is-area > a img{max-height:100%;width:auto;max-width:100%;margin:0 auto}
+/* tela cheia: título e controles flutuam sobre a imagem e somem quando o mouse para */
+#inema-sat figure:fullscreen{position:relative}
+#inema-sat figure:fullscreen figcaption,#inema-sat figure.is-cheia figcaption{position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(243,246,249,.9);transition:opacity .35s}
+#inema-sat figure:fullscreen .is-player,#inema-sat figure.is-cheia .is-player{position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(243,246,249,.9);transition:opacity .35s}
+#inema-sat figure.is-ocioso figcaption,#inema-sat figure.is-ocioso .is-player{opacity:0;pointer-events:none}
+#inema-sat figure.is-ocioso .is-palco{cursor:none}
+/* logo do INEMA no canto inferior direito da imagem (oceano nos recortes da Bahia e do Nordeste) */
+#inema-sat .is-logo{position:absolute;right:1.6%;bottom:1.6%;width:14%;min-width:78px;max-width:170px;z-index:4;pointer-events:none;
+  background:rgba(255,255,255,.62);border-radius:8px;padding:.45% .7%;line-height:0;opacity:.82}
+#inema-sat .is-logo img{width:100%;height:auto;display:block}
+#inema-sat figure:fullscreen .is-logo,#inema-sat figure.is-cheia .is-logo{transition:bottom .35s}
+#inema-sat figure:fullscreen:not(.is-ocioso) .is-logo,#inema-sat figure.is-cheia:not(.is-ocioso) .is-logo{bottom:calc(1.6% + 46px)}
 @media (max-width:640px){#inema-sat .is-player .vel{display:none}}
 </style>
 <script>
@@ -112,6 +124,7 @@
   ];
   var ORDEM_VETOR = ["mun", "ti", "rpga", "regioes", "barragens"];        // ordem de desenho (de baixo para cima)
   var ORDEM_ETIQ = ["barragens", "mun", "ti", "rpga", "regioes"];         // ordem na etiqueta (do menor para o maior)
+  var LOGO = "<div class='is-logo'><img alt='INEMA' src='https://cdn.jsdelivr.net/gh/aldirioalmeida-cpu/previsao-municipios-ba@main/pagina/logo-inema.png'></div>";
   var raiz = document.getElementById("inema-sat");
   if (!raiz) return;
   var ICO_MAX = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round'><path d='M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'/></svg>";
@@ -304,7 +317,7 @@
       if (!t) { $("is-area").innerHTML = "<div class='is-falta'>Imagens do CPTEC indisponíveis no momento. Tente a fonte NOAA.</div>"; return; }
       var proporcao = "aspect-ratio:" + (r[4] - r[3] + 1) + "/" + (r[6] - r[5] + 1);
       if (sel.m === "atual") {
-        $("is-area").innerHTML = "<div class='is-mosaico' style='" + proporcao + "'>" + quadro(prod, t, r, false, 0) + referencias(r) + "</div>";
+        $("is-area").innerHTML = "<div class='is-mosaico' style='" + proporcao + "'>" + quadro(prod, t, r, false, 0) + referencias(r) + LOGO + "</div>";
         $("is-hora").textContent = rotHora(t);
         desenhaVetores(r, minha);
         return;
@@ -314,7 +327,7 @@
       for (var i = n - 1; i >= 0; i--) quadros.push(new Date(t.getTime() - i * passo * 6e4));
       var h = "<div class='is-mosaico' style='" + proporcao + "'>";
       quadros.forEach(function (q, k) { h += quadro(prod, q, r, k !== quadros.length - 1, k); });
-      h += referencias(r) + "<div class='is-carga' id='is-carga'>Carregando as imagens… 0/" + n + "</div></div>";
+      h += referencias(r) + LOGO + "<div class='is-carga' id='is-carga'>Carregando as imagens… 0/" + n + "</div></div>";
       $("is-area").innerHTML = h;
       desenhaVetores(r, minha);
       var els = [].slice.call($("is-area").querySelectorAll(".is-quadro:not(.is-ref)")), ok = [], prontos = 0;
@@ -369,7 +382,7 @@
     if (s === "fd") u = STAR + "FD/" + c + "/1808x1808.jpg?t=" + t;
     else if (sel.m === "atual") u = STAR + "SECTOR/" + s + "/" + c + "/1800x1080.jpg?t=" + t;
     else u = STAR + "SECTOR/" + s + "/" + c + "/GOES19-" + s.toUpperCase() + "-" + c + "-900x540.gif?t=" + t;
-    $("is-area").innerHTML = "<a href='" + u.split("?")[0] + "' target='_blank' rel='noopener'><img alt='Imagem de satélite GOES-19' src='" + u + "'></a>";
+    $("is-area").innerHTML = "<div style='position:relative;line-height:0'><a href='" + u.split("?")[0] + "' target='_blank' rel='noopener'><img alt='Imagem de satélite GOES-19' src='" + u + "'></a>" + LOGO + "</div>";
     $("is-area").querySelector("img").onerror = function () { $("is-hora").textContent = "imagem indisponível no momento"; };
     $("is-hora").textContent = s === "fd" || sel.m === "atual" ? "data e hora (UTC) no rodapé da imagem" : "animação — pode levar alguns segundos para carregar";
   }
@@ -380,14 +393,24 @@
   $("is-max").onclick = function () {
     var fig = $("is-fig");
     if (cheia()) {
-      if (document.fullscreenElement) document.exitFullscreen(); else { fig.classList.remove("is-cheia"); document.body.style.overflow = ""; botaoMax(); }
+      if (document.fullscreenElement) document.exitFullscreen(); else { fig.classList.remove("is-cheia"); document.body.style.overflow = ""; botaoMax(); acorda(); }
       return;
     }
-    if (fig.requestFullscreen) fig.requestFullscreen().catch(function () { fig.classList.add("is-cheia"); document.body.style.overflow = "hidden"; botaoMax(); });
-    else { fig.classList.add("is-cheia"); document.body.style.overflow = "hidden"; botaoMax(); }
+    if (fig.requestFullscreen) fig.requestFullscreen().catch(function () { fig.classList.add("is-cheia"); document.body.style.overflow = "hidden"; botaoMax(); acorda(); });
+    else { fig.classList.add("is-cheia"); document.body.style.overflow = "hidden"; botaoMax(); acorda(); }
   };
-  document.addEventListener("fullscreenchange", botaoMax);
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && $("is-fig").classList.contains("is-cheia")) { $("is-fig").classList.remove("is-cheia"); document.body.style.overflow = ""; botaoMax(); } });
+  document.addEventListener("fullscreenchange", function () { botaoMax(); acorda(); });
+  // na tela cheia, título e controles somem 2,5 s depois que o mouse para (e voltam ao mexer ou tocar)
+  var tmOcioso = null;
+  function acorda() {
+    var fig = $("is-fig"); fig.classList.remove("is-ocioso"); clearTimeout(tmOcioso);
+    if (!cheia()) return;
+    tmOcioso = setTimeout(function () {
+      if (cheia() && !fig.querySelector("figcaption:hover, .is-player:hover")) fig.classList.add("is-ocioso");
+    }, 2500);
+  }
+  ["mousemove", "mousedown", "touchstart", "keydown", "wheel"].forEach(function (ev) { $("is-fig").addEventListener(ev, acorda, { passive: true }); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && $("is-fig").classList.contains("is-cheia")) { $("is-fig").classList.remove("is-cheia"); document.body.style.overflow = ""; botaoMax(); acorda(); } });
 
   function desenhaCamadas() {
     var f = sel.f;
