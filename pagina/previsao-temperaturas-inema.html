@@ -1,0 +1,460 @@
+<div id="inema-prev"><p class="ip-status">Carregando previsão…</p></div>
+<style>
+#inema-prev{--az:#0b4f8a;--az2:#e8f0f8;--tx:#1d2733;--tx2:#5b6773;--ln:#d7dee6;--bg:#fff;--zebra:#f6f8fa;--quente:#c0392b;--frio:#1f6fb2;--chuva:#127a6b;--vento:#7a4fb0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tx);font-size:15px;line-height:1.4;max-width:1280px;margin:0 auto}
+#inema-prev *{box-sizing:border-box}
+#inema-prev h2{font-size:1.45rem;margin:0 0 .25rem;color:var(--az)}
+#inema-prev h3{font-size:1.1rem;margin:1.6rem 0 .6rem;color:var(--az)}
+#inema-prev .ip-meta{color:var(--tx2);font-size:.88rem;margin-bottom:1rem}
+#inema-prev .ip-meta b{color:var(--tx)}
+#inema-prev .ip-nav{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.85rem;margin:0 0 .8rem}
+#inema-prev .ip-nav a{color:var(--az)}
+#inema-prev .ip-nav b{color:var(--tx)}
+#inema-prev .ip-status{padding:.8rem 1rem;border-radius:6px;background:var(--az2);margin:1rem 0}
+#inema-prev .ip-status.err{background:#fdecea;color:#8a1c12}
+#inema-prev .ip-dias{display:flex;flex-wrap:wrap;gap:.4rem;margin:.4rem 0 1rem}
+#inema-prev .ip-dias button{border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:.45rem .8rem;border-radius:999px;cursor:pointer;font:inherit;font-size:.9rem}
+#inema-prev .ip-dias button[aria-pressed=true]{background:var(--az);border-color:var(--az);color:#fff}
+#inema-prev .ip-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+@media (max-width:900px){#inema-prev .ip-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){#inema-prev .ip-cards{grid-template-columns:minmax(0,1fr)}}
+#inema-prev .ip-card{border:1px solid var(--ln);border-radius:8px;overflow:hidden;background:var(--bg)}
+#inema-prev .ip-card h4{margin:0;padding:.6rem .8rem;font-size:.95rem;color:#fff}
+#inema-prev .ip-card.q h4{background:var(--quente)}
+#inema-prev .ip-card.f h4{background:var(--frio)}
+#inema-prev .ip-card.v h4{background:var(--vento)}
+#inema-prev .ip-card.c h4{background:var(--chuva)}
+#inema-prev .ip-card.u h4{background:#9a5b00}
+#inema-prev .ip-card.w h4{background:#3d5a99}
+#inema-prev .ip-rot{font-size:.8rem;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.03em;margin:.6rem 0 .2rem}
+#inema-prev .ip-rot span{text-transform:none;font-weight:400;letter-spacing:0}
+#inema-prev .ip-regs button[aria-pressed=true]{background:#2e6b4f;border-color:#2e6b4f;color:#fff}
+#inema-prev .ip-mods button[aria-pressed=true]{background:#7a4b00;border-color:#7a4b00;color:#fff}
+#inema-prev .ip-mods button:disabled{opacity:.45;cursor:not-allowed}
+#inema-prev .ip-mods small{font-size:.75rem;opacity:.85}
+#inema-prev .ip-card ol{list-style:none;margin:0;padding:0}
+#inema-prev .ip-card li{display:flex;gap:.5rem;align-items:baseline;padding:.4rem .8rem;border-top:1px solid var(--ln);font-size:.9rem;margin:0}
+#inema-prev .ip-card li:nth-child(even){background:var(--zebra)}
+#inema-prev .ip-card .pos{color:var(--tx2);width:1.6rem;flex:none;text-align:right}
+#inema-prev .ip-card .mun{flex:1;min-width:0}
+#inema-prev .ip-card .mun span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#inema-prev .ip-card .loc{color:var(--tx2);font-size:.76rem;line-height:1.3}
+#inema-prev .ip-card .val{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+#inema-prev .ip-card .vazio{color:var(--tx2);font-size:.88rem}
+#inema-prev .ip-bc{padding:.45rem .6rem;border-top:1px solid var(--ln);background:var(--zebra)}
+#inema-prev .ip-bc input{width:100%;box-sizing:border-box;padding:.35rem .6rem;border:1px solid var(--ln);border-radius:6px;font:inherit;font-size:.86rem;margin:0}
+#inema-prev .ip-card ol.ip-res li{background:#fff8e1;border-top:1px solid #f0d78c}
+#inema-prev .ip-card ol.ip-res{border-bottom:2px solid #f0d78c}
+#inema-prev .ip-card ol.ip-res .pos{width:auto;min-width:1.6rem}
+#inema-prev .ip-ferr{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:.4rem 0 .6rem}
+#inema-prev .ip-ferr label{display:flex;align-items:center;gap:.35rem;font-size:.9rem;cursor:pointer;margin:0}
+#inema-prev .ip-ferr input[type=search]{flex:1 1 220px;max-width:340px;padding:.45rem .7rem;border:1px solid var(--ln);border-radius:6px;font:inherit}
+#inema-prev .ip-ferr button{padding:.45rem .9rem;border:1px solid var(--az);background:var(--bg);color:var(--az);border-radius:6px;cursor:pointer;font:inherit;font-size:.9rem}
+#inema-prev .ip-ferr .ip-cont{color:var(--tx2);font-size:.85rem}
+#inema-prev .ip-tab-wrap{overflow:auto;max-height:70vh;border:1px solid var(--ln);border-radius:8px}
+#inema-prev table{border-collapse:separate;border-spacing:0;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums;margin:0}
+#inema-prev table th,#inema-prev table td{padding:.35rem .55rem;border:0;border-bottom:1px solid var(--ln);text-align:center;white-space:nowrap}
+#inema-prev thead th{position:sticky;background:var(--az);color:#fff;font-weight:600;z-index:2}
+#inema-prev thead tr:first-child th{top:0}
+#inema-prev thead tr:nth-child(2) th{top:2.05rem;background:#0f5f9f;font-weight:500;font-size:.8rem;cursor:pointer}
+#inema-prev thead th.ord::after{content:" ▾"}
+#inema-prev thead th.ord.asc::after{content:" ▴"}
+#inema-prev table th.mun,#inema-prev table td.mun{position:sticky;left:0;text-align:left;z-index:1;background:var(--bg);border-right:1px solid var(--ln)}
+#inema-prev thead th.mun{z-index:3;background:var(--az);cursor:pointer}
+#inema-prev tbody tr:nth-child(even) td{background:var(--zebra)}
+#inema-prev table td.dia1{border-left:1px solid var(--ln)}
+#inema-prev td.tmin{color:var(--frio)}
+#inema-prev td.tmax{color:var(--quente)}
+#inema-prev td.dest{font-weight:700}
+#inema-prev .ip-nota{color:var(--tx2);font-size:.8rem;margin-top:.6rem}
+@media (max-width:600px){#inema-prev{font-size:14px}#inema-prev h2{font-size:1.2rem}}
+</style>
+<script>
+/* INEMA · Meteorologia — Previsão de temperaturas e extremos.
+   Toda a estrutura é montada por este script: o editor do site apaga elementos vazios
+   e injeta style="border…" em toda tag de célula de tabela escrita por extenso (até dentro do script).
+   Por isso as tags de tabela são escritas em pedaços: "<" + "td". */
+(function () {
+  var URL_DADOS = "https://cdn.jsdelivr.net/gh/aldirioalmeida-cpu/previsao-municipios-ba@main/previsao.json";
+  var N = 10; // tamanho de cada ranking
+  // Cidades da tabela principal (mesma lista e ordem da aba "Tabela" da planilha). Grafia oficial do IBGE.
+  var CIDADES = ["Salvador", "Feira de Santana", "Conde", "Senhor do Bonfim", "Paulo Afonso", "Ilhéus",
+    "Eunápolis", "Teixeira de Freitas", "Juazeiro", "Remanso", "Morro do Chapéu", "Piatã", "Itaberaba",
+    "Jequié", "Vitória da Conquista", "Barra", "Ibotirama", "Bom Jesus da Lapa", "Formosa do Rio Preto",
+    "Barreiras", "Cocos"];
+  // Região climática e Território de Identidade de cada município (cruzamento das coordenadas da sede
+  // com os shapefiles Regiões.shp e TI.shp). Para corrigir um município, troque os índices abaixo.
+  var REGIOES = ["Chapada Diamantina", "Nordeste", "Norte", "Oeste", "Recôncavo", "São Francisco", "Sudoeste", "Sul"];
+  var TERRITORIOS = ["Irecê", "Velho Chico", "Chapada Diamantina", "Sisal", "Litoral Sul", "Baixo Sul", "Extremo Sul", "Médio Sudoeste da Bahia", "Vale do Jiquiriçá", "Sertão do São Francisco", "Bacia do Rio Grande", "Bacia do Paramirim", "Sertão Produtivo", "Piemonte do Paraguaçu", "Bacia do Jacuípe", "Piemonte da Diamantina", "Semiárido Nordeste II", "Litoral Norte e Agreste Baiano", "Portal do Sertão", "Sudoeste Baiano", "Recôncavo", "Médio Rio de Contas", "Bacia do Rio Corrente", "Itaparica", "Piemonte Norte do Itapicuru", "Metropolitano de Salvador", "Costa do Descobrimento"];
+  // município: [índice em REGIOES, índice em TERRITORIOS]
+  var LOCAL = {
+    "Abaíra":[0,2],"Abaré":[1,23],"Acajutiba":[1,17],"Adustina":[1,16],"Água Fria":[1,18],"Aiquara":[6,21],
+    "Alagoinhas":[4,17],"Alcobaça":[7,6],"Almadina":[7,4],"Amargosa":[4,8],"Amélia Rodrigues":[4,18],"América Dourada":[2,0],
+    "Anagé":[6,19],"Andaraí":[0,2],"Andorinha":[1,24],"Angical":[5,10],"Anguera":[4,18],"Antas":[1,16],
+    "Antônio Cardoso":[4,18],"Antônio Gonçalves":[1,24],"Aporá":[1,17],"Apuarema":[6,21],"Araçás":[4,17],"Aracatu":[6,19],
+    "Araci":[1,3],"Aramari":[4,17],"Arataca":[7,4],"Aratuípe":[4,5],"Aurelino Leal":[7,4],"Baianópolis":[5,10],
+    "Baixa Grande":[0,14],"Banzaê":[1,16],"Barra":[5,1],"Barra da Estiva":[0,2],"Barra do Choça":[6,19],"Barra do Mendes":[0,0],
+    "Barra do Rocha":[7,21],"Barreiras":[3,10],"Barro Alto":[0,0],"Barro Preto":[7,4],"Barrocas":[1,3],"Belmonte":[7,26],
+    "Belo Campo":[6,19],"Biritinga":[1,3],"Boa Nova":[6,21],"Boa Vista do Tupim":[0,13],"Bom Jesus da Lapa":[5,1],"Bom Jesus da Serra":[6,19],
+    "Boninal":[0,2],"Bonito":[0,2],"Boquira":[5,11],"Botuporã":[5,11],"Brejões":[4,8],"Brejolândia":[5,22],
+    "Brotas de Macaúbas":[5,1],"Brumado":[6,12],"Buerarema":[7,4],"Buritirama":[5,10],"Caatiba":[6,7],"Cabaceiras do Paraguaçu":[4,20],
+    "Cachoeira":[4,20],"Caculé":[6,12],"Caém":[1,15],"Caetanos":[6,19],"Caetité":[5,12],"Cafarnaum":[0,0],
+    "Cairu":[4,5],"Caldeirão Grande":[1,24],"Camacan":[7,4],"Camaçari":[4,25],"Camamu":[7,5],"Campo Alegre de Lourdes":[5,9],
+    "Campo Formoso":[2,24],"Canápolis":[5,22],"Canarana":[0,0],"Canavieiras":[7,4],"Candeal":[1,3],"Candeias":[4,25],
+    "Candiba":[5,12],"Cândido Sales":[6,19],"Cansanção":[1,3],"Canudos":[1,9],"Capela do Alto Alegre":[1,14],"Capim Grosso":[1,14],
+    "Caraíbas":[6,19],"Caravelas":[7,6],"Cardeal da Silva":[1,17],"Carinhanha":[5,1],"Casa Nova":[2,9],"Castro Alves":[4,20],
+    "Catolândia":[3,10],"Catu":[4,17],"Caturama":[5,11],"Central":[2,0],"Chorrochó":[1,23],"Cícero Dantas":[1,16],
+    "Cipó":[1,16],"Coaraci":[7,4],"Cocos":[3,22],"Conceição da Feira":[4,18],"Conceição do Almeida":[4,20],"Conceição do Coité":[1,3],
+    "Conceição do Jacuípe":[4,18],"Conde":[1,17],"Condeúba":[6,19],"Contendas do Sincorá":[6,12],"Coração de Maria":[4,18],"Cordeiros":[6,19],
+    "Coribe":[5,22],"Coronel João Sá":[1,16],"Correntina":[3,22],"Cotegipe":[5,10],"Cravolândia":[4,8],"Crisópolis":[1,17],
+    "Cristópolis":[5,10],"Cruz das Almas":[4,20],"Curaçá":[1,9],"Dário Meira":[6,21],"Dias d'Ávila":[4,25],"Dom Basílio":[0,12],
+    "Dom Macedo Costa":[4,20],"Elísio Medrado":[4,8],"Encruzilhada":[6,19],"Entre Rios":[1,17],"Érico Cardoso":[0,11],"Esplanada":[1,17],
+    "Euclides da Cunha":[1,16],"Eunápolis":[7,26],"Fátima":[1,16],"Feira da Mata":[5,1],"Feira de Santana":[4,18],"Filadélfia":[1,24],
+    "Firmino Alves":[6,7],"Floresta Azul":[7,4],"Formosa do Rio Preto":[3,10],"Gandu":[4,5],"Gavião":[1,14],"Gentio do Ouro":[5,0],
+    "Glória":[1,23],"Gongogi":[7,21],"Governador Mangabeira":[4,20],"Guajeru":[6,19],"Guanambi":[5,12],"Guaratinga":[7,26],
+    "Heliópolis":[1,16],"Iaçu":[0,13],"Ibiassucê":[6,12],"Ibicaraí":[7,4],"Ibicoara":[0,2],"Ibicuí":[6,7],
+    "Ibipeba":[2,0],"Ibipitanga":[5,11],"Ibiquera":[0,13],"Ibirapitanga":[7,5],"Ibirapuã":[7,6],"Ibirataia":[7,21],
+    "Ibitiara":[5,2],"Ibititá":[2,0],"Ibotirama":[5,1],"Ichu":[1,3],"Igaporã":[5,1],"Igrapiúna":[4,5],
+    "Iguaí":[6,7],"Ilhéus":[7,4],"Inhambupe":[1,17],"Ipecaetá":[4,18],"Ipiaú":[6,21],"Ipirá":[1,14],
+    "Ipupiara":[5,0],"Irajuba":[6,8],"Iramaia":[0,2],"Iraquara":[0,2],"Irará":[4,18],"Irecê":[2,0],
+    "Itabela":[7,26],"Itaberaba":[0,13],"Itabuna":[7,4],"Itacaré":[7,4],"Itaeté":[0,2],"Itagi":[6,21],
+    "Itagibá":[6,21],"Itagimirim":[7,26],"Itaguaçu da Bahia":[2,0],"Itaju do Colônia":[7,4],"Itajuípe":[7,4],"Itamaraju":[7,6],
+    "Itamari":[7,21],"Itambé":[6,7],"Itanagra":[4,17],"Itanhém":[7,6],"Itaparica":[4,25],"Itapé":[7,4],
+    "Itapebi":[7,26],"Itapetinga":[6,7],"Itapicuru":[1,17],"Itapitanga":[7,4],"Itaquara":[6,8],"Itarantim":[6,7],
+    "Itatim":[4,13],"Itiruçu":[6,8],"Itiúba":[1,3],"Itororó":[6,7],"Ituaçu":[6,12],"Ituberá":[4,5],
+    "Iuiu":[5,12],"Jaborandi":[3,22],"Jacaraci":[6,19],"Jacobina":[1,15],"Jaguaquara":[6,8],"Jaguarari":[2,24],
+    "Jaguaripe":[4,5],"Jandaíra":[1,17],"Jequié":[6,21],"Jeremoabo":[1,16],"Jiquiriçá":[4,8],"Jitaúna":[6,21],
+    "João Dourado":[2,0],"Juazeiro":[2,9],"Jucuruçu":[7,6],"Jussara":[2,0],"Jussari":[7,4],"Jussiape":[0,2],
+    "Lafaiete Coutinho":[6,8],"Lagoa Real":[5,12],"Laje":[4,8],"Lajedão":[7,6],"Lajedinho":[0,13],"Lajedo do Tabocal":[6,8],
+    "Lamarão":[1,3],"Lapão":[2,0],"Lauro de Freitas":[4,25],"Lençóis":[0,2],"Licínio de Almeida":[5,19],"Livramento de Nossa Senhora":[0,12],
+    "Luís Eduardo Magalhães":[3,10],"Macajuba":[0,13],"Macarani":[6,7],"Macaúbas":[5,11],"Macururé":[1,23],"Madre de Deus":[4,25],
+    "Maetinga":[6,19],"Maiquinique":[6,7],"Mairi":[0,14],"Malhada":[5,1],"Malhada de Pedras":[6,12],"Manoel Vitorino":[6,21],
+    "Mansidão":[5,10],"Maracás":[6,8],"Maragogipe":[4,20],"Maraú":[7,4],"Marcionílio Souza":[0,2],"Mascote":[7,4],
+    "Mata de São João":[4,25],"Matina":[5,1],"Medeiros Neto":[7,6],"Miguel Calmon":[1,15],"Milagres":[4,8],"Mirangaba":[2,15],
+    "Mirante":[6,19],"Monte Santo":[1,3],"Morpará":[5,1],"Morro do Chapéu":[0,2],"Mortugaba":[6,19],"Mucugê":[0,2],
+    "Mucuri":[7,6],"Mulungu do Morro":[0,0],"Mundo Novo":[0,13],"Muniz Ferreira":[4,20],"Muquém do São Francisco":[5,1],"Muritiba":[4,20],
+    "Mutuípe":[4,8],"Nazaré":[4,20],"Nilo Peçanha":[4,5],"Nordestina":[1,3],"Nova Canaã":[6,7],"Nova Fátima":[1,14],
+    "Nova Ibiá":[7,21],"Nova Itarana":[0,8],"Nova Redenção":[0,2],"Nova Soure":[1,16],"Nova Viçosa":[7,6],"Novo Horizonte":[0,2],
+    "Novo Triunfo":[1,16],"Olindina":[1,17],"Oliveira dos Brejinhos":[5,1],"Ouriçangas":[4,17],"Ourolândia":[2,15],"Palmas de Monte Alto":[5,12],
+    "Palmeiras":[0,2],"Paramirim":[5,11],"Paratinga":[5,1],"Paripiranga":[1,16],"Pau Brasil":[7,4],"Paulo Afonso":[1,23],
+    "Pé de Serra":[1,14],"Pedrão":[4,17],"Pedro Alexandre":[1,16],"Piatã":[0,2],"Pilão Arcado":[5,9],"Pindaí":[5,12],
+    "Pindobaçu":[1,24],"Pintadas":[1,14],"Piraí do Norte":[4,5],"Piripá":[6,19],"Piritiba":[0,13],"Planaltino":[6,8],
+    "Planalto":[6,19],"Poções":[6,19],"Pojuca":[4,25],"Ponto Novo":[1,24],"Porto Seguro":[7,26],"Potiraguá":[7,7],
+    "Prado":[7,6],"Presidente Dutra":[2,0],"Presidente Jânio Quadros":[6,19],"Presidente Tancredo Neves":[4,5],"Queimadas":[1,3],"Quijingue":[1,3],
+    "Quixabeira":[1,14],"Rafael Jambeiro":[4,13],"Remanso":[2,9],"Retirolândia":[1,3],"Riachão das Neves":[3,10],"Riachão do Jacuípe":[1,14],
+    "Riacho de Santana":[5,1],"Ribeira do Amparo":[1,16],"Ribeira do Pombal":[1,16],"Ribeirão do Largo":[6,19],"Rio de Contas":[0,2],"Rio do Antônio":[6,12],
+    "Rio do Pires":[0,11],"Rio Real":[1,17],"Rodelas":[1,23],"Ruy Barbosa":[0,13],"Salinas da Margarida":[4,20],"Salvador":[4,25],
+    "Santa Bárbara":[1,18],"Santa Brígida":[1,16],"Santa Cruz Cabrália":[7,26],"Santa Cruz da Vitória":[7,7],"Santa Inês":[4,8],"Santa Luzia":[7,4],
+    "Santa Maria da Vitória":[5,22],"Santa Rita de Cássia":[5,10],"Santa Terezinha":[4,13],"Santaluz":[1,3],"Santana":[5,22],"Santanópolis":[4,18],
+    "Santo Amaro":[4,20],"Santo Antônio de Jesus":[4,20],"Santo Estêvão":[4,18],"São Desidério":[3,10],"São Domingos":[1,3],"São Felipe":[4,20],
+    "São Félix":[4,20],"São Félix do Coribe":[5,22],"São Francisco do Conde":[4,25],"São Gabriel":[2,0],"São Gonçalo dos Campos":[4,18],"São José da Vitória":[7,4],
+    "São José do Jacuípe":[1,14],"São Miguel das Matas":[4,8],"São Sebastião do Passé":[4,25],"Sapeaçu":[4,20],"Sátiro Dias":[1,17],"Saubara":[4,20],
+    "Saúde":[1,15],"Seabra":[0,2],"Sebastião Laranjeiras":[5,12],"Senhor do Bonfim":[1,24],"Sento Sé":[2,9],"Serra do Ramalho":[5,1],
+    "Serra Dourada":[5,22],"Serra Preta":[1,14],"Serrinha":[1,3],"Serrolândia":[1,15],"Simões Filho":[4,25],"Sítio do Mato":[5,1],
+    "Sítio do Quinto":[1,16],"Sobradinho":[2,9],"Souto Soares":[0,2],"Tabocas do Brejo Velho":[5,22],"Tanhaçu":[6,12],"Tanque Novo":[5,12],
+    "Tanquinho":[1,18],"Taperoá":[4,5],"Tapiramutá":[0,13],"Teixeira de Freitas":[7,6],"Teodoro Sampaio":[4,18],"Teofilândia":[1,3],
+    "Teolândia":[4,5],"Terra Nova":[4,18],"Tremedal":[6,19],"Tucano":[1,3],"Uauá":[1,9],"Ubaíra":[4,8],
+    "Ubaitaba":[7,4],"Ubatã":[7,21],"Uibaí":[2,0],"Umburanas":[2,15],"Una":[7,4],"Urandi":[5,12],
+    "Uruçuca":[7,4],"Utinga":[0,2],"Valença":[4,5],"Valente":[1,3],"Várzea da Roça":[1,14],"Várzea do Poço":[1,14],
+    "Várzea Nova":[2,15],"Varzedo":[4,20],"Vera Cruz":[4,25],"Vereda":[7,6],"Vitória da Conquista":[6,19],"Wagner":[0,2],
+    "Wanderley":[5,10],"Wenceslau Guimarães":[4,5],"Xique-Xique":[5,0]
+  };
+  var TH = "<" + "th", TD = "<" + "td", TB = "<" + "table";
+  var raiz = document.getElementById("inema-prev");
+  if (!raiz) return;
+  function cardLista(cls, titulo, id) {
+    return "<div class='ip-card " + cls + "'><h4>" + titulo + "</h4>" +
+      "<div class='ip-bc'><input type='search' data-l='" + id + "' list='ip-dl-mun' placeholder='Buscar outro município…' aria-label='Buscar município em " + titulo + "'></div>" +
+      "<ol class='ip-res' id='" + id.replace("ip-l-", "ip-r-") + "' hidden></ol><ol id='" + id + "'></ol></div>";
+  }
+  raiz.innerHTML =
+    "<h2>Previsão de temperaturas e extremos — municípios da Bahia</h2>" +
+    "<div class='ip-nav'><b>Meteorologia:</b><a href='/inema/meteorologia/previsao-temperaturas'>Previsão de temperaturas e extremos</a>" +
+    "<a href='/inema/meteorologia/modelos'>Mapas dos modelos</a><a href='/inema/meteorologia/satelite'>Satélite</a></div>" +
+    "<div class='ip-meta' id='ip-meta'></div>" +
+    "<div class='ip-status' id='ip-status'>Buscando dados…</div>" +
+    "<div id='ip-conteudo' hidden>" +
+      "<h3>Extremos previstos</h3>" +
+      "<div class='ip-rot'>Dia</div>" +
+      "<div class='ip-dias' id='ip-dias' role='group' aria-label='Dia da previsão'></div>" +
+      "<div class='ip-rot'>Regiões climáticas <span id='ip-reg-info'></span></div>" +
+      "<div class='ip-dias ip-regs' id='ip-regs' role='group' aria-label='Filtrar extremos por região climática'></div>" +
+      "<div class='ip-rot'>Modelo dos extremos <span>(compare ECMWF × GFS × ICON)</span></div>" +
+      "<div class='ip-dias ip-mods' id='ip-mods' role='group' aria-label='Modelo usado nas listas de extremos'></div>" +
+      "<div class='ip-cards'>" +
+        cardLista("f", "Menores mínimas (°C)", "ip-l-min") +
+        cardLista("q", "Maiores máximas (°C)", "ip-l-max") +
+        cardLista("u", "Menores umidades relativas (%)", "ip-l-ur") +
+        cardLista("c", "Maiores volumes de chuva (mm)", "ip-l-mm") +
+        cardLista("w", "Maiores ventos médios (km/h)", "ip-l-v") +
+        cardLista("v", "Maiores rajadas (km/h)", "ip-l-raj") +
+      "</div>" +
+      "<h3>Previsão de temperaturas (°C) por cidades</h3>" +
+      "<div class='ip-ferr'>" +
+        "<label><input type='checkbox' id='ip-todos'> Mostrar todos os municípios</label>" +
+        "<input type='search' id='ip-busca' placeholder='Buscar município…' aria-label='Buscar município' hidden>" +
+        "<button type='button' id='ip-xls'>Baixar planilha (XLS)</button>" +
+        "<span class='ip-cont' id='ip-cont'></span>" +
+      "</div>" +
+      "<div class='ip-tab-wrap'>" + TB + " id='ip-tab'><thead></thead><tbody></tbody></table></div>" +
+      "<p class='ip-nota'>Clique no cabeçalho de uma coluna para ordenar. Valores em negrito: estão entre as 10 maiores máximas ou as 10 menores mínimas do estado naquele dia. " +
+      "A tabela e a planilha usam a previsão do ECMWF no ponto da sede (Open-Meteo). As listas de extremos usam, para cada município (malha IBGE 2024), " +
+      "o maior valor (máxima, chuva, rajada, vento) ou o menor (mínima, umidade) entre os pixels do modelo (0,25°, ~28 km) que tocam o município — o extremo dentro do município.</p>" +
+    "</div>";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+  var dados, nomes, datas, diaSel = 0, ordem = { col: null, asc: true }, destaque = {};
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function sa(s) { return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  function dt(iso) { var p = iso.split("-"); return new Date(+p[0], p[1] - 1, +p[2]); }
+  function rotDia(iso) { var d = dt(iso); return DIAS[d.getDay()] + " " + ("0" + d.getDate()).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2); }
+  function num(v, casas) { return v == null ? "–" : (casas ? v.toFixed(casas).replace(".", ",") : String(Math.round(v))); }
+  // Fonte dos valores: extremos.json (máx/mín/chuva... calculados na grade do modelo, por município).
+  // Tabela e planilha usam sempre o ECMWF; as listas de extremos usam o modelo escolhido (ECMWF, GFS ou ICON).
+  // Sem extremos.json, volta para os valores do previsao.json.
+  var EXT = null, modExt = "ecmwf";
+  try { var mx = localStorage.getItem("inemaPrevModelo"); if (mx === "gfs" || mx === "icon") modExt = mx; } catch (e) {}
+  function fonte(mod) { return EXT && EXT.modelos && EXT.modelos[mod] ? EXT.modelos[mod].municipios : dados.municipios; }
+  function valM(mod, m, campo, i) { if (mod === "sede") return val(m, campo, i); var M = fonte(mod)[m], l = M && M[campo]; return l && i < l.length ? l[i] : null; }
+  // Tabela das 21 cidades e planilha: valores da sede (previsao.json / Open-Meteo), como nos cards.
+  function val(m, campo, i) { var l = dados.municipios[m] && dados.municipios[m][campo]; var k = dados.datas.indexOf(datas[i]); return l && k >= 0 && k < l.length ? l[k] : null; }
+  function rodadaTxt(r) { var x = (r || "").match(/^(\d{4})-(\d\d)-(\d\d)T(\d\d)Z$/); return x ? x[3] + "/" + x[2] + " " + x[4] + " UTC" : "–"; }
+  function regiao(m) { return LOCAL[m] ? REGIOES[LOCAL[m][0]] : "–"; }
+  function territorio(m) { return LOCAL[m] ? TERRITORIOS[LOCAL[m][1]] : "–"; }
+
+  // filtroReg: true = aplica as regiões selecionadas (listas de extremos); false = estado inteiro (negrito da tabela)
+  // completo: true = ranking inteiro (usado na busca de município dentro de cada card)
+  function ranking(campo, i, crescente, filtroReg, mod, completo) {
+    mod = mod || "ecmwf";
+    var r = nomes.filter(function (m) { return valM(mod, m, campo, i) != null && (!filtroReg || naSelecao(m)); })
+      .sort(function (a, b) { var d = valM(mod, a, campo, i) - valM(mod, b, campo, i); return (crescente ? d : -d) || a.localeCompare(b, "pt"); });
+    return completo ? r : r.slice(0, N);
+  }
+  function desenhaModelos() {
+    var el = $("ip-mods"); if (!el) return;
+    var M = (EXT && EXT.modelos) || {};
+    el.innerHTML = [["ecmwf", "ECMWF"], ["gfs", "GFS"], ["icon", "ICON"]].map(function (x) {
+      var ok = !!M[x[0]];
+      return "<button type='button' data-m='" + x[0] + "' aria-pressed='" + (modExt === x[0]) + "'" + (ok ? "" : " disabled") + ">" + x[1] +
+        (ok ? (M[x[0]].rodada ? " <small>· rodada " + rodadaTxt(M[x[0]].rodada) + "</small>" : "") : " <small>· indisponível</small>") + "</button>";
+    }).join("");
+  }
+
+  // Regiões selecionadas no filtro (vazio = todas). Fica guardado no navegador de cada usuário.
+  var regSel = {};
+  try { (JSON.parse(localStorage.getItem("inemaPrevRegioes") || "[]")).forEach(function (r) { regSel[r] = 1; }); } catch (e) {}
+  function nenhumaReg() { for (var k in regSel) return false; return true; }
+  function naSelecao(m) { return nenhumaReg() || (LOCAL[m] && regSel[LOCAL[m][0]]); }
+  function desenhaRegioes() {
+    var todas = nenhumaReg();
+    $("ip-regs").innerHTML = "<button type='button' data-r='todas' aria-pressed='" + todas + "'>Todas</button>" +
+      REGIOES.map(function (r, k) { return "<button type='button' data-r='" + k + "' aria-pressed='" + !!regSel[k] + "'>" + esc(r) + "</button>"; }).join("");
+    var n = Object.keys(regSel).length;
+    $("ip-reg-info").textContent = todas ? "(mostrando o estado todo)" : "(" + n + " selecionada" + (n > 1 ? "s" : "") + ")";
+  }
+
+  function lista(id, campo, crescente, casas) {
+    var mod = EXT && EXT.modelos && EXT.modelos[modExt] ? modExt : "ecmwf";
+    var val = function (m, c, i) { return valM(mod, m, c, i); };
+    var r = ranking(campo, diaSel, crescente, true, mod);
+    if (campo === "mm") r = r.filter(function (m) { return val(m, "mm", diaSel) > 0; });
+    $(id).innerHTML = r.length ? r.map(function (m, k) {
+      var loc = regiao(m) + " · TI " + territorio(m);
+      return "<li><span class='pos'>" + (k + 1) + "º</span><span class='mun'><span title='" + esc(m) + "'>" + esc(m) + "</span>" +
+        "<span class='loc' title='Região climática · Território de Identidade: " + esc(loc) + "'>" + esc(loc) + "</span></span>" +
+        "<span class='val'>" + num(val(m, campo, diaSel), casas) + "</span></li>";
+    }).join("") : "<li class='vazio'>" + (campo === "mm" ? "Sem chuva prevista neste dia." : "Sem dados.") + "</li>";
+    buscaLista(id, campo, crescente, casas);
+  }
+
+  // Busca de município dentro do card: mostra a posição no ranking completo (respeitando o filtro de regiões).
+  function buscaLista(id, campo, crescente, casas) {
+    var inp = document.querySelector("#inema-prev input[data-l='" + id + "']"), res = $(id.replace("ip-l-", "ip-r-"));
+    if (!inp || !res) return;
+    var q = sa(inp.value.trim());
+    if (q.length < 2) { res.innerHTML = ""; res.hidden = true; return; }
+    var mod = EXT && EXT.modelos && EXT.modelos[modExt] ? modExt : "ecmwf";
+    var todos = ranking(campo, diaSel, crescente, true, mod, true);
+    var achados = nomes.filter(function (m) { return sa(m).indexOf(q) >= 0; })
+      .sort(function (a, b) { return (sa(a).indexOf(q) === 0 ? 0 : 1) - (sa(b).indexOf(q) === 0 ? 0 : 1) || a.localeCompare(b, "pt"); })
+      .slice(0, 5);
+    res.hidden = false;
+    res.innerHTML = achados.length ? achados.map(function (m) {
+      var p = todos.indexOf(m), v = valM(mod, m, campo, diaSel);
+      var loc = regiao(m) + " · TI " + territorio(m) + (p < 0 && v != null ? " · fora das regiões selecionadas" : "");
+      return "<li><span class='pos'>" + (p >= 0 ? (p + 1) + "º" : "–") + "</span><span class='mun'><span title='" + esc(m) + "'>" + esc(m) + "</span>" +
+        "<span class='loc'>" + esc(loc) + (p >= 0 ? " · de " + todos.length : "") + "</span></span>" +
+        "<span class='val'>" + num(v, casas) + "</span></li>";
+    }).join("") : "<li class='vazio'>Nenhum município encontrado.</li>";
+  }
+
+  function desenhaExtremos() {
+    lista("ip-l-max", "max", false); lista("ip-l-min", "min", true);
+    lista("ip-l-ur", "urmin", true); lista("ip-l-mm", "mm", false, 1);
+    lista("ip-l-raj", "raj", false); lista("ip-l-v", "v", false);
+    Array.prototype.forEach.call($("ip-dias").children, function (b, i) { b.setAttribute("aria-pressed", i === diaSel); });
+  }
+
+  function cabecalho() {
+    var h1 = "<tr>" + TH + " class='mun' rowspan='2' data-col='mun'>Município</th>", h2 = "<tr>";
+    datas.forEach(function (d, i) {
+      h1 += TH + " colspan='2'>" + rotDia(d) + "</th>";
+      h2 += TH + " data-col='min" + i + "'>Mín</th>" + TH + " data-col='max" + i + "'>Máx</th>";
+    });
+    $("ip-tab").tHead.innerHTML = h1 + "</tr>" + h2 + "</tr>";
+  }
+
+  function desenhaTabela() {
+    var todos = $("ip-todos").checked;
+    $("ip-busca").hidden = !todos;
+    var q = todos ? sa($("ip-busca").value.trim()) : "";
+    var base = todos ? nomes : CIDADES.filter(function (m) { return dados.municipios[m]; });
+    var lst = base.filter(function (m) { return !q || sa(m).indexOf(q) >= 0; });
+    if (ordem.col === "mun") {
+      lst.sort(function (a, b) { return ordem.asc ? a.localeCompare(b, "pt") : b.localeCompare(a, "pt"); });
+    } else if (ordem.col) {
+      var campo = ordem.col.slice(0, 3), i = +ordem.col.slice(3);
+      lst.sort(function (a, b) {
+        var va = val(a, campo, i), vb = val(b, campo, i);
+        if (va == null) return 1; if (vb == null) return -1;
+        return (ordem.asc ? va - vb : vb - va) || a.localeCompare(b, "pt");
+      });
+    }
+    $("ip-tab").tBodies[0].innerHTML = lst.map(function (m) {
+      var tr = "<tr>" + TD + " class='mun'>" + esc(m) + "</td>";
+      datas.forEach(function (d, i) {
+        tr += TD + " class='tmin dia1" + (destaque["min" + i][m] ? " dest" : "") + "'>" + num(val(m, "min", i)) + "</td>" +
+              TD + " class='tmax" + (destaque["max" + i][m] ? " dest" : "") + "'>" + num(val(m, "max", i)) + "</td>";
+      });
+      return tr + "</tr>";
+    }).join("");
+    var falta = todos ? [] : CIDADES.filter(function (m) { return !dados.municipios[m]; });
+    $("ip-cont").textContent = todos ? lst.length + " de " + nomes.length + " municípios"
+      : lst.length + " cidades" + (falta.length ? " · não encontrada(s): " + falta.join(", ") : "");
+    Array.prototype.forEach.call($("ip-tab").querySelectorAll("[data-col]"), function (th) {
+      th.classList.toggle("ord", th.getAttribute("data-col") === ordem.col);
+      th.classList.toggle("asc", th.getAttribute("data-col") === ordem.col && ordem.asc);
+    });
+  }
+
+  // Planilha .xls no mesmo formato do boletim: Cidades | data (Tmín, Tmáx) | data (Tmín, Tmáx) ...
+  // Assim o bloco de números pode ser copiado e colado direto na tabela do boletim.
+  // Usa a biblioteca SheetJS (carregada só no clique, do cdn.jsdelivr.net, já liberado no site).
+  var libXlsx = null;
+  function carregaXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (!libXlsx) libXlsx = new Promise(function (ok, erro) {
+      var s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+      s.onload = function () { window.XLSX ? ok(window.XLSX) : erro(new Error("biblioteca não carregou")); };
+      s.onerror = function () { libXlsx = null; erro(new Error("biblioteca não carregou")); };
+      document.head.appendChild(s);
+    });
+    return libXlsx;
+  }
+  function aba(X, titulo, lista) {
+    var r1 = [titulo], r2 = ["Cidades"], r3 = [""], merges = [{ s: { r: 0, c: 0 }, e: { r: 0, c: datas.length * 2 } }, { s: { r: 1, c: 0 }, e: { r: 2, c: 0 } }];
+    datas.forEach(function (d, i) {
+      r2.push(d.split("-").reverse().join("/"), ""); r3.push("Tmín", "Tmáx");
+      merges.push({ s: { r: 1, c: 1 + 2 * i }, e: { r: 1, c: 2 + 2 * i } });
+    });
+    var linhas = [r1, r2, r3];
+    lista.forEach(function (m) {
+      var l = [m];
+      datas.forEach(function (d, i) {
+        var mi = val(m, "min", i), ma = val(m, "max", i);
+        l.push(mi == null ? "" : Math.round(mi), ma == null ? "" : Math.round(ma));
+      });
+      linhas.push(l);
+    });
+    var ws = X.utils.aoa_to_sheet(linhas);
+    ws["!merges"] = merges;
+    ws["!cols"] = [{ wch: 26 }].concat(datas.map(function () { return [{ wch: 7 }, { wch: 7 }]; }).reduce(function (a, b) { return a.concat(b); }, []));
+    return ws;
+  }
+  function baixarXls() {
+    var bt = $("ip-xls"), txt = bt.textContent;
+    bt.disabled = true; bt.textContent = "Gerando…";
+    carregaXlsx().then(function (X) {
+      var wb = X.utils.book_new();
+      X.utils.book_append_sheet(wb, aba(X, "Previsão de Temperaturas (em °C) por Cidades", CIDADES.filter(function (m) { return dados.municipios[m]; })), "Cidades");
+      X.utils.book_append_sheet(wb, aba(X, "Previsão de Temperaturas (em °C) — todos os municípios", nomes), "Todos os municípios");
+      X.writeFile(wb, "previsao-temperaturas-" + datas[0] + ".xls", { bookType: "biff8" });
+    }).catch(function (e) {
+      alert("Não foi possível gerar a planilha (" + e.message + "). Tente novamente.");
+    }).then(function () { bt.disabled = false; bt.textContent = txt; });
+  }
+
+  function iniciar(j, ext) {
+    dados = j;
+    EXT = ext && ext.modelos && ext.modelos.ecmwf ? ext : null;
+    datas = EXT ? EXT.datas : j.datas;
+    nomes = Object.keys(j.municipios).sort(function (a, b) { return a.localeCompare(b, "pt"); });
+    datas.forEach(function (d, i) {
+      ["max", "min"].forEach(function (c) {
+        destaque[c + i] = {};
+        ranking(c, i, c === "min", false, "sede").forEach(function (m) { destaque[c + i][m] = 1; });
+      });
+    });
+    var g = new Date((EXT || j).gerado_em || "");
+    $("ip-meta").innerHTML = "Tabela: <b>ECMWF IFS 0,25° (Open-Meteo, na sede)</b>" +
+      (EXT ? " · Extremos: <b>maior/menor valor da grade no município</b>, rodada <b>" + rodadaTxt(EXT.modelos.ecmwf.rodada) + "</b>" : "") +
+      " · Gerado em <b>" + (!isNaN(g) ? g.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "–") +
+      "</b> · " + nomes.length + " municípios · " + datas.length + " dias";
+    if (!EXT || !EXT.modelos[modExt]) modExt = "ecmwf";
+    desenhaModelos();
+    $("ip-mods").onclick = function (e) {
+      var b = e.target.closest("button"); if (!b || b.disabled) return;
+      modExt = b.getAttribute("data-m");
+      try { localStorage.setItem("inemaPrevModelo", modExt); } catch (e2) {}
+      desenhaModelos(); desenhaExtremos();
+    };
+    var h = new Date(), hoje = h.getFullYear() + "-" + ("0" + (h.getMonth() + 1)).slice(-2) + "-" + ("0" + h.getDate()).slice(-2);
+    diaSel = Math.max(0, datas.indexOf(hoje));
+    $("ip-dias").innerHTML = datas.map(function (d, i) {
+      return "<button type='button' data-i='" + i + "'>" + (d === hoje ? "Hoje · " : "") + rotDia(d) + "</button>";
+    }).join("");
+    $("ip-dias").onclick = function (e) { var b = e.target.closest("button"); if (b) { diaSel = +b.getAttribute("data-i"); desenhaExtremos(); } };
+    $("ip-regs").onclick = function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      var r = b.getAttribute("data-r");
+      if (r === "todas") regSel = {}; else if (regSel[r]) delete regSel[r]; else regSel[r] = 1;
+      if (Object.keys(regSel).length === REGIOES.length) regSel = {};
+      try { localStorage.setItem("inemaPrevRegioes", JSON.stringify(Object.keys(regSel))); } catch (e2) {}
+      desenhaRegioes(); desenhaExtremos();
+    };
+    desenhaRegioes();
+    $("ip-tab").tHead.onclick = function (e) {
+      var th = e.target.closest("[data-col]"); if (!th) return;
+      var c = th.getAttribute("data-col");
+      ordem = ordem.col === c ? { col: c, asc: !ordem.asc } : { col: c, asc: c === "mun" || c.indexOf("min") === 0 };
+      desenhaTabela();
+    };
+    $("ip-busca").oninput = desenhaTabela;
+    // busca dentro dos cards de extremos (lista de nomes para o autocompletar)
+    var dl = document.createElement("datalist"); dl.id = "ip-dl-mun";
+    dl.innerHTML = nomes.slice().sort(function (a, b) { return a.localeCompare(b, "pt"); })
+      .map(function (m) { return "<option value='" + esc(m) + "'>"; }).join("");
+    raiz.appendChild(dl);
+    raiz.querySelector(".ip-cards").addEventListener("input", function (e) {
+      if (e.target.matches && e.target.matches("input[data-l]")) desenhaExtremos();
+    });
+    $("ip-todos").onchange = function () { ordem = { col: null, asc: true }; desenhaTabela(); };
+    $("ip-xls").onclick = baixarXls;
+    cabecalho(); desenhaExtremos(); desenhaTabela();
+    $("ip-status").hidden = true; $("ip-conteudo").hidden = false;
+  }
+
+  var URL_EXT = URL_DADOS.replace("previsao.json", "extremos.json");
+  Promise.all([
+    fetch(URL_DADOS + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }),
+    fetch(URL_EXT + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+  ])
+    .then(function (r) { iniciar(r[0], r[1]); })
+    .catch(function (e) {
+      var s = $("ip-status"); s.className = "ip-status err";
+      s.textContent = "Não foi possível carregar a previsão (" + e.message + "). Tente recarregar a página.";
+    });
+})();
+</script>
