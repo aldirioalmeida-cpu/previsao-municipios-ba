@@ -39,6 +39,7 @@
 #inema-sat .is-cel img.raios{filter:brightness(0) saturate(100%) invert(84%) sepia(68%) saturate(1000%) hue-rotate(359deg) brightness(105%)}
 #inema-sat .is-ref{pointer-events:none}
 #inema-sat svg.is-vetor{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#inema-sat svg.is-base{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #inema-sat svg.is-radar{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}
 #inema-sat .is-leg-radar{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .7rem;font-size:.8rem;color:var(--tx2);margin-top:.5rem}
 #inema-sat .is-leg-radar .barra{width:220px;height:10px;border-radius:3px;border:1px solid var(--ln)}
@@ -101,7 +102,7 @@
 /* zoom */
 #inema-sat .is-zoom{position:absolute;inset:0;transform-origin:0 0;will-change:transform}
 #inema-sat .is-mosaico{overflow:hidden;touch-action:none}
-#inema-sat .is-mosaico.sem-sat{background:#16202b}
+#inema-sat .is-mosaico.sem-sat{background:#eceee8}
 #inema-sat .is-mosaico.zoom-on{cursor:grab}
 #inema-sat .is-mosaico.arrastando{cursor:grabbing}
 #inema-sat .is-zbt{position:absolute;left:10px;top:10px;z-index:7;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:opacity .35s}
@@ -194,15 +195,15 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var sel = { f: "cptec", s: { noaa: "nsa", cptec: "ba" }, c: { noaa: "GEOCOLOR", cptec: "ch13_cpt_DSA" }, m: "atual", p: 10,
-              sat: true, rad: false, rp: "cappi~cappi3km",
+              sat: true, rad: true, rp: "cappi~cappi3km",
               cam: { countries: true, labels: true, grid: false, glm: false, regioes: false, ti: false, mun: false } };
   try {
-    var g = JSON.parse(localStorage.getItem("inemaSatRadar1") || localStorage.getItem("inemaSatelite3") || "{}");
+    var g = JSON.parse(localStorage.getItem("inemaSatRadar2") || "{}");
     if (g.f) { for (var k in g) if (k !== "cam") sel[k] = g[k]; for (var k2 in g.cam || {}) sel.cam[k2] = g.cam[k2]; }
     if (g.cam && g.cam.radar && g.rad === undefined) sel.rad = true;   // versão anterior: radar era uma camada
     delete sel.cam.radar;
   } catch (e) {}
-  function salva() { try { localStorage.setItem("inemaSatRadar1", JSON.stringify(sel)); } catch (e) {} }
+  function salva() { try { localStorage.setItem("inemaSatRadar2", JSON.stringify(sel)); } catch (e) {} }
   var geracao = 0, animTimer = null, horaCache = {}, vetores = {}, anim = null;
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -281,8 +282,9 @@
   })();
 
   // ---------- projeção do GOES-19 (grade fixa) -> pixel global dos blocos do CPTEC
-  // Coeficientes ajustados à grade lat/lon do CPTEC no zoom 5 (91% dos pontos sobre as linhas da grade).
-  var GOES = { lon0: -75.2, a: 17994.9617, b: -893.4162 + 14 * 256, c: -17883.2857, d: 151.2353 + 10 * 256 };
+  // Coeficientes ajustados à grade lat/lon do CPTEC no zoom 5 e depois às divisas dos estados.
+  // Recalibrado com as divisas oficiais das UFs (IBGE) sobre as linhas de estados do próprio CPTEC (78% dos vértices sobre a linha).
+  var GOES = { lon0: -75.2, a: 17979.6704, b: -891.2662 + 14 * 256, c: -17862.7226, d: 151.2353 + 10 * 256 };
   function projeta(lon, lat, z) {
     var req = 6378137, rpol = 6356752.31414, H = 42164160, e2 = 0.0066943800229;
     var la = lat * Math.PI / 180, lo = (lon - GOES.lon0) * Math.PI / 180;
@@ -308,6 +310,24 @@
       });
     });
     return out;
+  }
+  // mapa de fundo quando o satélite está desligado: oceano, continente e divisas dos estados (IBGE)
+  var BASE = { uf: "main/mapas/uf_br.geojson", oceano: "main/mapas/oceano.geojson" }, baseCache = {};
+  function carregaBase(id) { return baseCache[id] || (baseCache[id] = fetch(DADOS + BASE[id]).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })); }
+  function desenhaBase(r, minha) {
+    if (sel.sat) return;
+    var w = (r[4] - r[3] + 1) * 256, h = (r[6] - r[5] + 1) * 256;
+    Promise.all([carregaBase("oceano"), carregaBase("uf")]).then(function (gs) {
+      if (minha !== geracao) return;
+      var z = $("is-area").querySelector(".is-mosaico .is-zoom"); if (!z || z.querySelector("svg.is-base")) return;
+      var oc = gs[0].features.map(function (ft) { return caminhoFeicao(ft, r[2], r); }).join("");
+      var uf = gs[1].features.map(function (ft) { return caminhoFeicao(ft, r[2], r); }).join("");
+      z.insertAdjacentHTML("afterbegin", "<svg class='is-base' viewBox='0 0 " + w + " " + h + "' preserveAspectRatio='none' aria-hidden='true'>" +
+        "<rect width='" + w + "' height='" + h + "' fill='#eceee8'/>" +
+        "<path d='" + uf + "' fill='#f6f6f1' stroke='none'/>" +
+        "<path d='" + oc + "' fill='#c4d8ea' stroke='#9db7cf' stroke-width='0.8' vector-effect='non-scaling-stroke'/>" +
+        "<path d='" + uf + "' fill='none' stroke='#8a96a3' stroke-width='0.9' vector-effect='non-scaling-stroke' stroke-linejoin='round'/></svg>");
+    }).catch(function () {});
   }
   function nomeFeicao(id, pr) {
     if (id === "rpga") return (pr.codigo ? pr.codigo + " – " : "") + pr.nome;
@@ -456,7 +476,8 @@
       "<span class='fontes'>Radares CEMADEN e DECEA via Nowcasting CPTEC/INPE: Salvador, Petrolina, Maceió, São Francisco (MG), Santa Teresa (ES) e Gama (DF). Os radares guardam cerca de 3 horas de imagens.</span></div>";
   }
   function referencias(r) {   // camadas fixas do CPTEC (não mudam com a hora): uma vez só, por cima das imagens
-    var ativas = CAMADAS.filter(function (c) { return c[2] === "bloco" && sel.cam[c[0]]; });
+    // sem satélite, as divisas vêm do mapa de fundo (as linhas brancas do CPTEC sumiriam no fundo claro)
+    var ativas = CAMADAS.filter(function (c) { return c[2] === "bloco" && sel.cam[c[0]] && (sel.sat || c[0] !== "countries"); });
     if (!ativas.length) return "";
     var h = "<div class='is-quadro is-ref' style='" + grade(r) + "'>";
     for (var y = r[5]; y <= r[6]; y++) for (var x = r[3]; x <= r[4]; x++) {
@@ -480,6 +501,7 @@
         $("is-area").innerHTML = abre + quadro(prod, t, r, false, 0) + referencias(r) + fecha;
         $("is-hora").textContent = rotHora(t);
         aplicaZoom();
+        desenhaBase(r, minha);
         desenhaVetores(r, minha);
         return;
       }
@@ -491,6 +513,7 @@
       h += referencias(r) + "</div>" + LOGO + ZOOM_BTS + "<div class='is-carga' id='is-carga'>Carregando as imagens… 0/" + n + "</div></div>";
       $("is-area").innerHTML = h;
       aplicaZoom();
+      desenhaBase(r, minha);
       desenhaVetores(r, minha);
       var els = [].slice.call($("is-area").querySelectorAll(".is-quadro:not(.is-ref)")), ok = [], prontos = 0;
       els.forEach(function (el, k) {
