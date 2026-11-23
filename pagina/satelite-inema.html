@@ -63,7 +63,7 @@
 #inema-sat figure.is-cheia{position:fixed;inset:0;z-index:2147483000}
 #inema-sat figure:fullscreen .is-palco,#inema-sat figure.is-cheia .is-palco{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #inema-sat figure:fullscreen #is-area,#inema-sat figure.is-cheia #is-area{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-#inema-sat figure:fullscreen .is-mosaico,#inema-sat figure.is-cheia .is-mosaico{max-width:none;height:100%;width:auto;max-height:100%}
+#inema-sat figure:fullscreen .is-mosaico,#inema-sat figure.is-cheia .is-mosaico{max-width:none;max-height:none;height:auto;width:min(100vw,calc(100vh * var(--ar,1)))}
 #inema-sat figure:fullscreen #is-area > a img,#inema-sat figure.is-cheia #is-area > a img{max-height:100%;width:auto;max-width:100%;margin:0 auto}
 /* tela cheia: título e controles flutuam sobre a imagem e somem quando o mouse para */
 #inema-sat figure:fullscreen{position:relative}
@@ -94,7 +94,7 @@
   var REC = {
     noaa: [["nsa", "Bahia e Norte/Nordeste"], ["ssa", "Sul da América do Sul"], ["fd", "Disco completo"]],
     // [id, nome, zoom, x0, x1, y0, y1] — blocos 256 px do DSAT
-    cptec: [["ba", "Bahia", 5, 15, 17, 12, 14], ["ne", "Nordeste e Bahia", 5, 15, 18, 11, 14], ["br", "Brasil", 4, 6, 9, 5, 8], ["as", "América do Sul", 4, 5, 9, 5, 10]]
+    cptec: [["ba", "Bahia", 5, 15, 17, 12, 14], ["bal", "Bahia – tela larga", 5, 14, 18, 12, 14], ["ne", "Nordeste e Bahia", 5, 15, 18, 11, 14], ["nel", "Nordeste – tela larga", 5, 13, 19, 11, 14], ["br", "Brasil", 4, 6, 9, 5, 8], ["as", "América do Sul", 4, 5, 9, 5, 10]]
   };
   var CANAIS = {
     noaa: [
@@ -315,7 +315,7 @@
     acharHora(prod, r, function (t) {
       if (minha !== geracao) return;
       if (!t) { $("is-area").innerHTML = "<div class='is-falta'>Imagens do CPTEC indisponíveis no momento. Tente a fonte NOAA.</div>"; return; }
-      var proporcao = "aspect-ratio:" + (r[4] - r[3] + 1) + "/" + (r[6] - r[5] + 1);
+      var proporcao = "aspect-ratio:" + (r[4] - r[3] + 1) + "/" + (r[6] - r[5] + 1) + ";--ar:" + ((r[4] - r[3] + 1) / (r[6] - r[5] + 1)).toFixed(4);
       if (sel.m === "atual") {
         $("is-area").innerHTML = "<div class='is-mosaico' style='" + proporcao + "'>" + quadro(prod, t, r, false, 0) + referencias(r) + LOGO + "</div>";
         $("is-hora").textContent = rotHora(t);
