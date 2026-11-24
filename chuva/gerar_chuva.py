@@ -8,7 +8,7 @@ Chuva observada por município da Bahia (CHIRPS v3.0, Climate Hazards Center / U
 Valor do município = média dos pixels de 0,05° (~5,5 km) ponderada pela área do município dentro de cada pixel
 (subgrade 4×4 por pixel). Municípios muito pequenos usam o pixel do centro.
 Os arquivos de saída também servem de cache: cada rodada só lê os meses/dias que faltam (e revisa os mais recentes).
-Lê apenas a janela da Bahia de cada GeoTIFF remoto (GDAL /vsicurl/, requisições por faixa de bytes).
+Cada GeoTIFF é baixado inteiro e recortado em memória na janela da Bahia.
 """
 import datetime as dt
 import json
@@ -152,11 +152,13 @@ class Pesos:
 
 
 def le_janela(url, caixa, geoms):
-    """Lê só a janela da Bahia do GeoTIFF remoto e devolve (médias por município, Pesos)."""
+    """Baixa o GeoTIFF (o índice do TIFF fica no fim do arquivo, então a leitura por faixas é lenta e instável),
+    recorta a janela da Bahia em memória e devolve (médias por município, Pesos)."""
     oeste, sul, leste, norte = caixa
     for tentativa in range(4):
         try:
-            with rasterio.open("/vsicurl/" + url) as ds:
+            raw = baixa(url, timeout=300)
+            with rasterio.MemoryFile(raw) as mf, mf.open() as ds:
                 t = ds.transform
                 c0 = int(math.floor((oeste - t.c) / t.a)); r0 = int(math.floor((t.f - norte) / -t.e))
                 nc = int(math.ceil((leste - oeste) / t.a)); nr = int(math.ceil((norte - sul) / -t.e))
@@ -233,7 +235,7 @@ def mensal(nomes, geoms, caixa):
             serie[mes] = vals
             area = p.area
             feitos += 1
-            if feitos % 50 == 0:
+            if feitos % 25 == 0:
                 log(f"  {feitos}/{len(faltam)}")
     if area is None and velho:
         area = np.array(velho["area"])
