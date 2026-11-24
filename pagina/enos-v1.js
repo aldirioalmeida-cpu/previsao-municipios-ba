@@ -222,18 +222,14 @@
   }
   var SEMANA = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
 
-  // o acesso ao boletim passa para o topo do painel: tira do texto da página o trecho "Clique aqui para acessar o boletim…"
-  // (o parágrafo continua, com a explicação da TSM e os materiais de El Niño e La Niña)
+  // o acesso ao boletim passa para o topo do painel: esconde o título e o parágrafo do conteúdo da página que traz o link
+  // (o parágrafo continua no editor do site — é ali que a equipe troca o PDF do boletim — e reaparece se o painel falhar)
   function escondeTrechoBoletim(a) {
-    var p = a.parentNode;
+    var p = a.closest ? a.closest("p,li,div") : a.parentNode;
     if (!p || p === RAIZ || p.contains(RAIZ)) return;
-    var ini = a;
-    while (ini.previousSibling && (ini.previousSibling.nodeName === "BR" || !/\S/.test(ini.previousSibling.textContent || ""))) ini = ini.previousSibling;
-    var tira = [], n = ini;
-    while (n) { tira.push(n); n = n.nextSibling; }
-    tira.forEach(function (x) { p.removeChild(x); });
     var tit = p.previousElementSibling;
-    if (tit && /^H[1-6]$/.test(tit.tagName) && /boletim/i.test(tit.textContent)) tit.textContent = "Sobre a temperatura da superfície do mar";
+    p.style.display = "none";
+    if (tit && /^H[1-6]$/.test(tit.tagName) && /boletim/i.test(tit.textContent)) tit.style.display = "none";
   }
 
   // medidor semicircular −3 a +3 °C
