@@ -116,7 +116,7 @@
     var quente = (oni ? oni[2] : n34) >= 0.5, frio = (oni ? oni[2] : n34) <= -0.5;
     var hc = quente ? "#c0392b" : frio ? "#1f4e9c" : "#4b5763", hf = quente ? "#fff1ea" : frio ? "#eaf2fb" : "#f3f5f7";
     var bol = acharBoletim();
-    var h = "<div class='ie-topo'><div><h2 class='ie-tit'>Monitoramento Oceânico</h2><p class='ie-sub'>El Niño, La Niña e Atlântico Tropical · semana de" + dBR(u[0]) +
+    var h = "<div class='ie-topo'><div><h2 class='ie-tit'>Monitoramento Oceânico</h2><p class='ie-sub'>El Niño, La Niña e Atlântico Tropical · semana de " + dBR(u[0]) +
       " · atualizado em " + new Date(j.gerado_em).toLocaleDateString("pt-BR") + "</p></div>" +
       (bol ? "<div class='ie-bol'><div><b>Boletim de Monitoramento das TSMs</b><span>" + esc(bol.txt) + "</span></div><a href='" + esc(bol.href) + "' target='_blank' rel='noopener'>Abrir PDF</a></div>" : "") + "</div>";
     var semanas = (Date.now() - new Date(u[0] + "T12:00:00").getTime()) / 864e5;
