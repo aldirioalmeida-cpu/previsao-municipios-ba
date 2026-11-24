@@ -1,0 +1,49 @@
+name: Chuva observada
+
+# Chuva observada por município (CHIRPS v3.0, UCSB) para o painel de Monitoramento da Chuva do INEMA.
+# O CHIRPS preliminar sai 2 dias após cada pêntada (dias 2, 7, 12, 17, 22 e 27) e o final na 3ª semana do mês seguinte;
+# o robô roda todo dia e só publica se algo mudou. A primeira rodada monta a série desde 1981 (mais demorada).
+on:
+  schedule:
+    - cron: "17 13 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chuva
+  cancel-in-progress: false
+
+jobs:
+  chuva:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependências
+        run: pip install --quiet "numpy<3" "rasterio>=1.3"
+      - name: Gerar chuva/mensal.json e chuva/diario.json
+        run: python chuva/gerar_chuva.py
+      - name: Publicar no repositório
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add chuva/mensal.json chuva/diario.json
+          if git diff --cached --quiet; then echo "mudou=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "Chuva observada atualizada em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 10; done
+          echo "mudou=true" >> "$GITHUB_OUTPUT"
+      - name: Limpar cache do jsDelivr
+        if: steps.commit.outputs.mudou == 'true'
+        run: |
+          for espera in 20 120; do
+            sleep $espera
+            for f in chuva/mensal.json chuva/diario.json; do
+              curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" > /dev/null || echo "purge falhou: $f"
+            done
+          done
