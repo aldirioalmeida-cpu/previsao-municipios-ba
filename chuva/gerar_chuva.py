@@ -50,23 +50,35 @@ def log(*a):
     print(time.strftime("%H:%M:%S"), *a, flush=True)
 
 
-def baixa(url, tentativas=5, timeout=120):
+def baixa(url, tentativas=5, timeout=60):
+    erro = None
     for i in range(tentativas):
+        t0 = time.time()
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as r:
-                return r.read()
+                partes = []
+                while True:
+                    b = r.read(1 << 20)
+                    if not b:
+                        break
+                    partes.append(b)
+                    if time.time() - t0 > 240:
+                        raise TimeoutError("download lento demais (> 240 s)")
+                return b"".join(partes)
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 raise
             erro = e
         except Exception as e:  # noqa
             erro = e
-        time.sleep(4 * (i + 1))
+        log(f"  tentativa {i + 1} falhou em {time.time() - t0:.0f} s: {str(erro)[:100]} — {url.rsplit('/', 1)[-1]}")
+        time.sleep(5 * (i + 1))
     raise RuntimeError(f"falhou: {url} ({erro})")
 
 
 def lista(url):
     """Nomes de arquivo .tif de uma listagem de diretório HTTP (vazio se o diretório não existe)."""
+    log(f"listando {url.replace(CHC, '')}")
     try:
         h = baixa(url).decode("utf-8", "replace")
     except urllib.error.HTTPError:
@@ -230,7 +242,7 @@ def mensal(nomes, geoms, caixa):
         return mes, le_janela(f"{CHC}monthly/latam/tifs/chirps-v3.0.{y}.{m}.tif", caixa, geoms)
 
     feitos = 0
-    with ThreadPoolExecutor(8) as ex:
+    with ThreadPoolExecutor(4) as ex:
         for mes, (vals, p) in ex.map(um, faltam):
             serie[mes] = vals
             area = p.area
@@ -292,7 +304,7 @@ def diario(nomes, geoms, caixa):
         return dia, tp, le_janela(url, caixa, geoms)[0]
 
     feitos = 0
-    with ThreadPoolExecutor(8) as ex:
+    with ThreadPoolExecutor(4) as ex:
         for dia, tp, vals in ex.map(um, ler):
             cache[dia] = (tp, vals)
             feitos += 1
