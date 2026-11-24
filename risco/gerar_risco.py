@@ -42,7 +42,8 @@ INICIO_CAL = dt.date(2003, 1, 1)
 ANO_TESTE = 2020
 NOMES_CLASSES = ["Baixo", "Moderado", "Alto", "Muito alto", "Extremo"]
 QUANTIS = [0.50, 0.75, 0.90, 0.97]
-FEATS = ["linha_base", "ffmc", "dmc", "dc", "isi", "fwi", "ur", "tmax", "vento", "chuva_dia", "chuva30", "chuva90", "dias_secos", "fma"]
+FEATS = ["linha_base", "ffmc", "dmc", "dc", "isi", "fwi", "ur", "tmax", "vento", "chuva_dia", "chuva30", "chuva90", "dias_secos", "fma", "focos_7d"]
+N_METEO = len(FEATS) - 1   # as primeiras N_METEO variáveis formam o modelo "só meteorológico" (sem focos recentes)
 
 
 def log(*a):
@@ -96,23 +97,46 @@ def power_ponto(la, lo, d0, d1):
     return out
 
 
-def power_todos(muns, d0, d1, fios=3):
+POWER_REG = "https://power.larc.nasa.gov/api/temporal/daily/regional"
+CAIXA = {"latitude-min": -18.5, "latitude-max": -8.5, "longitude-min": -46.7, "longitude-max": -37.2}
+
+
+def power_todos(muns, d0, d1):
+    """Clima diário da NASA POWER pela API regional (grade 0,5° × 0,625°, uma requisição por variável e ano).
+    Cada município recebe o valor da célula da grade que o contém — o mesmo que a API por ponto devolve."""
     n = (d1 - d0).days + 1
-    T = np.full((n, len(muns)), np.nan, np.float32); Td = T.copy(); W = T.copy(); P = T.copy()
-
-    def um(i):
-        m = muns[i]
-        time.sleep(0.2 * (i % fios))
-        return i, power_ponto(m["la"], m["lo"], d0, d1)
-
-    feitos = 0
-    with ThreadPoolExecutor(fios) as ex:
-        for i, d in ex.map(um, range(len(muns))):
-            T[:, i], Td[:, i], W[:, i], P[:, i] = d["T2M_MAX"], d["T2MDEW"], d["WS10M"] * 3.6, d["PRECTOTCORR"]
-            feitos += 1
-            if feitos % 50 == 0:
-                log(f"  NASA POWER {feitos}/{len(muns)}")
-    return T, umidade(T, Td), W, P
+    lat = np.array([m["la"] for m in muns]); lon = np.array([m["lo"] for m in muns])
+    out = {}
+    for par in ("T2M_MAX", "T2MDEW", "WS10M", "PRECTOTCORR"):
+        arr = np.full((n, len(muns)), np.nan, np.float32)
+        a = d0
+        while a <= d1:
+            b = min(dt.date(a.year, 12, 31), d1)
+            q = dict(CAIXA, parameters=par, community="AG", start=a.strftime("%Y%m%d"), end=b.strftime("%Y%m%d"), format="JSON")
+            j = json.loads(baixa(POWER_REG + "?" + urllib.parse.urlencode(q), timeout=300))
+            pts = j["features"]
+            plo = np.array([f["geometry"]["coordinates"][0] for f in pts]); pla = np.array([f["geometry"]["coordinates"][1] for f in pts])
+            ula, ulo = np.unique(pla), np.unique(plo)
+            chave = {(round(float(x), 4), round(float(y), 4)): k for k, (x, y) in enumerate(zip(pla, plo))}
+            viz = np.array([chave[(round(float(ula[np.argmin(np.abs(ula - la))]), 4), round(float(ulo[np.argmin(np.abs(ulo - lo))]), 4))]
+                            for la, lo in zip(lat, lon)])
+            series = []
+            for f in pts:
+                s = np.full((b - a).days + 1, np.nan, np.float32)
+                for ds, v in f["properties"]["parameter"][par].items():
+                    k = (dt.date(int(ds[:4]), int(ds[4:6]), int(ds[6:])) - a).days
+                    if 0 <= k < len(s) and v is not None and v > -900:
+                        s[k] = v
+                series.append(s)
+            series = np.array(series)            # (pontos, dias)
+            o = (a - d0).days
+            arr[o:o + series.shape[1], :] = series[viz].T
+            a = b + dt.timedelta(days=1)
+            time.sleep(1.5)
+        out[par] = arr
+        log(f"  NASA POWER {par}: {d0}–{d1} ok")
+    T = out["T2M_MAX"]
+    return T, umidade(T, out["T2MDEW"]), out["WS10M"] * 3.6, out["PRECTOTCORR"]
 
 
 def umidade(T, Td):
@@ -218,13 +242,23 @@ def logit(p):
     return np.log(p / (1 - p))
 
 
-def matriz(ind, T, H, W, P, P30, P90, base_dm):
-    """Variáveis explicativas (dias, municípios, len(FEATS))."""
+def matriz(ind, T, H, W, P, P30, P90, base_dm, rec):
+    """Variáveis explicativas (dias, municípios, len(FEATS)). rec = fração dos 7 dias anteriores com foco no município."""
     with np.errstate(all="ignore"):
         cols = [logit(base_dm), ind["ffmc"] / 100, np.log1p(ind["dmc"]), np.log1p(ind["dc"]), np.log1p(ind["isi"]), np.log1p(ind["fwi"]),
                 H / 100, T / 40, W / 20, np.log1p(np.maximum(P, 0)), np.log1p(P30), np.log1p(P90), np.minimum(ind["dias_secos"], 150) / 30,
-                np.log1p(ind["fma"]) / 5]
+                np.log1p(ind["fma"]) / 5, rec]
     return np.stack(cols, axis=-1).astype(np.float32)
+
+
+def recentes(fogo):
+    """Fração dos 7 dias anteriores (sem contar o próprio dia) com foco no município."""
+    c = np.cumsum(np.vstack([np.zeros((1, fogo.shape[1])), fogo.astype(np.float32)]), axis=0)
+    out = np.zeros(fogo.shape, np.float32)
+    for j in range(1, fogo.shape[0]):
+        a = max(0, j - 7)
+        out[j] = (c[j] - c[a]) / 7.0
+    return out
 
 
 # ------------------------------------------------------------------ estatística
@@ -347,35 +381,39 @@ def calibrar():
         return base[:, mes].T   # (dias, municípios)
 
     # ---------- validação: treino até 2019, teste 2020+
+    rec = recentes(fogo)
     base_tr = linha_base(fogo, datas, anos_treino, reg, nreg)
-    X = matriz(ind, T, H, W, P, P30, P90, base_dm(base_tr))
+    X = matriz(ind, T, H, W, P, P30, P90, base_dm(base_tr), rec)
     tr = valido & np.isin(anos, anos_treino)[:, None]
     te = valido & np.isin(anos, anos_teste)[:, None]
     val = {"regioes": {}, "anos_treino": [anos_treino[0], anos_treino[-1]], "anos_teste": [anos_teste[0], anos_teste[-1]] if anos_teste else None}
-    p_te_all, y_te_all, fwi_te_all, fma_te_all, base_te_all, reg_te_all, p_tr_all = [], [], [], [], [], [], []
+    p_te_all, y_te_all, fwi_te_all, fma_te_all, base_te_all, met_te_all, p_tr_all = [], [], [], [], [], [], []
     for r in range(nreg):
         cm = reg == r
         Xtr = X[tr & cm[None, :]]; ytr = fogo[tr & cm[None, :]].astype(float)
         Xte = X[te & cm[None, :]]; yte = fogo[te & cm[None, :]].astype(float)
         mu, sd = Xtr.mean(axis=0), Xtr.std(axis=0) + 1e-6
-        w = ajusta((Xtr - mu) / sd, ytr)
-        pte = prevê((Xte - mu) / sd, w); ptr = prevê((Xtr - mu) / sd, w)
-        wb = ajusta(((Xtr - mu) / sd)[:, :1], ytr)
-        pbte = prevê(((Xte - mu) / sd)[:, :1], wb)
+        Ztr, Zte = (Xtr - mu) / sd, (Xte - mu) / sd
+        w = ajusta(Ztr, ytr)
+        pte = prevê(Zte, w); ptr = prevê(Ztr, w)
+        wm = ajusta(Ztr[:, :N_METEO], ytr)                 # só meteorológico (sem focos recentes)
+        pmte = prevê(Zte[:, :N_METEO], wm)
+        wb = ajusta(Ztr[:, :1], ytr)                       # só o histórico do mês
+        pbte = prevê(Zte[:, :1], wb)
         fwi_te = ind["fwi"][te & cm[None, :]]; fma_te = ind["fma"][te & cm[None, :]]
         val["regioes"][regioes[r]] = {
             "n_teste": int(len(yte)), "focos_teste": int(yte.sum()),
-            "auc_modelo": auc(yte, pte), "auc_linha_base": auc(yte, pbte), "auc_fwi": auc(yte, fwi_te), "auc_fma": auc(yte, fma_te),
+            "auc_modelo": auc(yte, pte), "auc_meteo": auc(yte, pmte), "auc_linha_base": auc(yte, pbte), "auc_fwi": auc(yte, fwi_te), "auc_fma": auc(yte, fma_te),
             "auc_dias_secos": auc(yte, ind["dias_secos"][te & cm[None, :]]),
             "brier_skill_vs_linha_base": brier_skill(yte, pte, pbte)}
         vr = val["regioes"][regioes[r]]
-        log(f"  {regioes[r]}: focos no teste {vr['focos_teste']} | AUC modelo {vr['auc_modelo'] or 0:.3f} | linha de base {vr['auc_linha_base'] or 0:.3f} | "
+        log(f"  {regioes[r]}: focos no teste {vr['focos_teste']} | AUC modelo {vr['auc_modelo'] or 0:.3f} | só meteo {vr['auc_meteo'] or 0:.3f} | linha de base {vr['auc_linha_base'] or 0:.3f} | "
             f"FWI {vr['auc_fwi'] or 0:.3f} | FMA+ {vr['auc_fma'] or 0:.3f} | dias secos {vr['auc_dias_secos'] or 0:.3f}")
-        p_te_all.append(pte); y_te_all.append(yte); fwi_te_all.append(fwi_te); fma_te_all.append(fma_te); base_te_all.append(pbte); p_tr_all.append(ptr)
+        p_te_all.append(pte); y_te_all.append(yte); fwi_te_all.append(fwi_te); fma_te_all.append(fma_te); base_te_all.append(pbte); met_te_all.append(pmte); p_tr_all.append(ptr)
     pte = np.concatenate(p_te_all); yte = np.concatenate(y_te_all); ptr = np.concatenate(p_tr_all)
     lim_tr = [float(np.quantile(ptr, q)) for q in QUANTIS]
     cls = np.searchsorted(lim_tr, pte, side="right")
-    val["bahia"] = {"auc_modelo": auc(yte, pte), "auc_linha_base": auc(yte, np.concatenate(base_te_all)),
+    val["bahia"] = {"auc_modelo": auc(yte, pte), "auc_meteo": auc(yte, np.concatenate(met_te_all)), "auc_linha_base": auc(yte, np.concatenate(base_te_all)),
                     "auc_fwi": auc(yte, np.concatenate(fwi_te_all)), "auc_fma": auc(yte, np.concatenate(fma_te_all)),
                     "brier_skill_vs_linha_base": brier_skill(yte, pte, np.concatenate(base_te_all)),
                     "classes": [{"classe": NOMES_CLASSES[c], "fracao_dias": float((cls == c).mean()), "freq_foco": float(yte[cls == c].mean()) if (cls == c).any() else None,
@@ -387,7 +425,7 @@ def calibrar():
 
     # ---------- modelo final: todos os anos completos
     base = linha_base(fogo, datas, anos_todos, reg, nreg)
-    X = matriz(ind, T, H, W, P, P30, P90, base_dm(base))
+    X = matriz(ind, T, H, W, P, P30, P90, base_dm(base), rec)
     tudo = valido & np.isin(anos, anos_todos)[:, None]
     modelos, p_all = {}, []
     for r in range(nreg):
@@ -405,6 +443,7 @@ def calibrar():
            "periodo": [datas[0].isoformat(), datas[-1].isoformat()], "feats": FEATS, "regioes": regioes,
            "mun": [m["n"] for m in muns], "linha_base": np.round(base, 5).tolist(), "modelos": modelos,
            "limites": limites, "classes": NOMES_CLASSES, "quantis": QUANTIS, "fwi_percentis": np.round(pct_fwi, 2).tolist(),
+           "pesos_variaveis": {regioes[int(r)]: dict(zip(FEATS, [round(x, 3) for x in m["w"][1:]])) for r, m in modelos.items()},
            "validacao": val,
            "fonte": "Clima: NASA POWER (MERRA-2/GEOS) diário; focos: INPE, satélite de referência AQUA (tarde)"}
     os.makedirs(PASTA, exist_ok=True)
@@ -429,14 +468,18 @@ def open_meteo(muns):
 
 def operar():
     muns, regioes, territorios = municipios()
-    with open(os.path.join(PASTA, "calibracao.json"), encoding="utf-8") as f:
-        cal = json.load(f)
+    arq = os.path.join(PASTA, "calibracao.json")
+    cal = json.load(open(arq, encoding="utf-8")) if os.path.exists(arq) else {}
+    if cal.get("feats") != FEATS:
+        log("calibração ausente ou de outra versão do modelo: recalibrando")
+        calibrar()
+        cal = json.load(open(arq, encoding="utf-8"))
     nm = len(muns)
     hoje = dt.datetime.now(FUSO).date()
     d0 = hoje - dt.timedelta(days=300)
     # ---- NASA POWER (passado)
     datas_p = [d0 + dt.timedelta(days=k) for k in range((hoje - d0).days)]
-    T, H, W, P = power_todos(muns, datas_p[0], datas_p[-1], fios=4)
+    T, H, W, P = power_todos(muns, datas_p[0], datas_p[-1])
     fimP = ultimo_valido(T, H, W, P)
     log(f"NASA POWER até {datas_p[fimP]}")
     # ---- Open-Meteo (análise recente + previsão)
@@ -466,7 +509,18 @@ def operar():
     P30, P90 = acumulado(P, 30), acumulado(P, 90)
     base = np.array(cal["linha_base"])
     mes = np.array([d.month - 1 for d in datas])
-    X = matriz(ind, T, H, W, P, P30, P90, base[:, mes].T)
+    # focos recentes (satélite de referência): fração dos 7 dias anteriores com foco; nos dias de previsão,
+    # usa a última semana observada (até ontem), como na prática do monitoramento
+    ih0 = datas.index(hoje) if hoje in datas else len(datas) - 7
+    j0 = max(0, ih0 - 30)
+    fr_ref, _, _ = focos_recentes(muns, datas[j0:])
+    fogo = np.zeros((len(datas), nm), np.float32)
+    fogo[j0:] = (fr_ref > 0).astype(np.float32)
+    fogo[ih0:] = 0                                 # hoje e próximos dias: ainda sem focos completos
+    rec = recentes(fogo)
+    for j in range(ih0 + 1, len(datas)):
+        rec[j] = rec[ih0]
+    X = matriz(ind, T, H, W, P, P30, P90, base[:, mes].T, rec)
     reg = np.array([m["r"] for m in muns])
     prob = np.zeros((len(datas), nm), np.float32)
     for r, md in cal["modelos"].items():
