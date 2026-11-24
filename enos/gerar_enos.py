@@ -5,10 +5,10 @@ Fontes (NOAA, dados abertos):
   CPC  wksst9120.for   índices semanais Niño 1+2, 3, 3.4 e 4 (TSM e anomalia, base 1991-2020)
   CPC  oni.ascii.txt   ONI (média móvel de 3 meses da anomalia do Niño 3.4, ERSST) desde 1950
   PSL  tna.data / tsa.data   Atlântico Tropical Norte e Sul (anomalia mensal, HadISST, base 1991-2020)
-  CPC  ensodisc.shtml  situação oficial (ENSO Alert System Status) e resumo (em inglês)
+  CPC  ensodisc.shtml  situação oficial (ENSO Alert System Status) e resumo (em inglês, com tradução automática para o português)
 Só biblioteca padrão do Python.
 """
-import html, json, os, re, sys, time, urllib.request
+import html, json, os, re, sys, time, urllib.parse, urllib.request
 from datetime import datetime, timedelta, timezone
 
 PASTA = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -79,13 +79,70 @@ def situacao():
             "url": "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml"}
 
 
+MESES_EN = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+MESES_PT = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+# nomes que o tradutor não deve mexer / ajustes de termos técnicos
+AJUSTES = [(r"\bEl Nino\b", "El Niño"), (r"\bLa Nina\b", "La Niña"), (r"\bO Niño\b", "O El Niño")]
+
+
+def data_pt(d):
+    m = re.match(r"(\d{1,2})\s+(\w+)\s+(\d{4})", d or "")
+    if not m or m.group(2).lower() not in MESES_EN:
+        return None
+    return f"{int(m.group(1))} de {MESES_PT[MESES_EN.index(m.group(2).lower())]} de {m.group(3)}"
+
+
+def traduz(texto):
+    """Tradução automática inglês → português do Brasil (MyMemory; se falhar, Google Tradutor). Devolve None se nenhum responder."""
+    q = urllib.parse.quote(texto)
+    tentativas = [
+        ("mymemory", f"https://api.mymemory.translated.net/get?langpair=en|pt-BR&q={q}",
+         lambda j: j["responseData"]["translatedText"] if j.get("responseStatus") == 200 else None),
+        ("google", f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=pt-BR&dt=t&q={q}",
+         lambda j: "".join(p[0] for p in j[0] if p and p[0])),
+    ]
+    for nome, url, pega in tentativas:
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=30) as r:
+                t = pega(json.loads(r.read().decode("utf-8")))
+            if t and t.strip() and t.strip().lower() != texto.strip().lower():
+                t = html.unescape(t.strip())
+                for a, b in AJUSTES:
+                    t = re.sub(a, b, t)
+                # meses em minúscula, como no português (ex.: "Janeiro-Março" → "janeiro–março")
+                t = re.sub(r"(?<=\w[\s(–-])(" + "|".join(m.capitalize() for m in MESES_PT) + r")\b", lambda x: x.group(1).lower(), t)
+                t = re.sub(r"\b(" + "|".join(MESES_PT) + r")-(" + "|".join(MESES_PT) + r")\b", r"\1–\2", t)
+                print(f"  resumo traduzido ({nome})")
+                return t
+        except Exception as e:  # noqa
+            print(f"  tradutor {nome} falhou: {e}", file=sys.stderr)
+    return None
+
+
+def anterior():
+    try:
+        with open(os.path.join(PASTA, "enos.json"), encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:  # noqa
+        return {}
+
+
 def main():
+    velho = (anterior().get("situacao") or {})
     doc = {"gerado_em": datetime.now(FUSO).isoformat(timespec="minutes"), "erros": {}}
     for chave, f in (("semanal", semanal), ("oni", oni), ("situacao", situacao)):
         try:
             doc[chave] = f()
         except Exception as e:  # noqa
             doc["erros"][chave] = str(e)[:200]
+    sit = doc.get("situacao")
+    if sit and sit.get("resumo"):
+        sit["data_pt"] = data_pt(sit.get("data"))
+        # só traduz de novo quando o texto da NOAA muda (evita chamadas e mudanças de redação a cada rodada)
+        if velho.get("resumo") == sit["resumo"] and velho.get("resumo_pt"):
+            sit["resumo_pt"] = velho["resumo_pt"]
+        else:
+            sit["resumo_pt"] = traduz(sit["resumo"])
     try:
         tna, tsa = psl("tna"), psl("tsa")
         dsa = dict(tsa)
