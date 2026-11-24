@@ -8,6 +8,8 @@ Para cada município (malha oficial do IBGE 2024) e cada dia local (00h–24h, h
   raj    maior rajada (km/h) entre os pixels
   urmin  menor umidade relativa (%) entre os pixels
   v      maior vento médio do dia a 10 m (km/h) entre os pixels
+  mm_med chuva MÉDIA do dia no município (mm): média dos pixels ponderada pela área do município em cada pixel
+         (usada pelo painel agrometeorológico)
 
 Modelos: ECMWF IFS 0,25° (data.ecmwf.int, open data) e NOAA GFS 0,25° (nomads.ncep.noaa.gov).
 Um pixel "toca" o município se qualquer ponto de uma subgrade 6×6 dentro dele cai no polígono.
@@ -108,11 +110,17 @@ def cobertura():
                 if bb.any():
                     idx = np.where(bb)[0]
                     dentro[idx] ^= Path(a).contains_points(pts[idx])
-        cel = set(zip(cy[dentro].tolist(), cx[dentro].tolist()))
+        # peso de cada pixel = nº de pontos da subgrade 6×6 que caem dentro do município (≈ área do município no pixel)
+        peso = {}
+        for c in zip(cy[dentro].tolist(), cx[dentro].tolist()):
+            peso[c] = peso.get(c, 0) + 1
         # garante ao menos o pixel do "centro" do município (municípios muito pequenos)
         mx, my = np.concatenate(xs).mean(), np.concatenate(ys).mean()
-        cel.add((int(np.argmin(abs(LATS - my))), int(np.argmin(abs(LONS - mx)))))
-        out[nome] = (np.array([c[0] for c in cel]), np.array([c[1] for c in cel]))
+        centro = (int(np.argmin(abs(LATS - my))), int(np.argmin(abs(LONS - mx))))
+        if centro not in peso:
+            peso[centro] = 0 if peso else 1   # só entra na média quando nenhum ponto da subgrade caiu no município
+        cel = sorted(peso)
+        out[nome] = (np.array([c[0] for c in cel]), np.array([c[1] for c in cel]), np.array([peso[c] for c in cel], float))
     log(f"cobertura: {len(out)} municípios, média de {np.mean([len(v[0]) for v in out.values()]):.1f} pixels por município")
     return out
 
@@ -272,7 +280,7 @@ def icon_rodada():
 
 
 def modelo_icon(cob, datas):
-    pix = sorted({(int(y), int(x)) for iy, ix in cob.values() for y, x in zip(iy, ix)})
+    pix = sorted({(int(y), int(x)) for iy, ix, _ in cob.values() for y, x in zip(iy, ix)})
     log(f"icon: {len(pix)} pixels pelo Open-Meteo")
     dias = [{v: np.full((len(LATS), len(LONS)), np.nan) for v in OM_VARS} for _ in range(NDIAS)]
     alvo = [d.isoformat() for d in datas]
@@ -306,7 +314,7 @@ REGRA = {"max": ("max", 0), "min": ("min", 0), "mm": ("max", 1), "raj": ("max", 
 
 def por_municipio(dias, cob):
     out = {}
-    for nome, (iy, ix) in cob.items():
+    for nome, (iy, ix, w) in cob.items():
         m = {}
         for var, (op, casas) in REGRA.items():
             vals = []
@@ -318,6 +326,13 @@ def por_municipio(dias, cob):
                 x = float(px.max() if op == "max" else px.min())
                 vals.append(round(x, casas) if casas else int(round(x)))
             m[var] = vals
+        # chuva média no município: média dos pixels ponderada pela área do município em cada pixel
+        med = []
+        for d in dias:
+            px = d["mm"][iy, ix]
+            ok = np.isfinite(px) & (w > 0)
+            med.append(round(float(np.average(px[ok], weights=w[ok])), 1) if ok.any() else None)
+        m["mm_med"] = med
         out[nome] = m
     return out
 
@@ -330,7 +345,7 @@ def main():
     datas, ini = dias_locais(agora)
     cob = cobertura()
     res = {"gerado_em": dt.datetime.now(FUSO).strftime("%Y-%m-%dT%H:%M-03:00"), "datas": [d.isoformat() for d in datas],
-           "metodo": "Maior (máx., chuva, rajada, vento) ou menor (mín., umidade) valor entre os pixels do modelo que tocam o município (malha IBGE 2024). Dia = 00h–24h no horário da Bahia.",
+           "metodo": "Maior (máx., chuva, rajada, vento) ou menor (mín., umidade) valor entre os pixels do modelo que tocam o município (malha IBGE 2024); mm_med = chuva média ponderada pela área do município em cada pixel. Dia = 00h–24h no horário da Bahia.",
            "modelos": {}, "erros": {}}
     for nome, rotulo, func, disp in (
             ("ecmwf", "ECMWF IFS 0,25°", modelo_ecmwf, lambda c, ini: existe(ec_url(c, max(p for p in ec_passos(c) if p <= int((ini - c).total_seconds() // 3600) + 24 * NDIAS + 6), "index"))),
