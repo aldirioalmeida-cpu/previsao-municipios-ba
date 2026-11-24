@@ -262,19 +262,36 @@ def recentes(fogo):
 
 
 # ------------------------------------------------------------------ estatística
-def ajusta(X, y, lam=2.0, it=30):
-    """Regressão logística com penalização ridge (Newton/IRLS). X já padronizado; devolve pesos [intercepto, ...]."""
+def ajusta(X, y, lam=5.0, it=60):
+    """Regressão logística com penalização ridge (Newton com busca linear: só aceita passos que melhoram a
+    verossimilhança penalizada, o que evita divergência). X já padronizado; devolve pesos [intercepto, ...]."""
     Xa = np.hstack([np.ones((X.shape[0], 1)), X]).astype(np.float64)
+    Xa = np.nan_to_num(Xa)
     w = np.zeros(Xa.shape[1]); R = np.eye(Xa.shape[1]); R[0, 0] = 0
-    pm = y.mean(); w[0] = math.log(pm / (1 - pm))
+    pm = min(max(y.mean(), 1e-6), 1 - 1e-6); w[0] = math.log(pm / (1 - pm))
+
+    def obj(wv):
+        z = Xa @ wv
+        return float(np.sum(y * z - np.logaddexp(0, z)) - 0.5 * lam * wv[1:] @ wv[1:])
+
+    atual = obj(w)
     for _ in range(it):
         z = Xa @ w
-        p = 1 / (1 + np.exp(-np.clip(z, -30, 30)))
+        p = 1 / (1 + np.exp(-np.clip(z, -35, 35)))
         g = Xa.T @ (y - p) - lam * R @ w
-        Hs = Xa.T @ (Xa * (p * (1 - p))[:, None]) + lam * R
+        Hs = Xa.T @ (Xa * (p * (1 - p) + 1e-9)[:, None]) + lam * R + 1e-6 * np.eye(len(w))
         dw = np.linalg.solve(Hs, g)
-        w += dw
-        if np.max(np.abs(dw)) < 1e-6:
+        t = 1.0
+        while t > 1e-6:
+            novo = obj(w + t * dw)
+            if np.isfinite(novo) and novo >= atual - 1e-10:
+                break
+            t /= 2
+        if t <= 1e-6:
+            break
+        w = w + t * dw
+        melhora = novo - atual; atual = novo
+        if np.max(np.abs(t * dw)) < 1e-7 or melhora < 1e-8:
             break
     return w
 
@@ -388,6 +405,7 @@ def calibrar():
     te = valido & np.isin(anos, anos_teste)[:, None]
     val = {"regioes": {}, "anos_treino": [anos_treino[0], anos_treino[-1]], "anos_teste": [anos_teste[0], anos_teste[-1]] if anos_teste else None}
     p_te_all, y_te_all, fwi_te_all, fma_te_all, base_te_all, met_te_all, p_tr_all = [], [], [], [], [], [], []
+    usa_focos = {}
     for r in range(nreg):
         cm = reg == r
         Xtr = X[tr & cm[None, :]]; ytr = fogo[tr & cm[None, :]].astype(float)
@@ -395,19 +413,23 @@ def calibrar():
         mu, sd = Xtr.mean(axis=0), Xtr.std(axis=0) + 1e-6
         Ztr, Zte = (Xtr - mu) / sd, (Xte - mu) / sd
         w = ajusta(Ztr, ytr)
-        pte = prevê(Zte, w); ptr = prevê(Ztr, w)
+        pcte = prevê(Zte, w); pctr = prevê(Ztr, w)
         wm = ajusta(Ztr[:, :N_METEO], ytr)                 # só meteorológico (sem focos recentes)
-        pmte = prevê(Zte[:, :N_METEO], wm)
+        pmte = prevê(Zte[:, :N_METEO], wm); pmtr = prevê(Ztr[:, :N_METEO], wm)
         wb = ajusta(Ztr[:, :1], ytr)                       # só o histórico do mês
         pbte = prevê(Zte[:, :1], wb)
+        a_comp, a_met = auc(yte, pcte) or 0, auc(yte, pmte) or 0
+        usa = a_comp >= a_met + 0.002                      # focos recentes só entram onde melhoram o acerto
+        usa_focos[r] = usa
+        pte, ptr = (pcte, pctr) if usa else (pmte, pmtr)
         fwi_te = ind["fwi"][te & cm[None, :]]; fma_te = ind["fma"][te & cm[None, :]]
         val["regioes"][regioes[r]] = {
-            "n_teste": int(len(yte)), "focos_teste": int(yte.sum()),
-            "auc_modelo": auc(yte, pte), "auc_meteo": auc(yte, pmte), "auc_linha_base": auc(yte, pbte), "auc_fwi": auc(yte, fwi_te), "auc_fma": auc(yte, fma_te),
+            "n_teste": int(len(yte)), "focos_teste": int(yte.sum()), "usa_focos_recentes": bool(usa),
+            "auc_modelo": auc(yte, pte), "auc_completo": a_comp, "auc_meteo": a_met, "auc_linha_base": auc(yte, pbte), "auc_fwi": auc(yte, fwi_te), "auc_fma": auc(yte, fma_te),
             "auc_dias_secos": auc(yte, ind["dias_secos"][te & cm[None, :]]),
             "brier_skill_vs_linha_base": brier_skill(yte, pte, pbte)}
         vr = val["regioes"][regioes[r]]
-        log(f"  {regioes[r]}: focos no teste {vr['focos_teste']} | AUC modelo {vr['auc_modelo'] or 0:.3f} | só meteo {vr['auc_meteo'] or 0:.3f} | linha de base {vr['auc_linha_base'] or 0:.3f} | "
+        log(f"  {regioes[r]}: focos no teste {vr['focos_teste']} | AUC com focos recentes {a_comp:.3f} | só meteo {a_met:.3f} | usa focos: {usa} | linha de base {vr['auc_linha_base'] or 0:.3f} | "
             f"FWI {vr['auc_fwi'] or 0:.3f} | FMA+ {vr['auc_fma'] or 0:.3f} | dias secos {vr['auc_dias_secos'] or 0:.3f}")
         p_te_all.append(pte); y_te_all.append(yte); fwi_te_all.append(fwi_te); fma_te_all.append(fma_te); base_te_all.append(pbte); met_te_all.append(pmte); p_tr_all.append(ptr)
     pte = np.concatenate(p_te_all); yte = np.concatenate(y_te_all); ptr = np.concatenate(p_tr_all)
@@ -432,8 +454,13 @@ def calibrar():
         cm = reg == r
         Xr = X[tudo & cm[None, :]]; yr = fogo[tudo & cm[None, :]].astype(float)
         mu, sd = Xr.mean(axis=0), Xr.std(axis=0) + 1e-6
-        w = ajusta((Xr - mu) / sd, yr)
-        modelos[str(r)] = {"mu": mu.round(6).tolist(), "sd": sd.round(6).tolist(), "w": w.round(6).tolist()}
+        if usa_focos.get(r, True):
+            w = ajusta((Xr - mu) / sd, yr)
+        else:   # região em que os focos recentes não melhoraram o acerto: peso zero para essa variável
+            w = np.concatenate([ajusta(((Xr - mu) / sd)[:, :N_METEO], yr), np.zeros(len(FEATS) - N_METEO)])
+        if not np.all(np.isfinite(w)) or np.max(np.abs(w[1:])) > 50:
+            raise SystemExit(f"ajuste instável na região {regioes[r]}: {w}")
+        modelos[str(r)] = {"mu": mu.round(6).tolist(), "sd": sd.round(6).tolist(), "w": w.round(6).tolist(), "usa_focos_recentes": bool(usa_focos.get(r, True))}
         p_all.append(prevê((Xr - mu) / sd, w))
     limites = [float(np.quantile(np.concatenate(p_all), q)) for q in QUANTIS]
     # percentis locais do FWI (clima de cada município, 2003–último ano)
