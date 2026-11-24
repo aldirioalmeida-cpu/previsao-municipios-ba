@@ -15,10 +15,16 @@
     "#inema-agro .ia-topo{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin:0 0 14px}",
     "#inema-agro h2.ia-tit{margin:0;font-size:1.55em;color:var(--az);line-height:1.15}",
     "#inema-agro .ia-sub{margin:4px 0 0;color:var(--tx2);font-size:.92em}",
-    "#inema-agro .ia-bol{display:flex;align-items:center;gap:12px;background:var(--az2);border:1px solid #c9d9ea;border-radius:12px;padding:10px 14px;max-width:480px}",
-    "#inema-agro .ia-bol b{display:block;color:var(--az)}",
-    "#inema-agro .ia-bol span{font-size:.86em;color:var(--tx2)}",
-    "#inema-agro .ia-bol a{margin-left:auto;white-space:nowrap;background:var(--az);color:#fff;text-decoration:none;border-radius:8px;padding:8px 12px;font-weight:600;font-size:.9em}",
+    "#inema-agro .ia-bol{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px 22px;background:#fff;border:1px solid var(--ln);border-radius:14px;padding:16px 18px;margin:0 0 20px;box-shadow:0 2px 10px rgba(20,40,70,.06)}",
+    "#inema-agro .ia-bol .tx{flex:1 1 320px;display:flex;flex-direction:column;justify-content:center}",
+    "#inema-agro .ia-bol .etq{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#2e7d32}",
+    "#inema-agro .ia-bol h3{margin:2px 0 4px;font-size:1.25em;color:var(--tx);line-height:1.2}",
+    "#inema-agro .ia-bol p{margin:0;font-size:.9em;color:var(--tx2)}",
+    "#inema-agro a.ia-bol-ult{flex:0 1 280px;display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:12px;text-decoration:none;color:var(--tx);background:linear-gradient(135deg,#fff 0%,#e7f4e7 100%);border:1px solid #c5e2c6;transition:box-shadow .15s,transform .15s}",
+    "#inema-agro a.ia-bol-ult:hover{box-shadow:0 4px 14px rgba(46,125,50,.18);transform:translateY(-1px)}",
+    "#inema-agro .ia-bol-ult .dt{font-size:1.6em;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}",
+    "#inema-agro .ia-bol-ult .sem{font-size:.84em;color:var(--tx2)}",
+    "#inema-agro .ia-bol-ult .bt{align-self:flex-start;margin-top:8px;background:#2e7d32;color:#fff;font-weight:600;font-size:.88em;padding:6px 14px;border-radius:999px}",
     "#inema-agro .ia-aviso{background:#fff4e0;border:1px solid #f0c27a;border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:.9em}",
     "#inema-agro .ia-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 14px}",
     "#inema-agro .ia-kpi{background:var(--bg);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;position:relative;overflow:hidden}",
@@ -84,7 +90,7 @@
     "#inema-agro .ia-fonte{font-size:.8em;color:var(--tx2);margin-top:10px}",
     "#inema-agro .ia-carr{padding:40px;text-align:center;color:var(--tx2)}",
     "@media (max-width:1000px){#inema-agro .ia-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#inema-agro .ia-corpo{grid-template-columns:1fr}#inema-agro .ia-links{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-    "@media (max-width:640px){#inema-agro{font-size:14px}#inema-agro .ia-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro .ia-kpi strong{font-size:1.3em}#inema-agro .ia-dias{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro ol.ia-rank{columns:1}#inema-agro input.ia-busca{min-width:0;width:100%}#inema-agro .ia-grp{width:100%}#inema-agro .ia-bol{max-width:none;width:100%}#inema-agro .ia-links{grid-template-columns:1fr}}"
+    "@media (max-width:640px){#inema-agro{font-size:14px}#inema-agro .ia-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro .ia-kpi strong{font-size:1.3em}#inema-agro .ia-dias{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro ol.ia-rank{columns:1}#inema-agro input.ia-busca{min-width:0;width:100%}#inema-agro .ia-grp{width:100%}#inema-agro a.ia-bol-ult{flex-basis:100%}#inema-agro .ia-links{grid-template-columns:1fr}}"
   ].join("\n");
   var st = document.createElement("style");
   st.textContent = CSS;
@@ -209,10 +215,14 @@
     var ger = new Date(A.gerado_em), horas = (Date.now() - ger.getTime()) / 36e5;
     var bol = acharBoletim();
     var h = "";
+    if (bol) h += "<div class='ia-bol'><div class='tx'><span class='etq'>Boletim do INEMA</span><h3>Boletim Agrometeorológico Semanal</h3>" +
+      "<p>Análise semanal das condições de tempo e clima para as atividades agrícolas na Bahia, elaborada pela equipe de meteorologia do INEMA.</p></div>" +
+      "<a class='ia-bol-ult' href='" + esc(bol.href) + "' target='_blank' rel='noopener'><span class='etq'>Edição mais recente</span>" +
+      "<span class='dt'>" + esc(bol.data || "Boletim") + "</span>" + (bol.sem ? "<span class='sem'>" + bol.sem + "</span>" : "") +
+      "<span class='bt'>Abrir boletim ↗</span></a></div>";
     h += "<div class='ia-topo'><div><h2 class='ia-tit'>Painel Agrometeorológico da Bahia</h2>" +
       "<p class='ia-sub'>Previsão para os próximos 7 dias nos 417 municípios · atualizado em " +
       ger.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + "</p></div>" +
-      (bol ? "<div class='ia-bol'><div><b>Boletim Agrometeorológico Semanal</b><span>" + esc(bol.txt) + "</span></div><a href='" + esc(bol.href) + "' target='_blank' rel='noopener'>Abrir PDF</a></div>" : "") +
       "</div>";
     if (horas > 30) h += "<div class='ia-aviso'>Atenção: os dados deste painel não são atualizados há " + Math.round(horas) + " horas.</div>";
     h += "<div class='ia-kpis' id='ia-kpis'></div>";
@@ -242,6 +252,7 @@
       "<a href='https://www.agritempo.gov.br/' target='_blank' rel='noopener'><b>Agritempo</b><span>Sistema de monitoramento agrometeorológico (Embrapa)</span></a></div>";
     h += "<p class='ia-fonte'>Fontes: " + esc(A.fonte) + "; ECMWF, NOAA/GFS e DWD/ICON (chuva por modelo); malha municipal IBGE. Previsões numéricas sem ajuste local — use como apoio à decisão, junto do boletim semanal.</p>";
     RAIZ.innerHTML = h;
+    if (bol) escondeSecaoBoletim(bol.a);
     liga();
     render();
   }
@@ -255,9 +266,20 @@
       if (nome.indexOf("agromet") < 0 && (a.textContent + (a.parentNode ? a.parentNode.textContent : "")).toLowerCase().indexOf("agromet") < 0) continue;
       var t = (a.parentNode ? a.parentNode.textContent : "") + " " + decodeURIComponent(href);
       var m = t.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
-      return { href: a.href, txt: m ? "Edição de " + m[1] + "/" + m[2] + "/" + m[3] + " · INEMA" : "Última edição · INEMA" };
+      var dia = m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
+      return { a: a, href: a.href, data: m ? m[1] + "/" + m[2] + "/" + m[3] : "", sem: dia ? SEMANA[dia.getDay()] : "" };
     }
     return null;
+  }
+  var SEMANA = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+
+  // o acesso ao boletim passa para o topo do painel: esconde o título e o parágrafo do link no conteúdo da página
+  function escondeSecaoBoletim(a) {
+    var p = a.closest ? a.closest("p,li,div") : a.parentNode;
+    if (!p || p === RAIZ || p.contains(RAIZ)) return;
+    var ant = p.previousElementSibling;
+    p.style.display = "none";
+    if (ant && /^H[1-6]$/.test(ant.tagName) && /boletim/i.test(ant.textContent)) ant.style.display = "none";
   }
 
   // ---------- mapa SVG ----------

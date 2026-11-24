@@ -15,10 +15,16 @@
     "#inema-enos .ie-topo{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin:0 0 14px}",
     "#inema-enos h2.ie-tit{margin:0;font-size:1.55em;color:var(--az);line-height:1.15}",
     "#inema-enos .ie-sub{margin:4px 0 0;color:var(--tx2);font-size:.92em}",
-    "#inema-enos .ie-bol{display:flex;align-items:center;gap:12px;background:var(--az2);border:1px solid #c9d9ea;border-radius:12px;padding:10px 14px;max-width:480px}",
-    "#inema-enos .ie-bol b{display:block;color:var(--az)}",
-    "#inema-enos .ie-bol span{font-size:.86em;color:var(--tx2)}",
-    "#inema-enos .ie-bol a{margin-left:auto;white-space:nowrap;background:var(--az);color:#fff;text-decoration:none;border-radius:8px;padding:8px 12px;font-weight:600;font-size:.9em}",
+    "#inema-enos .ie-bol{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px 22px;background:#fff;border:1px solid var(--ln);border-radius:14px;padding:16px 18px;margin:0 0 20px;box-shadow:0 2px 10px rgba(20,40,70,.06)}",
+    "#inema-enos .ie-bol .tx{flex:1 1 320px;display:flex;flex-direction:column;justify-content:center}",
+    "#inema-enos .ie-bol .etq{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--az)}",
+    "#inema-enos .ie-bol h3{margin:2px 0 4px;font-size:1.25em;color:var(--tx);line-height:1.2}",
+    "#inema-enos .ie-bol p{margin:0;font-size:.9em;color:var(--tx2)}",
+    "#inema-enos a.ie-bol-ult{flex:0 1 280px;display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:12px;text-decoration:none;color:var(--tx);background:linear-gradient(135deg,#fff 0%,var(--az2) 100%);border:1px solid #c9d9ea;transition:box-shadow .15s,transform .15s}",
+    "#inema-enos a.ie-bol-ult:hover{box-shadow:0 4px 14px rgba(11,79,138,.18);transform:translateY(-1px)}",
+    "#inema-enos .ie-bol-ult .dt{font-size:1.6em;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}",
+    "#inema-enos .ie-bol-ult .sem{font-size:.84em;color:var(--tx2)}",
+    "#inema-enos .ie-bol-ult .bt{align-self:flex-start;margin-top:8px;background:var(--az);color:#fff;font-weight:600;font-size:.88em;padding:6px 14px;border-radius:999px}",
     "#inema-enos .ie-hero{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;background:linear-gradient(135deg,#fff 0%,var(--hf,#fff4ef) 100%);border:1px solid var(--ln);border-radius:16px;padding:16px;margin:0 0 14px}",
     "#inema-enos .ie-gauge svg{width:100%;height:auto;display:block}",
     "#inema-enos .ie-est small{display:block;text-transform:uppercase;letter-spacing:.04em;font-size:.78em;color:var(--tx2)}",
@@ -63,7 +69,7 @@
     "#inema-enos .ie-aviso{background:#fff4e0;border:1px solid #f0c27a;border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:.9em}",
     "#inema-enos .ie-carr{padding:40px;text-align:center;color:var(--tx2)}",
     "@media (max-width:900px){#inema-enos .ie-hero{grid-template-columns:1fr}#inema-enos .ie-gauge{max-width:320px;margin:0 auto}#inema-enos .ie-regs{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-enos .ie-2,#inema-enos .ie-imp{grid-template-columns:1fr}#inema-enos .ie-gal{grid-template-columns:1fr 1fr}}",
-    "@media (max-width:560px){#inema-enos{font-size:14px}#inema-enos .ie-gal{grid-template-columns:1fr}#inema-enos .ie-bol{max-width:none;width:100%}#inema-enos .ie-est h3{font-size:1.4em}}"
+    "@media (max-width:560px){#inema-enos{font-size:14px}#inema-enos .ie-gal{grid-template-columns:1fr}#inema-enos a.ie-bol-ult{flex-basis:100%}#inema-enos .ie-est h3{font-size:1.4em}}"
   ].join("\n");
   var st = document.createElement("style");
   st.textContent = CSS;
@@ -116,9 +122,13 @@
     var quente = (oni ? oni[2] : n34) >= 0.5, frio = (oni ? oni[2] : n34) <= -0.5;
     var hc = quente ? "#c0392b" : frio ? "#1f4e9c" : "#4b5763", hf = quente ? "#fff1ea" : frio ? "#eaf2fb" : "#f3f5f7";
     var bol = acharBoletim();
-    var h = "<div class='ie-topo'><div><h2 class='ie-tit'>Monitoramento Oceânico</h2><p class='ie-sub'>El Niño, La Niña e Atlântico Tropical · semana de " + dBR(u[0]) +
-      " · atualizado em " + new Date(j.gerado_em).toLocaleDateString("pt-BR") + "</p></div>" +
-      (bol ? "<div class='ie-bol'><div><b>Boletim de Monitoramento das TSMs</b><span>" + esc(bol.txt) + "</span></div><a href='" + esc(bol.href) + "' target='_blank' rel='noopener'>Abrir PDF</a></div>" : "") + "</div>";
+    var h = bol ? "<div class='ie-bol'><div class='tx'><span class='etq'>Boletim do INEMA</span><h3>Boletim de Monitoramento Mensal das TSMs</h3>" +
+      "<p>Análise mensal da temperatura da superfície do mar nos oceanos Pacífico e Atlântico e de seus reflexos no clima da Bahia, elaborada pela equipe de meteorologia do INEMA.</p></div>" +
+      "<a class='ie-bol-ult' href='" + esc(bol.href) + "' target='_blank' rel='noopener'><span class='etq'>Edição mais recente</span>" +
+      "<span class='dt'>" + esc(bol.data || "Boletim") + "</span>" + (bol.sem ? "<span class='sem'>" + bol.sem + "</span>" : "") +
+      "<span class='bt'>Abrir boletim ↗</span></a></div>" : "";
+    h += "<div class='ie-topo'><div><h2 class='ie-tit'>Monitoramento Oceânico</h2><p class='ie-sub'>El Niño, La Niña e Atlântico Tropical · semana de " + dBR(u[0]) +
+      " · atualizado em " + new Date(j.gerado_em).toLocaleDateString("pt-BR") + "</p></div></div>";
     var semanas = (Date.now() - new Date(u[0] + "T12:00:00").getTime()) / 864e5;
     if (semanas > 16) h += "<div class='ie-aviso'>Atenção: o índice semanal mais recente é de " + dBR(u[0]) + ".</div>";
 
@@ -131,7 +141,8 @@
       (oni ? "<span class='ie-chip'>ONI (" + tri(oni[0], oni[1]) + "): <b>" + f2(oni[2]) + " °C</b></span>" : "") +
       (stt ? stt.map(function (s) { return "<span class='ie-chip' title='" + esc(s[1]) + "'>NOAA: <b>" + esc(s[0]) + "</b></span>"; }).join("") : "") + "</div>" +
       "<p style='margin:6px 0 0'>" + frase(cl, oni, n34, dif) + "</p>" +
-      (sit.resumo ? "<div class='ie-noaa'><small>Resumo oficial do NOAA/CPC" + (sit.data ? ", " + esc(sit.data) : "") + " (em inglês)</small><q lang='en'>" + esc(sit.resumo) + "</q> <a href='" + esc(sit.url) + "' target='_blank' rel='noopener'>discussão completa</a></div>" : "") +
+      (sit.resumo_pt ? "<div class='ie-noaa'><small>Resumo oficial da NOAA/CPC" + (sit.data_pt || sit.data ? ", " + esc(sit.data_pt || sit.data) : "") + " (tradução automática)</small><q lang='pt-BR'>" + esc(sit.resumo_pt) + "</q> <a href='" + esc(sit.url) + "' target='_blank' rel='noopener'>discussão completa (em inglês)</a></div>" :
+        sit.resumo ? "<div class='ie-noaa'><small>Resumo oficial da NOAA/CPC" + (sit.data ? ", " + esc(sit.data) : "") + " (em inglês)</small><q lang='en'>" + esc(sit.resumo) + "</q> <a href='" + esc(sit.url) + "' target='_blank' rel='noopener'>discussão completa</a></div>" : "") +
       "</div></div>";
 
     // quatro regiões
@@ -182,6 +193,7 @@
     h += "<p class='ie-fonte'>Fontes: NOAA Climate Prediction Center (índices semanais OISST v2.1, ONI/ERSST v5, discussão diagnóstica mensal) e NOAA Physical Sciences Laboratory (TNA e TSA). Dados atualizados automaticamente todos os dias." +
       (j.erros && Object.keys(j.erros).length ? " Itens indisponíveis nesta atualização: " + esc(Object.keys(j.erros).join(", ")) + "." : "") + "</p>";
     RAIZ.innerHTML = h;
+    if (bol) escondeTrechoBoletim(bol.a);
 
     RAIZ.querySelector("#ie-regs").addEventListener("click", function (e) { var c = e.target.closest("[data-r]"); if (!c) return; REG = +c.getAttribute("data-r"); RAIZ.querySelectorAll(".ie-reg").forEach(function (x) { x.classList.toggle("on", x === c); }); semanal(); });
     RAIZ.querySelector("#ie-per").addEventListener("click", function (e) { var b = e.target.closest("[data-p]"); if (!b) return; PER = +b.getAttribute("data-p"); semanal(); });
@@ -203,9 +215,25 @@
       if (RAIZ.contains(a)) continue;
       if (!/TSM|monitoramento/i.test(href + " " + a.textContent)) continue;
       var m = href.match(/(\d{2})[\-\/](\d{2})[\-\/](\d{4})/);
-      return { href: a.href, txt: m ? "Edição de " + m[1] + "/" + m[2] + "/" + m[3] + " · INEMA" : "Última edição · INEMA" };
+      var dia = m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
+      return { a: a, href: a.href, data: m ? m[1] + "/" + m[2] + "/" + m[3] : "", sem: dia ? SEMANA[dia.getDay()] : "" };
     }
     return null;
+  }
+  var SEMANA = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+
+  // o acesso ao boletim passa para o topo do painel: tira do texto da página o trecho "Clique aqui para acessar o boletim…"
+  // (o parágrafo continua, com a explicação da TSM e os materiais de El Niño e La Niña)
+  function escondeTrechoBoletim(a) {
+    var p = a.parentNode;
+    if (!p || p === RAIZ || p.contains(RAIZ)) return;
+    var ini = a;
+    while (ini.previousSibling && (ini.previousSibling.nodeName === "BR" || !/\S/.test(ini.previousSibling.textContent || ""))) ini = ini.previousSibling;
+    var tira = [], n = ini;
+    while (n) { tira.push(n); n = n.nextSibling; }
+    tira.forEach(function (x) { p.removeChild(x); });
+    var tit = p.previousElementSibling;
+    if (tit && /^H[1-6]$/.test(tit.tagName) && /boletim/i.test(tit.textContent)) tit.textContent = "Sobre a temperatura da superfície do mar";
   }
 
   // medidor semicircular −3 a +3 °C
