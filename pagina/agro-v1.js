@@ -136,7 +136,7 @@
   var qs = new URLSearchParams(location.search);
   if (qs.get("municipio")) S.sel = norm(qs.get("municipio"));
 
-  var A, EXT, MUN = {}, LISTA = [], REGIOES = [], PATHS = {};
+  var A, EXT, MUN = {}, LISTA = [], REGIOES = [], PATHS = {}, MODS = [];
 
   Promise.all([
     json(BASE + "agro.json"),
@@ -157,15 +157,19 @@
       LISTA.push(MUN[k]);
     });
     LISTA.sort(function (a, b) { return a.nome.localeCompare(b.nome, "pt-BR"); });
+    // chuva por modelo: média no município (pixels ponderados pela área). Modelos sem a média ficam fora do seletor.
+    MODS = [];
     if (ext && ext.modelos) {
       Object.keys(ext.modelos).forEach(function (mod) {
-        var mm = ext.modelos[mod].municipios, idx = agro.datas.map(function (d) { return ext.datas.indexOf(d); });
+        var mm = ext.modelos[mod].municipios, idx = agro.datas.map(function (d) { return ext.datas.indexOf(d); }), tem = false;
         Object.keys(mm).forEach(function (nome) {
-          var m = MUN[norm(nome)];
-          if (m) m[mod] = idx.map(function (i) { return i < 0 ? null : mm[nome].mm[i]; });
+          var m = MUN[norm(nome)], med = mm[nome].mm_med;
+          if (m && med) { m[mod] = idx.map(function (i) { return i < 0 ? null : med[i]; }); tem = true; }
         });
+        if (tem) MODS.push(mod);
       });
     }
+    if (S.mod !== "om" && MODS.indexOf(S.mod) < 0) S.mod = "om";   // escolha salva de um modelo que não está disponível
     LISTA.forEach(function (m) {
       m.solo = m.d.sm1.map(function (a, i) { var b = m.d.sm2[i]; return a == null || b == null ? null : Math.round((7 * a + 21 * b) / 28 * 1000) / 10; });
     });
@@ -230,7 +234,7 @@
       "<div class='ia-grp' id='ia-gv'><span>Mapa</span>" + Object.keys(VARS).map(function (k) { return "<button class='ia-b' data-v='" + k + "'>" + VARS[k].curto + "</button>"; }).join("") + "</div>" +
       "<div class='ia-grp' id='ia-gd'><span>Dia</span>" + A.datas.map(function (d, i) { return "<button class='ia-b' data-d='" + i + "'>" + rotDia(d, i) + "</button>"; }).join("") + "<button class='ia-b' data-d='s'>7 dias</button></div>" +
       "<div class='ia-grp' id='ia-gm'><span>Chuva</span><button class='ia-b' data-m='om' title='Open-Meteo: melhor modelo disponível, na sede do município'>Padrão</button>" +
-      (EXT ? ["ecmwf", "gfs", "icon"].filter(function (k) { return EXT.modelos[k]; }).map(function (k) { return "<button class='ia-b' data-m='" + k + "' title='Maior valor da grade do modelo dentro do município'>" + k.toUpperCase() + "</button>"; }).join("") : "") + "</div>" +
+      ["ecmwf", "gfs", "icon"].filter(function (k) { return MODS.indexOf(k) >= 0; }).map(function (k) { return "<button class='ia-b' data-m='" + k + "' title='Chuva média do modelo no município (pixels ponderados pela área)'>" + k.toUpperCase() + "</button>"; }).join("") + "</div>" +
       "<div class='ia-grp' style='margin-left:auto'><input class='ia-busca' id='ia-busca' list='ia-lista' placeholder='Buscar município…' aria-label='Buscar município'><datalist id='ia-lista'>" +
       LISTA.map(function (m) { return "<option value='" + esc(m.nome) + "'>"; }).join("") + "</datalist></div></div>";
     h += "<div class='ia-corpo'><div class='ia-cx'><h3 id='ia-tmapa'></h3><div class='ia-mapa' id='ia-mapa'>" + svgMapa() + "<div class='ia-tip' id='ia-tip'></div></div><div id='ia-leg'></div></div>" +
@@ -243,7 +247,7 @@
       "<li><b>ET0</b> (FAO-56 Penman-Monteith) é a água que uma grama de referência bem irrigada perderia por evaporação e transpiração. Para a cultura, multiplique pelo coeficiente da cultura (Kc) da fase em que ela está.</li>" +
       "<li><b>Balanço hídrico</b> = chuva prevista − ET0. Valores negativos indicam que a atmosfera retira mais água do que a chuva repõe (déficit); positivos, excedente.</li>" +
       "<li><b>Umidade do solo</b> é o conteúdo volumétrico de água simulado pelo modelo nas camadas 0–7 cm e 7–28 cm (média ponderada). Como varia com o tipo de solo, compare valores do mesmo local ao longo dos dias.</li>" +
-      "<li><b>Chuva</b>: “Padrão” é a previsão do Open-Meteo na sede do município (mesma dos cards de previsão). ECMWF, GFS e ICON mostram o <b>maior</b> valor da grade de cada modelo dentro do município — úteis para comparar e avaliar a incerteza.</li>" +
+      "<li><b>Chuva</b>: “Padrão” é a previsão do Open-Meteo na sede do município (mesma dos cards de previsão). ECMWF, GFS e ICON mostram a chuva <b>média</b> de cada modelo no município: média dos pixels de 0,25° (≈ 27 km) que cobrem o município, cada um pesando conforme a área do município dentro dele — úteis para comparar e avaliar a incerteza.</li>" +
       "<li>Clique em um município no mapa, na lista ou use a busca para ver os 7 dias. Clique em uma região para destacá-la.</li></ul></details>";
     h += "<div class='ia-links'>" +
       (PREV_MUN ? "<a href='" + esc(PREV_MUN) + "'><b>Previsão por município</b><span>Temperatura, chuva e vento por período do dia</span></a>" : "") +
@@ -346,7 +350,7 @@
     var usaMod = S.v === "chuva" || S.v === "bal";
     RAIZ.querySelectorAll("#ia-gm [data-m]").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-m") === S.mod); b.disabled = !usaMod; });
     var quando = sem ? "próximos 7 dias" : (S.d === 0 ? "hoje" : rotDia(A.datas[S.d], S.d).replace(/ \d+$/, "") + ", " + dataBR(A.datas[S.d]));
-    var modTxt = usaMod && S.mod !== "om" ? " · " + S.mod.toUpperCase() : "";
+    var modTxt = usaMod && S.mod !== "om" ? " · " + S.mod.toUpperCase() + " (média no município)" : "";
     RAIZ.querySelector("#ia-tmapa").textContent = (S.v === "man" && sem ? "Dias com manejo favorável ou razoável" : VARS[S.v].nome) + " — " + quando + modTxt;
     LISTA.forEach(function (m) {
       var p = PATHS[m.k]; if (!p) return;
