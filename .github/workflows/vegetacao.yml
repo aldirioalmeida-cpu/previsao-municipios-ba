@@ -1,0 +1,46 @@
+name: Saude da vegetacao
+
+# Índices de saúde da vegetação (NOAA STAR VHP, 4 km, semanal) por município, para o painel de Monitoramento da Vegetação do INEMA.
+# A NOAA publica uma semana nova por semana; o robô roda todo dia e só publica se algo mudou.
+on:
+  schedule:
+    - cron: "43 14 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vegetacao
+  cancel-in-progress: false
+
+jobs:
+  vegetacao:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependências
+        run: pip install --quiet "numpy<3" "rasterio>=1.3"
+      - name: Gerar vegetacao/semanal.json
+        run: python vegetacao/gerar_vegetacao.py
+      - name: Publicar no repositório
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vegetacao/semanal.json
+          if git diff --cached --quiet; then echo "mudou=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "Vegetação atualizada em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 10; done
+          echo "mudou=true" >> "$GITHUB_OUTPUT"
+      - name: Limpar cache do jsDelivr
+        if: steps.commit.outputs.mudou == 'true'
+        run: |
+          for espera in 20 120; do
+            sleep $espera
+            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/vegetacao/semanal.json" > /dev/null || echo "purge falhou"
+          done
