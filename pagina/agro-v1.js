@@ -69,15 +69,16 @@
     "#inema-agro .ia-dett h3{margin:0;font-size:1.2em}",
     "#inema-agro .ia-dett span{color:var(--tx2);font-size:.9em}",
     "#inema-agro .ia-dett a{margin-left:auto;font-size:.88em;color:var(--az)}",
-    "#inema-agro .ia-dias{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}",
+    // cada dia tem largura mínima: quando não cabe, o card desce para a linha de baixo em vez de espremer (e quebrar) as palavras
+    "#inema-agro .ia-dias{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}",
     "#inema-agro .ia-dia{border:1px solid var(--ln);border-radius:10px;padding:8px;text-align:center;font-size:.86em;background:#fff}",
     "#inema-agro .ia-dia.hj{border-color:var(--az);box-shadow:0 0 0 1px var(--az) inset}",
     "#inema-agro .ia-dia .d{font-weight:700}",
     "#inema-agro .ia-dia .man{display:block;border-radius:6px;color:#fff;font-weight:700;padding:3px 2px;margin:6px 0 2px;font-size:.92em}",
     "#inema-agro .ia-dia .jan{display:block;color:var(--tx2);font-size:.85em;min-height:1.2em}",
     "#inema-agro .ia-dia dl{margin:6px 0 0;display:grid;grid-template-columns:1fr auto;gap:2px 4px;text-align:left}",
-    "#inema-agro .ia-dia dt{color:var(--tx2)}",
-    "#inema-agro .ia-dia dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}",
+    "#inema-agro .ia-dia dt{color:var(--tx2);white-space:nowrap}",
+    "#inema-agro .ia-dia dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}",
     "#inema-agro .ia-graf svg{width:100%;height:auto;display:block;margin-top:10px}",
     "#inema-agro details.ia-ajuda{margin-top:14px;background:var(--cz);border:1px solid var(--ln);border-radius:12px;padding:8px 14px;font-size:.92em}",
     "#inema-agro details.ia-ajuda summary{cursor:pointer;font-weight:600;color:var(--az)}",
@@ -90,7 +91,7 @@
     "#inema-agro .ia-fonte{font-size:.8em;color:var(--tx2);margin-top:10px}",
     "#inema-agro .ia-carr{padding:40px;text-align:center;color:var(--tx2)}",
     "@media (max-width:1000px){#inema-agro .ia-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#inema-agro .ia-corpo{grid-template-columns:1fr}#inema-agro .ia-links{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-    "@media (max-width:640px){#inema-agro{font-size:14px}#inema-agro .ia-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro .ia-kpi strong{font-size:1.3em}#inema-agro .ia-dias{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro ol.ia-rank{columns:1}#inema-agro input.ia-busca{min-width:0;width:100%}#inema-agro .ia-grp{width:100%}#inema-agro a.ia-bol-ult{flex-basis:100%}#inema-agro .ia-links{grid-template-columns:1fr}}"
+    "@media (max-width:640px){#inema-agro{font-size:14px}#inema-agro .ia-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro .ia-kpi strong{font-size:1.3em}#inema-agro .ia-dias{grid-template-columns:repeat(auto-fit,minmax(104px,1fr))}#inema-agro ol.ia-rank{columns:1}#inema-agro input.ia-busca{min-width:0;width:100%}#inema-agro .ia-grp{width:100%}#inema-agro a.ia-bol-ult{flex-basis:100%}#inema-agro .ia-links{grid-template-columns:1fr}}"
   ].join("\n");
   var st = document.createElement("style");
   st.textContent = CSS;
@@ -229,7 +230,6 @@
       ger.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + "</p></div>" +
       "</div>";
     if (horas > 30) h += "<div class='ia-aviso'>Atenção: os dados deste painel não são atualizados há " + Math.round(horas) + " horas.</div>";
-    h += "<div class='ia-kpis' id='ia-kpis'></div>";
     h += "<div class='ia-ctl'>" +
       "<div class='ia-grp' id='ia-gv'><span>Mapa</span>" + Object.keys(VARS).map(function (k) { return "<button class='ia-b' data-v='" + k + "'>" + VARS[k].curto + "</button>"; }).join("") + "</div>" +
       "<div class='ia-grp' id='ia-gd'><span>Dia</span>" + A.datas.map(function (d, i) { return "<button class='ia-b' data-d='" + i + "'>" + rotDia(d, i) + "</button>"; }).join("") + "<button class='ia-b' data-d='s'>7 dias</button></div>" +
@@ -359,7 +359,7 @@
       p.classList.toggle("fora", S.reg != null && m.r !== S.reg);
     });
     if (S.sel && PATHS[S.sel]) PATHS[S.sel].parentNode.appendChild(PATHS[S.sel]);
-    legenda(); kpis(); regioes(); ranking(); detalhe();
+    legenda(); regioes(); ranking(); detalhe();   // resumo estadual (kpis) retirado: médias do estado não representam bem as condições locais
   }
 
   function legenda() {
