@@ -8,10 +8,10 @@ Roda logo depois do gerar_focos.py, lendo a pasta de saída (pontos_todos.json, 
   - envia UM e-mail por rodada, com os focos novos agrupados por UC, pela conta Outlook / Microsoft 365
     do setor (SMTP smtp.office365.com:587 com STARTTLS).
 
-Segredos do repositório (GitHub > Settings > Secrets and variables > Actions):
-  ALERTA_SMTP_USUARIO    e-mail do setor (remetente e login)
-  ALERTA_SMTP_SENHA      senha da conta (ou senha de aplicativo)
-  ALERTA_DESTINATARIOS   e-mails separados por vírgula
+Configuração no GitHub (Settings > Secrets and variables > Actions):
+  segredo  ALERTA_SMTP_USUARIO    e-mail do setor (remetente e login)
+  segredo  ALERTA_SMTP_SENHA      senha da conta (ou senha de aplicativo)
+  variável ALERTA_DESTINATARIOS   e-mails separados por vírgula (aba "Variables"; também aceito como segredo)
   opcionais: ALERTA_SMTP_SERVIDOR (padrão smtp.office365.com), ALERTA_SMTP_PORTA (padrão 587)
 
 Sem os segredos, só registra no log e não marca nada como avisado.
@@ -158,6 +158,15 @@ def main():
     vistos = dict((estado_ant or {}).get("vistos", {}))
 
     focos = focos_em_uc_estadual(a.saida, agora)
+    # Lista publicada no ramo "focos" para o disparador do Google (Apps Script), que envia o alerta pelo Gmail.
+    with open(os.path.join(a.saida, "uc_alerta_focos.json"), "w", encoding="utf-8") as f:
+        json.dump({"gerado_em": agora.isoformat(timespec="minutes"), "janela_h": JANELA_H, "painel": PAINEL,
+                   "focos": [{"chave": x["chave"], "quando": x["quando"].isoformat(timespec="minutes"), "lat": x["lat"], "lon": x["lon"],
+                              "sat": x["sat"], "frp": x["frp"], "mun": x["mun"], "uc": x["uc"], "grupo": x["grupo"]} for x in focos]},
+                  f, ensure_ascii=False, separators=(",", ":"))
+    if not os.environ.get("ALERTA_SMTP_USUARIO"):
+        log(f"uc_alerta_focos.json: {len(focos)} focos em UC estadual nas últimas {JANELA_H} h (o e-mail é enviado pelo disparador do Google).")
+        return
     ativacao = estado_ant is None
     if ativacao:
         novos = [f for f in focos if (agora - f["quando"]).total_seconds() <= 24 * 3600]
