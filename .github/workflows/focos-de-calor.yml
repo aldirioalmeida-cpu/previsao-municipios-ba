@@ -38,16 +38,11 @@ jobs:
       - name: Gerar dados
         run: python focos/gerar_focos.py --saida saida_focos --cache cache_focos
 
-      # Alerta por e-mail (Outlook do setor) de focos novos em UC estadual. Os focos já avisados ficam em
-      # uc_alerta_estado.json no ramo focos. Se o e-mail falhar, os dados são publicados mesmo assim.
-      - name: Alerta de focos em UC estadual (e-mail)
+      # Lista dos focos em UC estadual (uc_alerta_focos.json, no ramo focos). O e-mail de alerta é enviado pelo
+      # disparador do Google (Apps Script), pelo Gmail. O envio direto pelo Outlook (SMTP) foi recusado pela
+      # Microsoft (535 5.7.139) e fica desligado: só volta se as variáveis ALERTA_SMTP_* forem passadas aqui.
+      - name: Focos em UC estadual (lista para o alerta)
         continue-on-error: true
-        env:
-          ALERTA_SMTP_USUARIO: ${{ secrets.ALERTA_SMTP_USUARIO }}
-          ALERTA_SMTP_SENHA: ${{ secrets.ALERTA_SMTP_SENHA }}
-          ALERTA_DESTINATARIOS: ${{ vars.ALERTA_DESTINATARIOS || secrets.ALERTA_DESTINATARIOS }}   # variável do repositório (ou segredo)
-          ALERTA_SMTP_SERVIDOR: ${{ secrets.ALERTA_SMTP_SERVIDOR }}
-          ALERTA_SMTP_PORTA: ${{ secrets.ALERTA_SMTP_PORTA }}
         run: |
           curl -fsS "https://raw.githubusercontent.com/${{ github.repository }}/focos/uc_alerta_estado.json?x=$RANDOM" -o alerta_estado_anterior.json || rm -f alerta_estado_anterior.json
           python focos/alerta_uc.py --saida saida_focos --anterior alerta_estado_anterior.json
