@@ -45,7 +45,7 @@ jobs:
         env:
           ALERTA_SMTP_USUARIO: ${{ secrets.ALERTA_SMTP_USUARIO }}
           ALERTA_SMTP_SENHA: ${{ secrets.ALERTA_SMTP_SENHA }}
-          ALERTA_DESTINATARIOS: ${{ secrets.ALERTA_DESTINATARIOS }}
+          ALERTA_DESTINATARIOS: ${{ vars.ALERTA_DESTINATARIOS || secrets.ALERTA_DESTINATARIOS }}   # variável do repositório (ou segredo)
           ALERTA_SMTP_SERVIDOR: ${{ secrets.ALERTA_SMTP_SERVIDOR }}
           ALERTA_SMTP_PORTA: ${{ secrets.ALERTA_SMTP_PORTA }}
         run: |
