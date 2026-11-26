@@ -38,6 +38,20 @@ jobs:
       - name: Gerar dados
         run: python focos/gerar_focos.py --saida saida_focos --cache cache_focos
 
+      # Alerta por e-mail (Outlook do setor) de focos novos em UC estadual. Os focos já avisados ficam em
+      # uc_alerta_estado.json no ramo focos. Se o e-mail falhar, os dados são publicados mesmo assim.
+      - name: Alerta de focos em UC estadual (e-mail)
+        continue-on-error: true
+        env:
+          ALERTA_SMTP_USUARIO: ${{ secrets.ALERTA_SMTP_USUARIO }}
+          ALERTA_SMTP_SENHA: ${{ secrets.ALERTA_SMTP_SENHA }}
+          ALERTA_DESTINATARIOS: ${{ secrets.ALERTA_DESTINATARIOS }}
+          ALERTA_SMTP_SERVIDOR: ${{ secrets.ALERTA_SMTP_SERVIDOR }}
+          ALERTA_SMTP_PORTA: ${{ secrets.ALERTA_SMTP_PORTA }}
+        run: |
+          curl -fsS "https://raw.githubusercontent.com/${{ github.repository }}/focos/uc_alerta_estado.json?x=$RANDOM" -o alerta_estado_anterior.json || rm -f alerta_estado_anterior.json
+          python focos/alerta_uc.py --saida saida_focos --anterior alerta_estado_anterior.json
+
       - name: Publicar no ramo focos (substitui a versão anterior, sem acumular histórico)
         run: |
           cp focos/municipios.json focos/ti_ba.geojson focos/uc_ba_mapa.geojson focos/painel.js mapas/regioes_ba.geojson saida_focos/
