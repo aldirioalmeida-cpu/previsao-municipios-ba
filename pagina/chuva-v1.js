@@ -203,12 +203,16 @@
     ["modo", "v", "grp", "rv", "rk"].forEach(function (c) { if (typeof g0[c] === "string") S[c] = g0[c]; });
     ["k", "rj", "span"].forEach(function (c) { if (typeof g0[c] === "number") S[c] = g0[c]; });
   } catch (e) { /* sem armazenamento */ }
-  function guarda() { try { localStorage.setItem("inemaChuva1", JSON.stringify({ modo: S.modo, k: S.k, v: S.v, grp: S.grp, rv: S.rv, rj: S.rj, rk: S.rk, span: S.span })); } catch (e) { /* ignora */ } }
+  var K_SALVO = ESCALAS.indexOf(S.k) >= 0 ? S.k : 3;   // período livre não fica guardado: ao voltar, abre na última escala padrão
+  function guarda() {
+    if (ESCALAS.indexOf(S.k) >= 0) K_SALVO = S.k;
+    try { localStorage.setItem("inemaChuva1", JSON.stringify({ modo: S.modo, k: K_SALVO, v: S.v, grp: S.grp, rv: S.rv, rj: S.rj, rk: S.rk, span: S.span })); } catch (e) { /* ignora */ }
+  }
   var qs = new URLSearchParams(location.search);
   if (+qs.get("escala") > 0) S.k = +qs.get("escala");
   if (qs.get("modo") === "recente") S.modo = "r";
-  var QMUN = qs.get("municipio"), QFIM = qs.get("fim");
-  if (ESCALAS.indexOf(S.k) < 0) S.k = 3;
+  var QMUN = qs.get("municipio"), QFIM = qs.get("fim"), QINI = qs.get("inicio");
+  if (!(S.k >= 1 && S.k % 1 === 0)) S.k = 3;
   if (!VARS_M[S.v]) S.v = "spi";
   if (!VARS_R[S.rv]) S.rv = "total";
   if (JANELAS.indexOf(S.rj) < 0) S.rj = 30;
@@ -287,6 +291,8 @@
     grupo("e", "e", "Bahia", MUNS);
     S.fim = N - 1;
     if (QFIM && /^\d{4}-\d{2}$/.test(QFIM)) { var f = idxYM(+QFIM.slice(0, 4), +QFIM.slice(5) - 1); if (f >= 0 && f < N) S.fim = f; }
+    if (QINI && /^\d{4}-\d{2}$/.test(QINI)) { var ii = idxYM(+QINI.slice(0, 4), +QINI.slice(5) - 1); if (ii >= 0 && ii <= S.fim) S.k = S.fim - ii + 1; }
+    S.k = Math.min(S.k, S.fim + 1);
     if (QMUN && ENT["m:" + norm(QMUN)]) S.sel = "m:" + norm(QMUN);
   }
 
@@ -392,10 +398,13 @@
   function controles() {
     var h = "";
     if (S.modo === "m") {
-      var ops = "";
+      var ops = "", opsI = "", ini = S.fim - S.k + 1;
       for (var i = N - 1; i >= 0; i--) ops += "<option value='" + i + "'" + (i === S.fim ? " selected" : "") + ">" + MESL[ymDe(i).m] + " de " + ymDe(i).y + "</option>";
-      h += "<div class='ic-grp'><span>Até</span><select class='ic-sel' id='ic-fim' aria-label='Mês final do período'>" + ops + "</select></div>";
-      h += "<div class='ic-grp' id='ic-gk'><span>Período</span>" + ESCALAS.map(function (k) { return "<button class='ic-b' data-k='" + k + "'>" + k + (k === 1 ? " mês" : " meses") + "</button>"; }).join("") + "</div>";
+      for (var i2 = S.fim; i2 >= 0; i2--) opsI += "<option value='" + i2 + "'" + (i2 === ini ? " selected" : "") + ">" + MESL[ymDe(i2).m] + " de " + ymDe(i2).y + "</option>";
+      h += "<div class='ic-grp'><span>De</span><select class='ic-sel' id='ic-ini' aria-label='Mês inicial do período'>" + opsI + "</select>" +
+        "<span style='margin-left:6px'>até</span><select class='ic-sel' id='ic-fim' aria-label='Mês final do período'>" + ops + "</select></div>";
+      h += "<div class='ic-grp' id='ic-gk'><span>Período</span>" + ESCALAS.map(function (k) { return "<button class='ic-b' data-k='" + k + "'>" + k + (k === 1 ? " mês" : " meses") + "</button>"; }).join("") +
+        (ESCALAS.indexOf(S.k) < 0 ? "<span class='ic-b on' style='cursor:default'>livre: " + S.k + " meses</span>" : "") + "</div>";
       h += "<div class='ic-grp' id='ic-gv'><span>Mapa</span>" + Object.keys(VARS_M).map(function (k) { return "<button class='ic-b' data-v='" + k + "'>" + VARS_M[k].curto + "</button>"; }).join("") + "</div>";
     } else {
       h += "<div class='ic-grp' id='ic-gj'><span>Últimos</span>" + JANELAS.map(function (j) { return "<button class='ic-b' data-j='" + j + "'>" + j + " dias</button>"; }).join("") + "</div>";
@@ -412,7 +421,7 @@
     var ctl = RAIZ.querySelector("#ic-ctl");
     ctl.addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
-      if (b.hasAttribute("data-k")) S.k = +b.getAttribute("data-k");
+      if (b.hasAttribute("data-k")) S.k = Math.min(+b.getAttribute("data-k"), S.fim + 1);
       else if (b.hasAttribute("data-v")) S.v = b.getAttribute("data-v");
       else if (b.hasAttribute("data-j")) S.rj = +b.getAttribute("data-j");
       else if (b.hasAttribute("data-rv")) S.rv = b.getAttribute("data-rv");
@@ -421,7 +430,8 @@
       guarda(); render();
     });
     ctl.addEventListener("change", function (e) {
-      if (e.target.id === "ic-fim") { S.fim = +e.target.value; render(); }
+      if (e.target.id === "ic-fim") { S.fim = +e.target.value; S.k = Math.min(S.k, S.fim + 1); render(); }
+      if (e.target.id === "ic-ini") { S.k = S.fim - (+e.target.value) + 1; guarda(); render(); }
       if (e.target.id === "ic-busca") {
         var n = norm(e.target.value), alvo = null;
         Object.keys(ENT).forEach(function (id) { if (!alvo && norm(ENT[id].nome) === n) alvo = id; });
@@ -448,7 +458,8 @@
     RAIZ.querySelector("#ic-det").addEventListener("click", function (e) {
       var b = e.target.closest("[data-span]"); if (b) { S.span = +b.getAttribute("data-span"); guarda(); detalhe(); return; }
       var k = e.target.closest("[data-ks]"); if (k) { S.k = +k.getAttribute("data-ks"); S.modo = "m"; guarda(); render(); return; }
-      if (e.target.closest("#ic-volta")) { seleciona("e", false); }
+      if (e.target.closest("#ic-volta")) { seleciona("e", false); return; }
+      if (e.target.closest("#ic-xls")) baixaXls();
     });
   }
   function seleciona(id, rolar) {
@@ -616,26 +627,39 @@
     for (var v = 0; v <= max + 1e-9; v += passo) { var y = top + H - v / max * H; h += "<line x1='" + left + "' x2='" + (left + w) + "' y1='" + y.toFixed(1) + "' y2='" + y.toFixed(1) + "' stroke='#e3e7ec'/><text x='" + (left - 4) + "' y='" + (y + 3).toFixed(1) + "' font-size='9' text-anchor='end' fill='#5b6773'>" + n0(v) + "</text>"; }
     return h;
   }
-  function grafMeses(e) {   // últimos 24 meses finais + meses parciais
-    var itens = [], par = M.parciais || [];
-    for (var j = N - 24; j < N; j++) if (j >= 0) itens.push({ rot: MES[ymDe(j).m], ano: ymDe(j).y, v: e.s[j], nor: normalMes(e, ymDe(j).m), par: false, m: ymDe(j).m });
-    par.forEach(function (p, q) { var mm = +p.mes.slice(5) - 1; itens.push({ rot: MES[mm], ano: +p.mes.slice(0, 4), v: e.p[q], nor: normalMes(e, mm), par: !p.completo, ate: p.ate, m: mm }); });
-    var W = 560, H = 170, top = 10, left = 32, bot = 30, w = W - left - 6, bw = w / itens.length;
+  // Meses do gráfico: o período selecionado (no mínimo 24 meses até o mês final) + meses parciais quando o período chega ao último mês
+  function mesesGraf(e) {
+    var fim = S.modo === "m" ? S.fim : N - 1, ini = S.modo === "m" ? fim - S.k + 1 : fim + 1;
+    var j0 = Math.max(0, Math.min(fim - 23, ini)), itens = [];
+    for (var j = j0; j <= fim; j++) itens.push({ j: j, rot: MES[ymDe(j).m], ano: ymDe(j).y, v: e.s[j], nor: normalMes(e, ymDe(j).m), par: false, m: ymDe(j).m, noPer: j >= ini });
+    if (fim === N - 1) (M.parciais || []).forEach(function (p, q) { var mm = +p.mes.slice(5) - 1; itens.push({ rot: MES[mm], ano: +p.mes.slice(0, 4), v: e.p[q], nor: normalMes(e, mm), par: !p.completo, ate: p.ate, m: mm, noPer: false }); });
+    return itens;
+  }
+  function grafMeses(e) {
+    var itens = mesesGraf(e), par = itens.filter(function (x) { return x.par; });
+    var W = 560, H = 170, top = 10, left = 32, bot = 30, w = W - left - 6, bw = w / itens.length, letras = itens.length <= 40;
     var max = 10; itens.forEach(function (x) { if (ok(x.v)) max = Math.max(max, x.v); if (ok(x.nor)) max = Math.max(max, x.nor); }); max = bonito(max * 1.08) || max;
-    var s = "<svg viewBox='0 0 " + W + " " + (H + top + bot) + "' role='img' aria-label='Chuva mensal dos últimos meses e normal'>" + eixoY(max, H, top, left, w);
+    var s = "<svg viewBox='0 0 " + W + " " + (H + top + bot) + "' role='img' aria-label='Chuva mensal e normal'>" + eixoY(max, H, top, left, w);
+    var iP = -1, nP = 0; itens.forEach(function (x, i) { if (x.noPer) { if (iP < 0) iP = i; nP++; } });
+    var mostraFaixa = S.modo === "m" && nP > 0 && nP < itens.length;
+    if (mostraFaixa) s += "<rect x='" + (left + iP * bw).toFixed(1) + "' y='" + top + "' width='" + (nP * bw).toFixed(1) + "' height='" + H + "' fill='#e8f0f8'/>";
     var pts = [];
     itens.forEach(function (x, i) {
       var cx = left + i * bw, hh = ok(x.v) ? x.v / max * H : 0, pc = ok(x.v) && x.nor > 0.5 ? 100 * x.v / x.nor : NaN;
       var c = ok(pc) ? PCT_C.c[bin(PCT_C.thr, pc)] : "#cfd6de";
       s += "<rect x='" + (cx + bw * 0.12).toFixed(1) + "' y='" + (top + H - hh).toFixed(1) + "' width='" + (bw * 0.76).toFixed(1) + "' height='" + hh.toFixed(1) + "' fill='" + c + "' stroke='" + (x.par ? "#0b4f8a" : "rgba(0,0,0,.25)") + "'" + (x.par ? " stroke-dasharray='3 2'" : "") + "><title>" + MESL[x.m] + " de " + x.ano + ": " + n0(x.v) + " mm" + (x.par ? " (parcial até " + dBR(iso2d(x.ate)) + ")" : "") + " · normal " + n0(x.nor) + " mm</title></rect>";
       if (ok(x.nor)) pts.push((cx + bw / 2).toFixed(1) + "," + (top + H - x.nor / max * H).toFixed(1));
-      if (x.m === 0 || i === 0) s += "<text x='" + (cx + bw / 2).toFixed(1) + "' y='" + (top + H + 24) + "' font-size='9' text-anchor='middle' fill='#1d2733' font-weight='600'>" + x.ano + "</text>";
-      s += "<text x='" + (cx + bw / 2).toFixed(1) + "' y='" + (top + H + 12) + "' font-size='8.5' text-anchor='middle' fill='#5b6773'>" + x.rot.charAt(0).toUpperCase() + "</text>";
+      if ((x.m === 0 && (itens.length <= 120 || x.ano % 5 === 0)) || i === 0) s += "<text x='" + (cx + bw / 2).toFixed(1) + "' y='" + (top + H + 24) + "' font-size='9' text-anchor='middle' fill='#1d2733' font-weight='600'>" + x.ano + "</text>";
+      if (letras) s += "<text x='" + (cx + bw / 2).toFixed(1) + "' y='" + (top + H + 12) + "' font-size='8.5' text-anchor='middle' fill='#5b6773'>" + x.rot.charAt(0).toUpperCase() + "</text>";
     });
     s += "<polyline points='" + pts.join(" ") + "' fill='none' stroke='#1d2733' stroke-width='1.6' stroke-dasharray='4 3'/>";
     s += "</svg>";
-    return "<h4>Chuva mensal — últimos " + itens.length + " meses</h4>" + s +
-      "<div class='ic-glg'><span><i style='background:#f39c34'></i>abaixo da normal</span><span><i style='background:#eeeeee;border:1px solid #ccc'></i>normal</span><span><i style='background:#6dbf73'></i>acima</span><span><i style='background:none;border-top:2px dashed #1d2733;height:0;width:16px'></i>normal 1991–2020</span>" + (par.length ? "<span><i style='background:#fff;border:1px dashed #0b4f8a'></i>mês parcial</span>" : "") + "</div>";
+    var a = itens[0], b = itens[itens.length - 1];
+    return "<div class='ic-cxh' style='margin:0 0 4px'><h4 style='margin:0'>Chuva mensal — " + MES[a.m] + "/" + a.ano + " a " + MES[b.m] + "/" + b.ano + "</h4>" +
+      (S.modo === "m" ? "<button class='ic-lnk' id='ic-xls' type='button' title='Observado mensal, normal 1991–2020 e anomalia do período selecionado'>Baixar em Excel</button>" : "") + "</div>" + s +
+      "<div class='ic-glg'><span><i style='background:#f39c34'></i>abaixo da normal</span><span><i style='background:#eeeeee;border:1px solid #ccc'></i>normal</span><span><i style='background:#6dbf73'></i>acima</span><span><i style='background:none;border-top:2px dashed #1d2733;height:0;width:16px'></i>normal 1991–2020</span>" +
+      (mostraFaixa ? "<span><i style='background:#e8f0f8;border:1px solid #c9d8e8'></i>período selecionado</span>" : "") +
+      (par.length ? "<span><i style='background:#fff;border:1px dashed #0b4f8a'></i>mês parcial</span>" : "") + "</div>";
   }
   function grafSpi(e) {
     var anos = S.span, ini = Math.max(S.k - 1, N - 12 * anos), itens = [];
@@ -696,6 +720,59 @@
     a.download = S.modo === "m" ? "chuva_bahia_" + ymDe(S.fim).y + "-" + ("0" + (ymDe(S.fim).m + 1)).slice(-2) + "_" + S.k + "meses.csv" : "chuva_bahia_ultimos_" + S.rj + "_dias.csv";
     document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  // Excel do local selecionado: chuva mensal observada, normal 1991–2020 e anomalia de cada mês do período escolhido
+  // (mais os meses parciais, quando o período chega ao último mês). A biblioteca SheetJS só é baixada no clique.
+  var XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js", xlsxProm = null;
+  function carregaXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (!xlsxProm) xlsxProm = new Promise(function (ok1, falha) {
+      var sc = document.createElement("script"); sc.src = XLSX_URL; sc.async = true;
+      sc.onload = function () { window.XLSX ? ok1(window.XLSX) : falha(new Error("XLSX")); };
+      sc.onerror = function () { xlsxProm = null; falha(new Error("XLSX")); };
+      document.head.appendChild(sc);
+    });
+    return xlsxProm;
+  }
+  function r1(v) { return ok(v) ? Math.round(v * 10) / 10 : null; }
+  function slug(s) { return norm(s).toLowerCase().replace(/ /g, "_"); }
+  function tabelaMensal(e) {
+    var ini = S.fim - S.k + 1, linhas = [];
+    for (var j = ini; j <= S.fim; j++) {
+      var a = ymDe(j), v = e.s[j], nor = normalMes(e, a.m);
+      linhas.push([a.y + "-" + ("0" + (a.m + 1)).slice(-2), MESL[a.m], a.y, r1(v), r1(nor), ok(v) && ok(nor) ? r1(v - nor) : null, ok(v) && nor > 0.5 ? Math.round(100 * v / nor) : null, "final"]);
+    }
+    if (S.fim === N - 1) (M.parciais || []).forEach(function (p, q) {
+      var mm = +p.mes.slice(5) - 1, v = e.p[q], nor = normalMes(e, mm);
+      var cheio = !!p.completo;   // mês incompleto: sem anomalia (a normal é do mês inteiro)
+      linhas.push([p.mes, MESL[mm], +p.mes.slice(0, 4), r1(v), r1(nor), cheio && ok(v) && ok(nor) ? r1(v - nor) : null, cheio && ok(v) && nor > 0.5 ? Math.round(100 * v / nor) : null,
+        cheio ? "preliminar" : "parcial até " + dBR(iso2d(p.ate)) + " (sem anomalia)"]);
+    });
+    return linhas;
+  }
+  function baixaXls() {
+    var e = ENT[S.sel] || ENT.e, linhas = tabelaMensal(e), r = calc(e);
+    var tipo = e.tipo === "m" ? "Município" : e.tipo === "t" ? "Território de identidade" : e.tipo === "r" ? "Região" : "Estado (média dos 417 municípios)";
+    var cab = ["Mês (AAAA-MM)", "Mês", "Ano", "Chuva observada (mm)", "Normal 1991–2020 (mm)", "Anomalia (mm)", "% da normal", "Situação do dado"];
+    var meta = [["Chuva mensal observada — " + e.nome], ["Tipo", tipo], ["Período selecionado", rotPer(S.fim, S.k) + " (" + S.k + (S.k === 1 ? " mês" : " meses") + ")"],
+      ["Fonte", (M.fonte || "CHIRPS v3.0") + ". Processamento: INEMA"], ["Gerado em", new Date().toLocaleString("pt-BR")], []];
+    var tot = ["Total do período", "", "", r1(r.T), r1(r.normal), r1(r.anom), ok(r.pct) ? Math.round(r.pct) : null, "só meses finais (" + rotPer(S.fim, S.k) + ")"];
+    var nome = "chuva_mensal_" + slug(e.nome) + "_" + linhas[0][0] + "_a_" + ymDe(S.fim).y + "-" + ("0" + (ymDe(S.fim).m + 1)).slice(-2);
+    var bt = RAIZ.querySelector("#ic-xls"); if (bt) { bt.disabled = true; bt.textContent = "Gerando…"; }
+    carregaXlsx().then(function (X) {
+      var aoa = meta.concat([cab], linhas, [[], tot]);
+      var ws = X.utils.aoa_to_sheet(aoa);
+      ws["!cols"] = [{ wch: 14 }, { wch: 11 }, { wch: 6 }, { wch: 20 }, { wch: 21 }, { wch: 14 }, { wch: 12 }, { wch: 22 }];
+      ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }];
+      var wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, "Chuva mensal");
+      X.writeFile(wb, nome + ".xlsx");
+    }).catch(function () {   // sem acesso à biblioteca: entrega a mesma tabela em CSV (abre no Excel)
+      var fmt = function (v) { return v == null ? "" : String(v).replace(".", ","); };
+      var txt = meta.concat([cab], linhas, [[], tot]).map(function (l) { return l.map(fmt).join(";"); }).join("\r\n");
+      var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + txt], { type: "text/csv;charset=utf-8" })); a.download = nome + ".csv";
+      document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    }).then(function () { var b2 = RAIZ.querySelector("#ic-xls"); if (b2) { b2.disabled = false; b2.textContent = "Baixar em Excel"; } });
   }
 
   // ---------- mapa SVG ----------
