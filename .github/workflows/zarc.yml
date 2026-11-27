@@ -1,0 +1,53 @@
+name: Calendário de plantio (ZARC)
+
+# Baixa as tábuas de risco do Zoneamento Agrícola de Risco Climático (MAPA, dados abertos), guarda só a Bahia
+# e publica zarc_ba.json (janelas de plantio por município e cultura) para o painel agrometeorológico.
+# As portarias do ZARC mudam poucas vezes por ano: o robô roda uma vez por mês (dia 5) e pode ser disparado à mão.
+on:
+  schedule:
+    - cron: "23 9 5 * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zarc
+  cancel-in-progress: false
+
+jobs:
+  zarc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gerar zarc_ba.json
+        run: python zarc/gerar_zarc.py
+
+      - name: Publicar no repositório
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add zarc_ba.json
+          if git diff --cached --quiet; then
+            echo "Sem mudanças."; echo "mudou=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "ZARC (calendário de plantio) atualizado em $(TZ=America/Bahia date '+%d/%m/%Y')"
+            git pull --rebase -q || true
+            git push
+            echo "mudou=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Limpar cache do jsDelivr
+        if: steps.commit.outputs.mudou == 'true'
+        run: |
+          for espera in 20 120; do
+            sleep $espera
+            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/zarc_ba.json" || echo "purge falhou"
+          done
