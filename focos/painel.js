@@ -30,7 +30,7 @@
   var UC = null, UCREF = null, UCTODOS = null, camadaUC = null, ucLayers = {}, ucDestaque = null;
   // Ao abrir: últimos 7 dias e mapa colorido pela intensidade (FRP), para todos.
   // Do navegador só se lembra a série de satélites e a aba do ranking.
-  var sel = { serie: "ref", periodo: "7d", de: null, ate: null, biomas: {}, tipo: "estado", valor: "", sats: {}, rank: "mun", corMapa: "frp", ucGrupo: "-1", mapaUC: "todos", anosAcum: {} };
+  var sel = { serie: "ref", periodo: "7d", de: null, ate: null, biomas: {}, tipo: "estado", valor: "", sats: {}, rank: "mun", corMapa: "frp", ucGrupo: "-1", mapaUC: "todos", anosAcum: {}, modoMapa: "pontos" };
   try { var g = JSON.parse(localStorage.getItem("inemaFocos") || "{}"); ["serie", "rank"].forEach(function (k) { if (g[k]) sel[k] = g[k]; }); } catch (e) {}
   var graficos = {}, mapa = null, camadaPontos = null, camadasRef = {}, cachePontos = {};
 
@@ -144,7 +144,7 @@
         "<div class='fc-card c6'><h3 id='fc-t-acum'>Acumulado no ano</h3><p class='sub' id='fc-s-acum'></p><div class='fc-graf'><canvas id='g-acum'></canvas></div><div class='fc-anos' id='fc-acum-anos'></div></div>" +
         "<div class='fc-card c6'><h3 id='fc-t-mes'>Focos por mês</h3><p class='sub' id='fc-s-mes'></p><div class='fc-graf'><canvas id='g-mes'></canvas></div></div>" +
         "<div class='fc-card c7'><div class='fc-mapa-topo'><div><h3>Mapa dos focos</h3><p class='sub' id='fc-s-mapa' style='margin:0'></p></div>" +
-          "<div class='fc-linha'><div class='fc-seg' id='fc-mapa-uc'></div><div class='fc-seg' id='fc-cor-mapa'></div></div></div><div id='fc-aviso-mapa'></div><div id='fc-mapa'></div></div>" +
+          "<div class='fc-linha'><div class='fc-seg' id='fc-modo-mapa'></div><div class='fc-seg' id='fc-mapa-uc'></div><div class='fc-seg' id='fc-cor-mapa'></div></div></div><div id='fc-aviso-mapa'></div><div id='fc-mapa'></div></div>" +
         "<div class='fc-card c5'><h3 id='fc-t-rank'>Municípios com o maior número de registros</h3><p class='sub'>Ranking do período — clique para filtrar</p><div class='fc-abas fc-seg' id='fc-abas'></div><div class='fc-rank' id='fc-rank'></div></div>" +
         "<div class='fc-card c12' id='fc-card-uc'><div class='fc-mapa-topo'><div><h3>Focos em unidades de conservação</h3><p class='sub' id='fc-s-uc' style='margin:0'>Carregando…</p></div>" +
           "<div class='fc-seg' id='fc-uc-grupo'></div></div><div id='fc-aviso-uc'></div><div class='fc-uc'><div><div class='fc-uc-kpis' id='fc-uc-kpis'></div>" +
@@ -504,7 +504,9 @@
     }).catch(function () {});
   }
   function controlesMapa() {
+    seg("fc-modo-mapa", [["pontos", "Pontos"], ["densidade", "Densidade (mapa de calor)"]], sel.modoMapa, function (v) { sel.modoMapa = v; atualiza(); });
     seg("fc-cor-mapa", [["bioma", "Cor por bioma"], ["frp", "Cor por intensidade"]], sel.corMapa, function (v) { sel.corMapa = v; atualiza(); });
+    $("fc-cor-mapa").style.display = sel.modoMapa === "densidade" ? "none" : "";
     seg("fc-mapa-uc", [["todos", "Todos os focos"], ["uc", "Só em UCs"]], sel.mapaUC, function (v) { sel.mapaUC = v; atualiza(); });
   }
   function pontosRef(anos) {
@@ -518,7 +520,7 @@
     { max: Infinity, cor: "#3c0040", nome: "Muito alta", faixa: "≥ 150 MW" }];
   function classeFrp(f) { if (f == null) return { cor: "#9aa0a8", nome: "Sem FRP", faixa: "não informado" }; for (var i = 0; i < CLASSES_FRP.length; i++) if (f < CLASSES_FRP[i].max) return CLASSES_FRP[i]; }
   function corFrp(f) { return classeFrp(f).cor; }
-  var geracaoMapa = 0;
+  var geracaoMapa = 0, carregaHeat = null;
   function desenhaMapa(de, ate) {
     if (!window.L) return;
     if (!mapa) iniciaMapa();
@@ -535,10 +537,13 @@
       prom = cachePontos.todos.then(function (arr) { return arr.map(function (p) { return { la: p[0], lo: p[1], d: D0TODOS + p[2], h: p[3], s: META.satelites[p[4]], si: p[4], m: p[5], b: p[6], f: p[7], u: p.length > 8 ? p[8] : -1 }; }); });
     }
     $("fc-s-mapa").textContent = "Carregando focos…";
-    prom.then(function (pts) {
+    var dens = sel.modoMapa === "densidade";
+    if (dens && !window.L.heatLayer && !carregaHeat) carregaHeat = carregaScript("https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js");
+    Promise.all([prom, dens ? carregaHeat : null]).then(function (r) {
+      var pts = r[0];
       if (minha !== geracaoMapa) return;
       if (camadaPontos) mapa.removeLayer(camadaPontos);
-      var fs = sel.serie === "todos" && algumSat(), grupo = [], n = 0;
+      var fs = sel.serie === "todos" && algumSat(), grupo = [], n = 0, calor = [];
       pts.forEach(function (p) {
         if (p.d < de || p.d > ate) return;
         if (fb && !sel.biomas[p.b]) return;
@@ -546,14 +551,25 @@
         if (fs && !sel.sats[p.si]) return;
         if (sel.mapaUC === "uc" && !(p.u >= 0)) return;
         n++;
+        if (dens) { calor.push([p.la, p.lo, 1]); return; }
         var cor = sel.corMapa === "frp" ? corFrp(p.f) : (CORES_BIOMA[META.biomas[p.b]] || "#999");
         grupo.push(L.circleMarker([p.la, p.lo], { radius: n > 20000 ? 2 : 3.5, color: "#fff", weight: n > 20000 ? 0 : .6, fillColor: cor, fillOpacity: .85 })
           .bindTooltip("<b>" + esc(MUN[p.m][0]) + "</b><br>" + br(n2d(p.d)) + " " + String(p.h).padStart(4, "0").replace(/(\d\d)(\d\d)/, "$1:$2") + " UTC<br>" + esc(p.s) +
             (p.f != null ? "<br>Intensidade " + classeFrp(p.f).nome.toLowerCase() + " · FRP " + p.f + " MW" : "") + "<br>" + esc(META.biomas[p.b]) +
             (p.u >= 0 && UC ? "<br><span style='color:#1f6b40'>UC: " + esc(UC.ucs[p.u][0]) + "</span>" : ""), { sticky: true }));
       });
-      camadaPontos = L.layerGroup(grupo).addTo(mapa);
       var leg = function (cor, txt) { return "<span class='fc-leg'><i style='background:" + cor + "'></i>" + txt + "</span>"; };
+      if (dens) {
+        // Mapa de calor: cada foco soma 1; o raio acompanha o zoom (no estado inteiro, ~25 km)
+        if (!mapa.getPane("calor")) { mapa.createPane("calor"); mapa.getPane("calor").style.zIndex = 395; mapa.getPane("calor").style.pointerEvents = "none"; }
+        camadaPontos = L.heatLayer(calor, { pane: "calor", radius: 14, blur: 16, maxZoom: 9, minOpacity: .3, max: Math.max(3, Math.min(40, n / 400)),
+          gradient: { .15: "#ffe066", .35: "#ffb000", .55: "#ff6a00", .75: "#d00000", .95: "#4a0040" } }).addTo(mapa);
+        $("fc-s-mapa").innerHTML = fmt(n) + " focos no mapa · densidade (quanto mais escuro, mais focos próximos): " +
+          "<span class='fc-leg'><i style='width:110px;background:linear-gradient(90deg,#ffe066,#ffb000,#ff6a00,#d00000,#4a0040)'></i>baixa → alta</span>" +
+          " <span style='color:#5b6773'>Aproxime o mapa para ver os focos separados; use “Pontos” para detalhes de cada foco.</span>";
+        return;
+      }
+      camadaPontos = L.layerGroup(grupo).addTo(mapa);
       $("fc-s-mapa").innerHTML = fmt(n) + " focos no mapa · " + (sel.corMapa === "frp"
         ? "intensidade do fogo (FRP): " + CLASSES_FRP.map(function (c) { return leg(c.cor, "<b>" + c.nome + "</b> " + esc(c.faixa)); }).join("") + leg(classeFrp(null).cor, "Sem FRP")
         : "bioma: " + META.biomas.map(function (b) { return leg(CORES_BIOMA[b] || "#999", esc(b)); }).join(""));
