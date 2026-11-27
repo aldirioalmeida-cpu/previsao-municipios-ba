@@ -74,7 +74,10 @@
     "#inema-agro .ia-dia{border:1px solid var(--ln);border-radius:10px;padding:8px;text-align:center;font-size:.86em;background:#fff}",
     "#inema-agro .ia-dia.hj{border-color:var(--az);box-shadow:0 0 0 1px var(--az) inset}",
     "#inema-agro .ia-dia .d{font-weight:700}",
-    "#inema-agro .ia-dia .man{display:block;border-radius:6px;color:#fff;font-weight:700;padding:3px 2px;margin:6px 0 2px;font-size:.92em}",
+    "#inema-agro .ia-dia .rotman{display:block;margin:6px 0 2px;font-size:.72em;text-transform:uppercase;letter-spacing:.04em;color:var(--tx2)}",
+    "#inema-agro .ia-dia .man{display:block;border-radius:6px;color:#fff;font-weight:700;padding:3px 2px;margin:0 0 2px;font-size:.92em;cursor:help}",
+    "#inema-agro .ia-diasnota{font-size:.84em;color:var(--tx2);margin:0 0 6px}",
+    "#inema-agro .ia-diasnota i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 3px 0 8px;vertical-align:-1px}",
     "#inema-agro .ia-dia .jan{display:block;color:var(--tx2);font-size:.85em;min-height:1.2em}",
     "#inema-agro .ia-dia dl{margin:6px 0 0;display:grid;grid-template-columns:1fr auto;gap:2px 4px;text-align:left}",
     "#inema-agro .ia-dia dt{color:var(--tx2);white-space:nowrap}",
@@ -595,9 +598,11 @@
     var ch = chuvas(m), et = m.d.et0, acum = 0;
     var dias = A.datas.map(function (d, i) {
       var c = m.d.man[i], b = ch[i] != null && et[i] != null ? ch[i] - et[i] : null;
+      var dica = c == null ? "" : "Pulverização/manejo: " + MAN.nomes[c] + " — " + m.d.horas[i] + " h boas entre 6h e 18h" + (m.d.jan[i] ? "; melhor janela " + m.d.jan[i] : "");
       return "<div class='ia-dia" + (i === S.d ? " hj" : "") + "'><span class='d'>" + rotDia(d, i) + "</span>" +
-        "<span class='man' style='background:" + (c == null ? "#aab3bd" : MAN.cores[c]) + "'>" + (c == null ? "–" : MAN.nomes[c]) + "</span>" +
-        "<span class='jan'>" + (m.d.jan[i] ? m.d.jan[i] + " (" + m.d.horas[i] + " h)" : c == null ? "" : "sem janela") + "</span>" +
+        "<span class='rotman'>Pulverização</span>" +
+        "<span class='man' title='" + esc(dica) + "' style='background:" + (c == null ? "#aab3bd" : MAN.cores[c]) + "'>" + (c == null ? "–" : MAN.nomes[c]) + "</span>" +
+        "<span class='jan'>" + (m.d.jan[i] ? "janela " + m.d.jan[i] + " · " + m.d.horas[i] + " h boas" : c == null ? "" : "sem janela boa") + "</span>" +
         "<dl><dt>Chuva</dt><dd>" + n1(ch[i]) + " mm</dd><dt>ET0</dt><dd>" + n1(et[i]) + " mm</dd><dt>Balanço</dt><dd style='color:" + (b == null ? "inherit" : b < 0 ? "#8c510a" : "#01665e") + "'>" + sinal(b) + "</dd><dt>Solo</dt><dd>" + n1(m.solo[i]) + "%</dd></dl></div>";
     }).join("");
     var tc = soma(ch), te = soma(et), tb = tc != null && te != null ? tc - te : null;
@@ -606,6 +611,8 @@
       "7 dias: chuva " + n1(tc) + " mm, ET0 " + n1(te) + " mm, balanço <b style='color:" + (tb < 0 ? "#8c510a" : "#01665e") + "'>" + sinal(tb) + " mm</b>" + fonte + "</span>" +
       (PREV_MUN ? "<a href='" + esc(PREV_MUN) + "?municipio=" + encodeURIComponent(m.nome) + "'>Previsão completa do município →</a>" : "") + "</div>" +
       "<div class='ia-ind'>" + indicadores(m) + "</div>" +
+      "<p class='ia-diasnota'><b>Pulverização / manejo</b> (aplicação de defensivos e adubação foliar): horas entre 6h e 18h sem chuva, com vento de 3 a 10 km/h, umidade ≥ 55% e temperatura ≤ 30 °C." +
+      MAN.nomes.map(function (n, i) { return "<i style='background:" + MAN.cores[i] + "'></i>" + n + " (" + ["4 h ou mais", "2–3 h", "1 h", "nenhuma"][i] + ")"; }).join("") + "</p>" +
       "<div class='ia-dias'>" + dias + "</div><div class='ia-graf'>" + grafico(m, ch) + "</div>" +
       "<div class='ia-zarc' id='ia-zarc'>" + calendario(m) + "</div>" + caixaGD(m);
     if (!Z) carregaZarc().then(function () { var c = RAIZ.querySelector("#ia-zarc"); if (c && S.sel === m.k) c.innerHTML = calendario(m); });
