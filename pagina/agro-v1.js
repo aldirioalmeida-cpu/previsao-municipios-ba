@@ -89,9 +89,35 @@
     "#inema-agro .ia-links b{display:block;color:var(--az);font-size:.95em}",
     "#inema-agro .ia-links span{font-size:.82em;color:var(--tx2)}",
     "#inema-agro .ia-fonte{font-size:.8em;color:var(--tx2);margin-top:10px}",
+    "#inema-agro select.ia-sel{font:inherit;font-size:.88em;border:1px solid var(--ln);border-radius:999px;padding:5px 10px;background:#fff;color:var(--tx);max-width:100%}",
+    "#inema-agro .ia-zarc{margin-top:14px;padding-top:12px;border-top:1px solid var(--ln)}",
+    "#inema-agro .ia-zarc h4{margin:0 0 6px;font-size:.95em}",
+    "#inema-agro .ia-zw{overflow-x:auto}",
+    "#inema-agro table.ia-zt{border-collapse:collapse;font-size:.76em;min-width:640px;width:100%}",
+    "#inema-agro table.ia-zt th{font-weight:600;color:var(--tx2);text-align:center;padding:2px 0;border-bottom:1px solid var(--ln)}",
+    "#inema-agro table.ia-zt th.c{text-align:left;padding-right:8px}",
+    "#inema-agro table.ia-zt td{height:14px;padding:0;border-right:1px solid #fff}",
+    "#inema-agro table.ia-zt td.n{white-space:nowrap;padding:2px 8px 2px 0;font-size:1.05em;border:0}",
+    "#inema-agro table.ia-zt tr.col td.n{color:var(--tx2);font-size:.95em;padding-left:10px}",
+    "#inema-agro table.ia-zt td.hj{outline:2px solid #1d2733;outline-offset:-1px}",
+    "#inema-agro table.ia-zt tr.pl td{border-top:4px solid #fff}",
+    "#inema-agro .ia-ztag{display:inline-block;font-size:.8em;padding:0 6px;border-radius:8px;background:#eef2f6;color:var(--tx2);margin-left:4px}",
+    "#inema-agro .ia-ind{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 12px}",
+    "#inema-agro .ia-indc{border:1px solid var(--ln);border-left:5px solid var(--k);border-radius:10px;padding:8px 12px;background:#fff}",
+    "#inema-agro .ia-indc small{display:block;font-size:.75em;text-transform:uppercase;letter-spacing:.03em;color:var(--tx2)}",
+    "#inema-agro .ia-indc b{display:block;font-size:1.15em;color:var(--k)}",
+    "#inema-agro .ia-indc span{font-size:.86em;color:var(--tx)}",
+    "#inema-agro .ia-nota{font-size:.86em;color:var(--tx2);margin:4px 0 0}",
+    "#inema-agro .ia-gdx{margin-top:14px;padding-top:12px;border-top:1px solid var(--ln)}",
+    "#inema-agro .ia-gdx h4{margin:0 0 8px;font-size:.95em}",
+    "#inema-agro .ia-gdf{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end;font-size:.86em;color:var(--tx2)}",
+    "#inema-agro .ia-gdf label{display:flex;flex-direction:column;gap:3px}",
+    "#inema-agro .ia-gdf select,#inema-agro .ia-gdf input{font:inherit;color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:5px 8px;background:#fff}",
+    "#inema-agro .ia-gdf input[type=number]{width:110px}",
+    "#inema-agro #ia-gd-res{margin-top:10px;color:var(--tx)}",
     "#inema-agro .ia-carr{padding:40px;text-align:center;color:var(--tx2)}",
     "@media (max-width:1000px){#inema-agro .ia-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#inema-agro .ia-corpo{grid-template-columns:1fr}#inema-agro .ia-links{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-    "@media (max-width:640px){#inema-agro{font-size:14px}#inema-agro .ia-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro .ia-kpi strong{font-size:1.3em}#inema-agro .ia-dias{grid-template-columns:repeat(auto-fit,minmax(104px,1fr))}#inema-agro ol.ia-rank{columns:1}#inema-agro input.ia-busca{min-width:0;width:100%}#inema-agro .ia-grp{width:100%}#inema-agro a.ia-bol-ult{flex-basis:100%}#inema-agro .ia-links{grid-template-columns:1fr}}"
+    "@media (max-width:640px){#inema-agro{font-size:14px}#inema-agro .ia-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#inema-agro .ia-kpi strong{font-size:1.3em}#inema-agro .ia-dias{grid-template-columns:repeat(auto-fit,minmax(104px,1fr))}#inema-agro ol.ia-rank{columns:1}#inema-agro input.ia-busca{min-width:0;width:100%}#inema-agro .ia-grp{width:100%}#inema-agro a.ia-bol-ult{flex-basis:100%}#inema-agro .ia-links{grid-template-columns:1fr}#inema-agro .ia-ind{grid-template-columns:1fr}}"
   ].join("\n");
   var st = document.createElement("style");
   st.textContent = CSS;
@@ -107,6 +133,7 @@
   function json(u) { return fetch(u, { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
   var DSEM = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   function dt(iso) { return new Date(iso + "T12:00:00"); }
+  var MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
   function rotDia(iso, i) { var d = dt(iso); return (i === 0 ? "Hoje" : DSEM[d.getDay()]) + " " + d.getDate(); }
   function dataBR(iso) { var d = dt(iso); return ("0" + d.getDate()).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2); }
   function media(a) { var s = 0, n = 0; a.forEach(function (x) { if (x != null && !isNaN(x)) { s += x; n++; } }); return n ? s / n : null; }
@@ -119,8 +146,68 @@
     bal: { nome: "Balanço hídrico (chuva − ET0)", curto: "Balanço hídrico", un: "mm" },
     chuva: { nome: "Chuva prevista", curto: "Chuva", un: "mm" },
     et0: { nome: "Evapotranspiração de referência (ET0)", curto: "ET0", un: "mm" },
-    solo: { nome: "Umidade do solo (0–28 cm)", curto: "Umidade do solo", un: "%" }
+    solo: { nome: "Umidade do solo (0–28 cm)", curto: "Umidade do solo", un: "%" },
+    plant: { nome: "Condição para plantio de sequeiro", curto: "Plantio", un: "" },
+    ver: { nome: "Risco de veranico", curto: "Veranico", un: "" },
+    zarc: { nome: "Plantio indicado agora (ZARC)", curto: "Época de plantio (ZARC)", un: "" }
   };
+  // ---------- ZARC (Zoneamento Agrícola de Risco Climático, MAPA) ----------
+  var ZARC = { nomes: ["Indicado · risco 20%", "Indicado · risco 30%", "Indicado · risco 40%", "Fora da janela agora", "Não zoneado"], cores: ["#1a7f37", "#5cb85c", "#b9dd9f", "#e8a87c", "#e6e9ed"] };
+  var Z = null, ZK = {}, zProm = null;
+  function carregaZarc() {
+    if (!zProm) zProm = json(BASE + "zarc_ba.json").then(function (z) { Z = z; Object.keys(z.nomes).forEach(function (g) { ZK[norm(z.nomes[g])] = g; }); return z; })
+      .catch(function () { zProm = null; return null; });
+    return zProm;
+  }
+  function ordemZarc() {
+    return Z.culturas.map(function (c, i) { return i; }).sort(function (a, b) {
+      var x = Z.culturas[a], y = Z.culturas[b]; return (x.manejo === "Sequeiro" ? 0 : 1) - (y.manejo === "Sequeiro" ? 0 : 1) || x.nome.localeCompare(y.nome, "pt-BR");
+    });
+  }
+  function padraoZarc() { var i = Z.culturas.map(function (c) { return c.nome + "|" + c.manejo; }).indexOf("Milho 1ª Safra|Sequeiro"); return i >= 0 ? i : ordemZarc()[0]; }
+  function opcoesZarc() {
+    var sel = RAIZ.querySelector("#ia-zc"); if (!sel || !Z) return;
+    sel.innerHTML = ordemZarc().map(function (i) { var c = Z.culturas[i]; return "<option value='" + i + "'" + (i === S.zc ? " selected" : "") + ">" + esc(c.nome) + " · " + esc(c.manejo.toLowerCase()) + "</option>"; }).join("");
+  }
+  function decAtual() { var d = dt(A.datas[0]); return d.getMonth() * 3 + (d.getDate() <= 10 ? 0 : d.getDate() <= 20 ? 1 : 2); }
+  function rotDec(i) { return ["1º", "2º", "3º"][i % 3] + " decêndio de " + MESES[Math.floor(i / 3)]; }
+  function zarcDe(m, c) { var g = Z && ZK[m.k]; return g && Z.mun[g] ? Z.mun[g][String(c)] || null : null; }
+  function zarcClasse(m) {
+    if (!Z) return null;
+    var s = zarcDe(m, S.zc); if (!s) return 4;
+    var ch = s.charAt(decAtual()); return ch === "2" ? 0 : ch === "3" ? 1 : ch === "4" ? 2 : 3;
+  }
+  // Ciclo médio (dias do plantio à colheita) só para estimar a colheita no calendário — varia com a cultivar
+  var CICLO = [["Feijão Caupi", 75], ["Feijão", 90], ["Milho", 120], ["Soja", 115], ["Sorgo", 110], ["Algodão", 170], ["Amendoim", 110],
+    ["Girassol", 110], ["Mamona", 180], ["Trigo", 115], ["Arroz", 120], ["Gergelim", 100], ["Mandioca", 365]];
+  function cicloDe(nome) { for (var i = 0; i < CICLO.length; i++) if (nome.indexOf(CICLO[i][0]) === 0) return CICLO[i][1]; return null; }
+  // Classes categóricas (índice 3 = fora da estação chuvosa do município)
+  var PLANT = { nomes: ["Favorável", "Atenção", "Desfavorável", "Fora da estação chuvosa"], cores: ["#1f6fd1", "#f0b400", "#d63031", "#cfd5dc"] };
+  var VER = { nomes: ["Sem sinal", "Atenção", "Alerta", "Fora da estação chuvosa"], cores: ["#2e9e4f", "#f08c00", "#d63031", "#cfd5dc"] };
+  var CATEG = { plant: PLANT, ver: VER, zarc: ZARC };
+  var CHUVOSO_MM = 50;   // mês da estação chuvosa: normal 1991–2020 (CHIRPS) de pelo menos 50 mm no município
+  function mesAtual() { return dt(A.datas[0]).getMonth(); }
+  function chuvoso(m) { var nm = m.d.nm; return nm ? (nm[mesAtual()] != null && nm[mesAtual()] >= CHUVOSO_MM) : null; }
+  function obsSeco(m) {   // dias seguidos sem chuva observados (CHIRPS) até A.seco_ate, se o dado tiver até 15 dias
+    if (m.d.seco == null || !A.seco_ate) return null;
+    return (dt(A.datas[0]) - dt(A.seco_ate)) / 864e5 <= 15 ? m.d.seco : null;
+  }
+  function secoPrev(m) { var c = m.d.chuva, n = 0; for (var i = 0; i < c.length; i++) { if (c[i] != null && c[i] < 1) n++; else break; } return n; }
+  function veranico(m) {
+    var ch = chuvoso(m); if (ch == null) return null; if (!ch) return 3;
+    var p = secoPrev(m), o = obsSeco(m), t = (o || 0) + p;
+    if ((p >= 7 && (o == null || o >= 3)) || (p >= 3 && t >= 15)) return 2;
+    if (p >= 5 || (p >= 3 && t >= 10)) return 1;
+    return 0;
+  }
+  function plantio(m) {
+    var ch = chuvoso(m); if (ch == null) return null; if (!ch) return 3;
+    var c7 = soma(m.d.chuva), b7 = soma(m.d.bal), so = media(m.solo);
+    if (c7 == null) return null;
+    if (c7 >= 25 && b7 >= 0 && (so == null || so >= 20)) return 0;
+    if (c7 >= 15 || (so != null && so >= 20 && c7 >= 5)) return 1;
+    return 2;
+  }
   var ESC = {
     bal: { d: [-6, -4, -2, 0, 2, 5, 10], s: [-40, -30, -20, -10, 0, 15, 40], c: ["#8c510a", "#bf812d", "#dfc27d", "#f6e8c3", "#c7eae5", "#80cdc1", "#35978f", "#01665e"] },
     chuva: { d: [1, 5, 10, 20, 40, 80], s: [2, 10, 25, 50, 100, 150], c: ["#f3efe6", "#c6e9c2", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84"] },
@@ -131,9 +218,9 @@
   function bin(thr, v) { var i = 0; while (i < thr.length && v >= thr[i]) i++; return i; }
 
   // ---------- estado ----------
-  var S = { v: "man", d: 0, mod: "om", sel: null, reg: null };
-  try { var g = JSON.parse(localStorage.getItem("inemaAgro1") || "{}"); if (VARS[g.v]) S.v = g.v; if (g.mod) S.mod = g.mod; if (g.sel) S.sel = g.sel; } catch (e) { /* sem armazenamento */ }
-  function guarda() { try { localStorage.setItem("inemaAgro1", JSON.stringify({ v: S.v, mod: S.mod, sel: S.sel })); } catch (e) { /* ignora */ } }
+  var S = { v: "man", d: 0, mod: "om", sel: null, reg: null, zc: null, zm: "Sequeiro" };
+  try { var g = JSON.parse(localStorage.getItem("inemaAgro1") || "{}"); if (VARS[g.v]) S.v = g.v; if (g.mod) S.mod = g.mod; if (g.sel) S.sel = g.sel; if (g.zc != null) S.zc = g.zc; if (g.zm) S.zm = g.zm; } catch (e) { /* sem armazenamento */ }
+  function guarda() { try { localStorage.setItem("inemaAgro1", JSON.stringify({ v: S.v, mod: S.mod, sel: S.sel, zc: S.zc, zm: S.zm })); } catch (e) { /* ignora */ } }
   var qs = new URLSearchParams(location.search);
   if (qs.get("municipio")) S.sel = norm(qs.get("municipio"));
 
@@ -183,6 +270,9 @@
   function val(m, v, d) {
     v = v || S.v; d = d == null ? S.d : d;
     var sem = d === "s";
+    if (v === "zarc") return zarcClasse(m);
+    if (v === "ver") return veranico(m);
+    if (v === "plant") return plantio(m);
     if (v === "man") return sem ? m.d.man.filter(function (c) { return c != null && c <= 1; }).length : m.d.man[d];
     if (v === "bal") {
       if (S.mod === "om") return sem ? soma(m.d.bal) : m.d.bal[d];
@@ -200,12 +290,24 @@
   }
   function cor(v) {
     if (v == null || isNaN(v)) return "#e6e9ed";
+    if (CATEG[S.v]) return CATEG[S.v].cores[v];
     if (S.v === "man" && S.d !== "s") return MAN.cores[v];
     var e = escala(); return e.c[bin(e.thr, v)];
   }
   function txt(m) {
     var v = val(m), sem = S.d === "s";
     if (v == null) return "sem dado";
+    if (S.v === "zarc") {
+      var s = zarcDe(m, S.zc), prox = "";
+      if (s && v === 3) { for (var q = 1; q < 36; q++) { var j = (decAtual() + q) % 36; if (s.charAt(j) !== "0") { prox = " · próxima janela: " + rotDec(j); break; } } }
+      return ZARC.nomes[v] + " (" + rotDec(decAtual()) + ")" + prox;
+    }
+    if (S.v === "ver") {
+      if (v === 3) return VER.nomes[3] + " (" + MESES[mesAtual()] + ")";
+      var o = obsSeco(m);
+      return VER.nomes[v] + " · " + secoPrev(m) + " de 7 dias previstos sem chuva" + (o != null ? " · " + o + (o === 1 ? " dia seco observado até " : " dias secos observados até ") + "" + dataBR(A.seco_ate) : "");
+    }
+    if (S.v === "plant") return PLANT.nomes[v] + (v === 3 ? " (" + MESES[mesAtual()] + ")" : " · chuva 7 dias " + n1(soma(m.d.chuva)) + " mm, balanço " + sinal(soma(m.d.bal)) + " mm, solo " + n1(media(m.solo)) + "%");
     if (S.v === "man") {
       if (sem) return v + " de 7 dias favoráveis ou razoáveis";
       return MAN.nomes[v] + " · " + m.d.horas[S.d] + " h boas" + (m.d.jan[S.d] ? " (" + m.d.jan[S.d] + ")" : "");
@@ -235,6 +337,7 @@
       "<div class='ia-grp' id='ia-gd'><span>Dia</span>" + A.datas.map(function (d, i) { return "<button class='ia-b' data-d='" + i + "'>" + rotDia(d, i) + "</button>"; }).join("") + "<button class='ia-b' data-d='s'>7 dias</button></div>" +
       "<div class='ia-grp' id='ia-gm'><span>Chuva</span><button class='ia-b' data-m='om' title='Open-Meteo: melhor modelo disponível, na sede do município'>Padrão</button>" +
       ["ecmwf", "gfs", "icon"].filter(function (k) { return MODS.indexOf(k) >= 0; }).map(function (k) { return "<button class='ia-b' data-m='" + k + "' title='Chuva média do modelo no município (pixels ponderados pela área)'>" + k.toUpperCase() + "</button>"; }).join("") + "</div>" +
+      "<div class='ia-grp' id='ia-gz' hidden><span>Cultura</span><select class='ia-sel' id='ia-zc' aria-label='Cultura do ZARC'><option>Carregando…</option></select></div>" +
       "<div class='ia-grp' style='margin-left:auto'><input class='ia-busca' id='ia-busca' list='ia-lista' placeholder='Buscar município…' aria-label='Buscar município'><datalist id='ia-lista'>" +
       LISTA.map(function (m) { return "<option value='" + esc(m.nome) + "'>"; }).join("") + "</datalist></div></div>";
     h += "<div class='ia-corpo'><div class='ia-cx'><h3 id='ia-tmapa'></h3><div class='ia-mapa' id='ia-mapa'>" + svgMapa() + "<div class='ia-tip' id='ia-tip'></div></div><div id='ia-leg'></div></div>" +
@@ -248,6 +351,12 @@
       "<li><b>Balanço hídrico</b> = chuva prevista − ET0. Valores negativos indicam que a atmosfera retira mais água do que a chuva repõe (déficit); positivos, excedente.</li>" +
       "<li><b>Umidade do solo</b> é o conteúdo volumétrico de água simulado pelo modelo nas camadas 0–7 cm e 7–28 cm (média ponderada). Como varia com o tipo de solo, compare valores do mesmo local ao longo dos dias.</li>" +
       "<li><b>Chuva</b>: “Padrão” é a previsão do Open-Meteo na sede do município (mesma dos cards de previsão). ECMWF, GFS e ICON mostram a chuva <b>média</b> de cada modelo no município: média dos pixels de 0,25° (≈ 27 km) que cobrem o município, cada um pesando conforme a área do município dentro dele — úteis para comparar e avaliar a incerteza.</li>" +
+      "<li><b>Estação chuvosa</b> de cada município: meses cuja chuva normal (1991–2020, CHIRPS) é de pelo menos " + CHUVOSO_MM + " mm. Fora dela, Plantio e Veranico aparecem em cinza.</li>" +
+      "<li><b>Plantio de sequeiro</b> (indicativo): <b style='color:" + PLANT.cores[0] + "'>Favorável</b> com 25 mm ou mais previstos em 7 dias, balanço hídrico ≥ 0 e umidade do solo ≥ 20%; <b style='color:#b08400'>Atenção</b> com 15 mm ou mais (ou solo úmido e alguma chuva); <b style='color:" + PLANT.cores[2] + "'>Desfavorável</b> abaixo disso. A época de plantio de cada cultura deve seguir o Zoneamento Agrícola de Risco Climático (ZARC/MAPA).</li>" +
+      "<li><b>Veranico</b>: sequência de dias sem chuva (< 1 mm) na estação chuvosa. Soma os dias secos observados (CHIRPS, até a data indicada) e os previstos a partir de hoje. <b style='color:" + VER.cores[1] + "'>Atenção</b>: 5 ou mais dias previstos sem chuva, ou 10 ou mais no total; <b style='color:" + VER.cores[2] + "'>Alerta</b>: a semana inteira sem chuva prevista após dias secos, ou 15 ou mais no total.</li>" +
+      "<li><b>Época de plantio (ZARC)</b>: no mapa, onde a cultura escolhida tem plantio indicado no decêndio atual pelo Zoneamento Agrícola de Risco Climático (MAPA), e com que risco (20%, 30% ou 40% de perda por clima). " +
+      "No detalhe do município, o calendário mostra as janelas de plantio de todas as culturas zoneadas (1ª e 2ª safra, sequeiro e irrigado) e a colheita aproximada pelo ciclo médio. A tábua é atualizada uma vez por mês a partir dos dados abertos do MAPA.</li>" +
+      "<li><b>Graus-dia</b> (no detalhe do município): soma térmica desde o plantio, útil para acompanhar o desenvolvimento da cultura. As temperaturas são buscadas na hora, no Open-Meteo.</li>" +
       "<li>Clique em um município no mapa, na lista ou use a busca para ver os 7 dias. Clique em uma região para destacá-la.</li></ul></details>";
     h += "<div class='ia-links'>" +
       (PREV_MUN ? "<a href='" + esc(PREV_MUN) + "'><b>Previsão por município</b><span>Temperatura, chuva e vento por período do dia</span></a>" : "") +
@@ -317,6 +426,7 @@
     RAIZ.querySelector("#ia-gv").addEventListener("click", function (e) { var b = e.target.closest("[data-v]"); if (!b) return; S.v = b.getAttribute("data-v"); guarda(); render(); });
     RAIZ.querySelector("#ia-gd").addEventListener("click", function (e) { var b = e.target.closest("[data-d]"); if (!b) return; var d = b.getAttribute("data-d"); S.d = d === "s" ? "s" : +d; render(); });
     RAIZ.querySelector("#ia-gm").addEventListener("click", function (e) { var b = e.target.closest("[data-m]"); if (!b) return; S.mod = b.getAttribute("data-m"); guarda(); render(); });
+    RAIZ.querySelector("#ia-zc").addEventListener("change", function (e) { S.zc = +e.target.value; guarda(); render(); });
     var busca = RAIZ.querySelector("#ia-busca");
     busca.addEventListener("change", function () { var m = MUN[norm(busca.value)]; if (m) { seleciona(m.k, true); busca.value = ""; } });
     var mapa = RAIZ.querySelector("#ia-mapa"), tip = RAIZ.querySelector("#ia-tip");
@@ -334,6 +444,19 @@
     mapa.addEventListener("click", function (e) { var p = e.target.closest ? e.target.closest("path.m") : null; if (p && MUN[p.getAttribute("data-k")]) seleciona(p.getAttribute("data-k"), false); });
     RAIZ.querySelector("#ia-rank").addEventListener("click", function (e) { var li = e.target.closest("li[data-k]"); if (li) seleciona(li.getAttribute("data-k"), true); });
     RAIZ.querySelector("#ia-reg").addEventListener("click", function (e) { var n = e.target.closest("[data-r]"); if (!n) return; var r = +n.getAttribute("data-r"); S.reg = S.reg === r ? null : r; render(); });
+    var det = RAIZ.querySelector("#ia-det");
+    det.addEventListener("change", function (e) {
+      var id = e.target.id;
+      if (id === "ia-gd-c") { GD.c = e.target.value; var c = CULTURAS.filter(function (x) { return x[0] === GD.c; })[0]; GD.tb = c ? c[2] : GD.tb; RAIZ.querySelector("#ia-gd-tb").value = GD.tb; }
+      if (id === "ia-gd-tb") GD.tb = +e.target.value || 0;
+      if (id === "ia-gd-p") GD.plantio = e.target.value;
+      if (id === "ia-gd-meta") GD.meta = e.target.value;
+      if (/^ia-gd-/.test(id)) guardaGD();
+    });
+    det.addEventListener("click", function (e) {
+      if (e.target.closest("#ia-gd-ok") && S.sel && MUN[S.sel]) calculaGD(MUN[S.sel]);
+      var zb = e.target.closest("[data-zm]"); if (zb && S.sel && MUN[S.sel]) { S.zm = zb.getAttribute("data-zm"); guarda(); RAIZ.querySelector("#ia-zarc").innerHTML = calendario(MUN[S.sel]); }
+    });
   }
   function seleciona(k, rolar) {
     S.sel = k; guarda();
@@ -351,6 +474,15 @@
     RAIZ.querySelectorAll("#ia-gm [data-m]").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-m") === S.mod); b.disabled = !usaMod; });
     var quando = sem ? "próximos 7 dias" : (S.d === 0 ? "hoje" : rotDia(A.datas[S.d], S.d).replace(/ \d+$/, "") + ", " + dataBR(A.datas[S.d]));
     var modTxt = usaMod && S.mod !== "om" ? " · " + S.mod.toUpperCase() + " (média no município)" : "";
+    if (CATEG[S.v]) quando = "próximos 7 dias";
+    var gz = RAIZ.querySelector("#ia-gz"); gz.hidden = S.v !== "zarc";
+    if (S.v === "zarc") {
+      if (!Z) { RAIZ.querySelector("#ia-tmapa").textContent = "Carregando o zoneamento (ZARC)…"; carregaZarc().then(function (z) { if (z) { opcoesZarc(); render(); } else RAIZ.querySelector("#ia-tmapa").textContent = "Zoneamento (ZARC) indisponível no momento."; }); return; }
+      if (S.zc == null || !Z.culturas[S.zc]) S.zc = padraoZarc();
+      opcoesZarc();
+      quando = rotDec(decAtual()) + " · " + Z.culturas[S.zc].nome + " (" + Z.culturas[S.zc].manejo.toLowerCase() + ")";
+    }
+    RAIZ.querySelector("#ia-gd").style.opacity = CATEG[S.v] ? ".45" : "1";
     RAIZ.querySelector("#ia-tmapa").textContent = (S.v === "man" && sem ? "Dias com manejo favorável ou razoável" : VARS[S.v].nome) + " — " + quando + modTxt;
     LISTA.forEach(function (m) {
       var p = PATHS[m.k]; if (!p) return;
@@ -364,7 +496,8 @@
 
   function legenda() {
     var h = "";
-    if (S.v === "man" && S.d !== "s") h = MAN.nomes.map(function (n, i) { return "<span><i style='background:" + MAN.cores[i] + "'></i>" + n + "</span>"; }).join("");
+    if (CATEG[S.v]) h = CATEG[S.v].nomes.map(function (n, i) { return "<span><i style='background:" + CATEG[S.v].cores[i] + "'></i>" + n + "</span>"; }).join("");
+    else if (S.v === "man" && S.d !== "s") h = MAN.nomes.map(function (n, i) { return "<span><i style='background:" + MAN.cores[i] + "'></i>" + n + "</span>"; }).join("");
     else {
       var e = escala(), un = S.v === "man" ? " dias" : S.v === "solo" ? "%" : " mm";
       h = e.c.map(function (c, i) {
@@ -400,10 +533,18 @@
   function regioes() {
     var el = RAIZ.querySelector("#ia-reg");
     if (!REGIOES.length) { el.innerHTML = "<span>Sem regiões.</span>"; return; }
-    var manDia = S.v === "man" && S.d !== "s";
-    RAIZ.querySelector("#ia-treg").textContent = manDia ? "Condições de manejo por região" : "Média por região";
+    var manDia = S.v === "man" && S.d !== "s", cat = CATEG[S.v];
+    RAIZ.querySelector("#ia-treg").textContent = manDia ? "Condições de manejo por região" : cat ? VARS[S.v].curto + " por região (municípios)" : "Média por região";
     var linhas = REGIOES.map(function (nome, r) {
       var ms = LISTA.filter(function (m) { return m.r === r; });
+      if (cat) {
+        var q = cat.nomes.map(function () { return 0; }), tt = 0; ms.forEach(function (m) { var x = val(m); if (x != null) { q[x]++; tt++; } });
+        var zr = S.v === "zarc", ativos = tt - (zr ? q[4] : q[3]);
+        var ordem = !ativos ? -1 : zr ? (q[0] * 3 + q[1] * 2 + q[2]) / ativos : S.v === "ver" ? (q[2] * 2 + q[1]) / ativos : (q[0] * 2 + q[1]) / ativos;
+        var txtR = !tt ? "–" : !ativos ? (zr ? "não zoneado" : "fora da estação") : zr ? Math.round((q[0] + q[1] + q[2]) / ativos * 100) + "% com plantio indicado" :
+          S.v === "ver" ? Math.round((q[1] + q[2]) / ativos * 100) + "% em atenção/alerta" : Math.round(q[0] / ativos * 100) + "% favorável";
+        return { r: r, nome: nome, ord: ordem, bar: q.map(function (n, i) { return tt ? "<i style='width:" + (n / tt * 100) + "%;background:" + cat.cores[i] + "' title='" + cat.nomes[i] + ": " + n + "'></i>" : ""; }).join(""), v: txtR };
+      }
       if (manDia) {
         var c = [0, 0, 0, 0], t = 0; ms.forEach(function (m) { var x = val(m); if (x != null) { c[x]++; t++; } });
         return { r: r, nome: nome, ord: t ? (c[0] * 3 + c[1] * 2 + c[2]) / t : -1, bar: c.map(function (n, i) { return t ? "<i style='width:" + (n / t * 100) + "%;background:" + MAN.cores[i] + "' title='" + MAN.nomes[i] + ": " + n + "'></i>" : ""; }).join(""), v: t ? Math.round((c[0] + c[1]) / t * 100) + "% fav./raz." : "–" };
@@ -423,7 +564,19 @@
   function ranking() {
     var sem = S.d === "s", base = LISTA.filter(function (m) { return S.reg == null || m.r === S.reg; });
     var tit, ord, fmt;
-    if (S.v === "man") {
+    if (S.v === "zarc") {
+      tit = "Plantio indicado agora (menor risco)";
+      ord = function (m) { var c = val(m); return c == null || c > 2 ? -1 : 3 - c; };
+      fmt = function (m) { var c = val(m); return c != null && c <= 2 ? "risco " + [20, 30, 40][c] + "%" : "–"; };
+    } else if (S.v === "ver") {
+      tit = "Mais dias secos na estação chuvosa";
+      ord = function (m) { var c = veranico(m); return c == null || c === 3 ? -1 : (obsSeco(m) || 0) + secoPrev(m) + c * 0.01; };
+      fmt = function (m) { var o = obsSeco(m); return (o != null ? o + " obs. + " : "") + secoPrev(m) + " prev."; };
+    } else if (S.v === "plant") {
+      tit = "Melhores condições para plantio";
+      ord = function (m) { var c = plantio(m); return c == null || c === 3 ? -1e9 : (2 - c) * 1000 + (soma(m.d.chuva) || 0); };
+      fmt = function (m) { return n1(soma(m.d.chuva)) + " mm em 7 dias"; };
+    } else if (S.v === "man") {
       tit = sem ? "Mais dias bons para manejo" : "Maiores janelas de manejo";
       ord = function (m) { return sem ? val(m) : (m.d.horas[S.d] || 0); };
       fmt = function (m) { return sem ? val(m) + " dias" : (m.d.jan[S.d] || "–"); };
@@ -452,7 +605,127 @@
     el.innerHTML = "<div class='ia-dett'><h3>" + esc(m.nome) + "</h3><span>" + (m.r != null && REGIOES[m.r] ? "Região " + esc(REGIOES[m.r]) + " · " : "") +
       "7 dias: chuva " + n1(tc) + " mm, ET0 " + n1(te) + " mm, balanço <b style='color:" + (tb < 0 ? "#8c510a" : "#01665e") + "'>" + sinal(tb) + " mm</b>" + fonte + "</span>" +
       (PREV_MUN ? "<a href='" + esc(PREV_MUN) + "?municipio=" + encodeURIComponent(m.nome) + "'>Previsão completa do município →</a>" : "") + "</div>" +
-      "<div class='ia-dias'>" + dias + "</div><div class='ia-graf'>" + grafico(m, ch) + "</div>";
+      "<div class='ia-ind'>" + indicadores(m) + "</div>" +
+      "<div class='ia-dias'>" + dias + "</div><div class='ia-graf'>" + grafico(m, ch) + "</div>" +
+      "<div class='ia-zarc' id='ia-zarc'>" + calendario(m) + "</div>" + caixaGD(m);
+    if (!Z) carregaZarc().then(function () { var c = RAIZ.querySelector("#ia-zarc"); if (c && S.sel === m.k) c.innerHTML = calendario(m); });
+  }
+
+  // Calendário agrícola do município: janelas de plantio do ZARC por cultura e colheita estimada pelo ciclo médio
+  function calendario(m) {
+    if (!Z) return "<h4>Calendário de plantio (ZARC)</h4><p class='ia-nota'>Carregando o zoneamento…</p>";
+    var g = ZK[m.k], por = g && Z.mun[g];
+    if (!por) return "<h4>Calendário de plantio (ZARC)</h4><p class='ia-nota'>Não há culturas zoneadas para este município nas tábuas de risco do ZARC.</p>";
+    var CR = { "2": "#1a7f37", "3": "#5cb85c", "4": "#b9dd9f" }, hj = decAtual();
+    var idx = ordemZarc().filter(function (i) { return por[String(i)] && (S.zm === "Todos" || Z.culturas[i].manejo === S.zm); });
+    var manejos = ["Sequeiro", "Irrigado", "Todos"].filter(function (x) { return x === "Todos" || ordemZarc().some(function (i) { return por[String(i)] && Z.culturas[i].manejo === x; }); });
+    var h = "<div class='ia-cxh' style='display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between'><h4 style='margin:0'>Calendário de plantio e colheita (ZARC)</h4><span class='ia-grp'>" +
+      manejos.map(function (x) { return "<button type='button' class='ia-b" + (S.zm === x ? " on" : "") + "' data-zm='" + x + "'>" + x + "</button>"; }).join("") + "</span></div>";
+    if (!idx.length) return h + "<p class='ia-nota'>Nenhuma cultura zoneada neste manejo.</p>";
+    h += "<div class='ia-zw'><table class='ia-zt'><thead><tr><th class='c'></th>" + MESES.map(function (x) { return "<th colspan='3'>" + x.slice(0, 3) + "</th>"; }).join("") + "</tr></thead><tbody>";
+    idx.forEach(function (i) {
+      var c = Z.culturas[i], s = por[String(i)], ciclo = cicloDe(c.nome), col = {};
+      if (ciclo) for (var d = 0; d < 36; d++) if (s.charAt(d) !== "0") col[(d + Math.round(ciclo / 10)) % 36] = 1;
+      h += "<tr class='pl'><td class='n'>" + esc(c.nome) + (S.zm === "Todos" ? "<span class='ia-ztag'>" + esc(c.manejo.toLowerCase()) + "</span>" : "") + (c.safra !== Z.culturas[padraoZarc()].safra && c.safra !== "perene" ? "<span class='ia-ztag' title='Portaria da safra anterior'>" + esc(c.safra) + "</span>" : "") + "</td>";
+      for (var d2 = 0; d2 < 36; d2++) { var r = s.charAt(d2); h += "<td" + (d2 === hj ? " class='hj'" : "") + " style='background:" + (CR[r] || "#f1f3f5") + "' title='" + esc(c.nome) + " · " + rotDec(d2) + ": " + (CR[r] ? "plantio indicado, risco " + r + "0%" : "plantio não indicado") + "'></td>"; }
+      h += "</tr>";
+      if (ciclo) {
+        h += "<tr class='col'><td class='n'>colheita (aprox.)</td>";
+        for (var d3 = 0; d3 < 36; d3++) h += "<td" + (d3 === hj ? " class='hj'" : "") + " style='background:" + (col[d3] ? "#e0b26b" : "#fafbfc") + "'" + (col[d3] ? " title='Colheita aproximada: " + rotDec(d3) + " (ciclo médio de " + ciclo + " dias)'" : "") + "></td>";
+        h += "</tr>";
+      }
+    });
+    h += "</tbody></table></div>";
+    var safra = Z.culturas[idx[0]].safra;
+    return h + "<div class='ia-leg' style='margin-top:6px'><span><i style='background:" + CR["2"] + "'></i>plantio · risco 20%</span><span><i style='background:" + CR["3"] + "'></i>risco 30%</span><span><i style='background:" + CR["4"] + "'></i>risco 40%</span>" +
+      "<span><i style='background:#e0b26b'></i>colheita aproximada</span><span><i style='background:#fff;outline:2px solid #1d2733;outline-offset:-2px'></i>decêndio atual</span></div>" +
+      "<p class='ia-nota'>Plantio: Zoneamento Agrícola de Risco Climático (ZARC/MAPA), safra " + esc(safra) + " — risco de perda por fatores climáticos ao semear em cada decêndio. " +
+      "O painel mostra a janela mais ampla entre os tipos de solo e ciclos zoneados: confira na portaria a janela do seu solo e da sua cultivar (o crédito rural e o seguro seguem a portaria). " +
+      "Colheita: estimativa pelo ciclo médio da cultura, sem valor oficial; varia com a cultivar e o clima do ano. “1ª safra” e “2ª safra” seguem a nomenclatura do ZARC.</p>";
+  }
+
+  // Veranico e plantio no detalhe do município
+  function indicadores(m) {
+    var v = veranico(m), p = plantio(m), o = obsSeco(m), nm = m.d.nm, mes = mesAtual();
+    function card(cls, tit, nome, cor0, texto) { return "<div class='ia-indc' style='--k:" + cor0 + "'><small>" + tit + "</small><b>" + nome + "</b><span>" + texto + "</span></div>"; }
+    var est = nm ? "Estação chuvosa no município: " + MESES.filter(function (x, i) { return nm[i] != null && nm[i] >= CHUVOSO_MM; }).map(function (x) { return x.slice(0, 3); }).join(", ") + " (meses com normal ≥ " + CHUVOSO_MM + " mm)." : "";
+    if (v == null && p == null) return "<p class='ia-nota'>Indicadores de veranico e plantio disponíveis após a próxima atualização dos dados.</p>";
+    return card("", "Veranico", VER.nomes[v], VER.cores[v],
+        v === 3 ? "Fora da estação chuvosa (normal de " + MESES[mes] + ": " + n0(nm[mes]) + " mm)." : secoPrev(m) + " de 7 dias previstos sem chuva (< 1 mm)" + (o != null ? "; " + o + (o === 1 ? " dia sem chuva observado até " : " dias seguidos sem chuva observados até ") + dataBR(A.seco_ate) + " (CHIRPS)" : "") + ".") +
+      card("", "Plantio de sequeiro", PLANT.nomes[p], PLANT.cores[p],
+        p === 3 ? "Fora da estação chuvosa. Para a época de plantio de cada cultura, consulte o calendário (ZARC)." : "Chuva prevista em 7 dias: " + n1(soma(m.d.chuva)) + " mm; balanço " + sinal(soma(m.d.bal)) + " mm; umidade do solo média " + n1(media(m.solo)) + "%.") +
+      (est ? "<p class='ia-nota' style='grid-column:1/-1'>" + est + "</p>" : "");
+  }
+
+  // ---------- graus-dia (soma térmica) ----------
+  var CULTURAS = [["milho", "Milho", 10, 30], ["soja", "Soja", 10, null], ["feijao", "Feijão", 10, null], ["sorgo", "Sorgo", 10, null], ["algodao", "Algodão", 15, null], ["outra", "Outra cultura", 10, null]];
+  var GD = { c: "milho", tb: 10, plantio: null, meta: "" };
+  try { var gg = JSON.parse(localStorage.getItem("inemaAgroGD") || "{}"); ["c", "plantio", "meta"].forEach(function (k) { if (gg[k] != null) GD[k] = gg[k]; }); if (typeof gg.tb === "number") GD.tb = gg.tb; } catch (e) { /* ignora */ }
+  function guardaGD() { try { localStorage.setItem("inemaAgroGD", JSON.stringify(GD)); } catch (e) { /* ignora */ } }
+  function isoDe(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function caixaGD(m) {
+    if (!GD.plantio) { var d0 = dt(A.datas[0]); d0.setDate(d0.getDate() - 30); GD.plantio = isoDe(d0); }
+    return "<div class='ia-gdx'><h4>Graus-dia acumulados (soma térmica)</h4>" +
+      "<div class='ia-gdf'><label>Cultura <select id='ia-gd-c'>" + CULTURAS.map(function (c) { return "<option value='" + c[0] + "'" + (c[0] === GD.c ? " selected" : "") + ">" + c[1] + "</option>"; }).join("") + "</select></label>" +
+      "<label>Temperatura base (°C) <input id='ia-gd-tb' type='number' step='0.5' min='0' max='20' value='" + GD.tb + "'></label>" +
+      "<label>Data do plantio <input id='ia-gd-p' type='date' value='" + esc(GD.plantio) + "' max='" + A.datas[0] + "'></label>" +
+      "<label>Meta (GD, opcional) <input id='ia-gd-meta' type='number' min='0' step='10' placeholder='ex.: 1500' value='" + esc(GD.meta) + "'></label>" +
+      "<button type='button' class='ia-b on' id='ia-gd-ok'>Calcular</button></div><div id='ia-gd-res' class='ia-nota'>Escolha a cultura e a data do plantio e clique em Calcular.</div></div>";
+  }
+  function coordDe(m) {
+    if (m.d.c) return m.d.c;
+    var f = (A.geo.features || []).filter(function (x) { return norm(x.properties.nome) === m.k; })[0]; if (!f) return null;
+    var s0 = 0, s1 = 0, n = 0; (function anda(c) { if (typeof c[0] === "number") { s0 += c[1]; s1 += c[0]; n++; } else c.forEach(anda); })(f.geometry.coordinates);
+    return n ? [s0 / n, s1 / n] : null;
+  }
+  function jsonExt(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }); }
+  function calculaGD(m) {
+    var res = RAIZ.querySelector("#ia-gd-res"), c = coordDe(m), cul = CULTURAS.filter(function (x) { return x[0] === GD.c; })[0];
+    var hoje = dt(A.datas[0]), pl = GD.plantio ? dt(GD.plantio) : null;
+    if (!c || !pl || isNaN(pl)) { res.textContent = "Informe uma data de plantio válida."; return; }
+    var dias = Math.round((hoje - pl) / 864e5);
+    if (dias < 0) { res.textContent = "A data do plantio está no futuro: o cálculo usa só a previsão a partir dela."; }
+    if (dias > 400) { res.textContent = "Use um plantio dos últimos 400 dias."; return; }
+    res.textContent = "Buscando temperaturas…";
+    var la = (+c[0]).toFixed(4), lo = (+c[1]).toFixed(4), base = "latitude=" + la + "&longitude=" + lo + "&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FBahia";
+    var pedidos = [jsonExt("https://api.open-meteo.com/v1/forecast?" + base + "&past_days=" + Math.max(0, Math.min(92, dias)) + "&forecast_days=7")];
+    if (dias > 92) {   // parte antiga: reanálise ERA5 (atraso de ~5 dias)
+      var fimA = new Date(hoje); fimA.setDate(fimA.getDate() - 92);
+      pedidos.push(jsonExt("https://archive-api.open-meteo.com/v1/archive?" + base + "&start_date=" + GD.plantio + "&end_date=" + isoDe(fimA)));
+    }
+    Promise.all(pedidos).then(function (rs) {
+      var T = {};
+      rs.slice().reverse().forEach(function (r) { (r.daily.time || []).forEach(function (d, i) { if (r.daily.temperature_2m_max[i] != null) T[d] = [r.daily.temperature_2m_max[i], r.daily.temperature_2m_min[i]]; }); });
+      var tb = GD.tb, ts = cul && cul[3] && cul[0] === GD.c ? cul[3] : null, datas = Object.keys(T).filter(function (d) { return d >= GD.plantio; }).sort();
+      var acObs = 0, acPrev = 0, ult7 = [], serie = [], hojeIso = A.datas[0];
+      datas.forEach(function (d) {
+        var tx = T[d][0], tn = T[d][1]; if (ts != null) tx = Math.min(tx, ts); tn = Math.max(tn, tb); tx = Math.max(tx, tb);
+        var g = Math.max(0, (tx + tn) / 2 - tb);
+        if (d < hojeIso) { acObs += g; ult7.push(g); if (ult7.length > 7) ult7.shift(); } else acPrev += g;
+        serie.push([d, acObs + acPrev, d >= hojeIso]);
+      });
+      var med = media(ult7), meta = +GD.meta, txt = "<b>" + n0(acObs) + " GD</b> acumulados de " + dataBR(GD.plantio) + " até ontem" +
+        " · previsão para os próximos 7 dias: <b>+" + n0(acPrev) + " GD</b> (total " + n0(acObs + acPrev) + ")" + (med != null ? " · média recente " + n1(med) + " GD/dia" : "") + ".";
+      if (meta > 0) {
+        var falta = meta - acObs - acPrev;
+        if (falta <= 0) txt += " A meta de " + n0(meta) + " GD é atingida dentro da previsão.";
+        else if (med > 0) { var dd = new Date(dt(A.datas[A.datas.length - 1])); dd.setDate(dd.getDate() + Math.ceil(falta / med)); txt += " Faltam " + n0(falta) + " GD: mantido o ritmo recente, a meta seria atingida por volta de <b>" + dataBR(isoDe(dd)) + "</b>."; }
+      }
+      res.innerHTML = txt + "<br>" + grafGD(serie) + "<span style='font-size:.85em'>Método da média diária: GD = (Tmáx + Tmín)/2 − Tbase, com Tmín limitada à base" + (ts ? " e Tmáx a " + ts + " °C" : "") +
+        ". Temperaturas do Open-Meteo (até 92 dias atrás: modelos de previsão; antes disso: reanálise ERA5) no centro do município. A meta de GD depende da cultivar: consulte a recomendação técnica.</span>";
+    }).catch(function (e) { res.textContent = "Não foi possível buscar as temperaturas agora (" + e.message + "). Tente de novo em instantes."; });
+  }
+  function grafGD(serie) {
+    if (serie.length < 2) return "";
+    var W = 700, H = 120, pe = 40, pd = 10, pt = 8, pb = 20, max = serie[serie.length - 1][1] || 1, n = serie.length;
+    function x(i) { return pe + (W - pe - pd) * i / (n - 1); } function y(v) { return pt + (H - pt - pb) * (1 - v / max); }
+    var obs = serie.filter(function (s) { return !s[2]; }), iP = obs.length - 1;
+    var o = "<svg viewBox='0 0 " + W + " " + H + "' style='width:100%;height:auto;margin:6px 0' role='img' aria-label='Graus-dia acumulados'>";
+    [0, .5, 1].forEach(function (f) { o += "<line x1='" + pe + "' x2='" + (W - pd) + "' y1='" + y(max * f) + "' y2='" + y(max * f) + "' stroke='#e3e8ee'/><text x='" + (pe - 4) + "' y='" + (y(max * f) + 4) + "' font-size='10' text-anchor='end' fill='#5b6773'>" + n0(max * f) + "</text>"; });
+    o += "<polyline fill='none' stroke='#2e7d32' stroke-width='2' points='" + serie.slice(0, iP + 1).map(function (s, i) { return x(i) + "," + y(s[1]); }).join(" ") + "'/>";
+    if (iP < n - 1) o += "<polyline fill='none' stroke='#2e7d32' stroke-width='2' stroke-dasharray='5 4' points='" + serie.slice(Math.max(iP, 0)).map(function (s, i) { return x(i + Math.max(iP, 0)) + "," + y(s[1]); }).join(" ") + "'/>";
+    o += "<text x='" + pe + "' y='" + (H - 4) + "' font-size='10' fill='#5b6773'>" + dataBR(serie[0][0]) + "</text><text x='" + (W - pd) + "' y='" + (H - 4) + "' font-size='10' text-anchor='end' fill='#5b6773'>" + dataBR(serie[n - 1][0]) + " (tracejado: previsão)</text>";
+    return o + "</svg>";
   }
 
   // barras de chuva × linha de ET0 e balanço acumulado
