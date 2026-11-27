@@ -20,7 +20,52 @@ URL = "https://api.open-meteo.com/v1/forecast"
 DIAS = 7
 LOTE = 100
 FUSO = timezone(timedelta(hours=-3))
-DIARIAS = ["et0_fao_evapotranspiration", "precipitation_sum"]
+DIARIAS = ["et0_fao_evapotranspiration", "precipitation_sum", "temperature_2m_max", "temperature_2m_min"]
+
+
+def normaliza(s):
+    import unicodedata
+    s = unicodedata.normalize("NFD", str(s)).encode("ascii", "ignore").decode().upper()
+    return " ".join("".join(c if c.isalnum() else " " for c in s).split())
+
+
+def climatologia():
+    """Do monitoramento da chuva (CHIRPS, mesmo repositório): normal mensal 1991–2020 de cada município (mm)
+    e dias seguidos sem chuva (< 1 mm) até o último dia observado. Sem os arquivos, devolve vazio."""
+    nm, seco, ate = {}, {}, None
+    try:
+        with open(os.path.join(PASTA, "chuva", "mensal.json"), encoding="utf-8") as f:
+            men = json.load(f)
+        y0, m0 = int(men["inicio"][:4]), int(men["inicio"][5:7]) - 1
+        for i, nome in enumerate(men["mun"]):
+            serie, out = men["v"][i], []
+            for mes in range(12):
+                vals = []
+                for y in range(1991, 2021):
+                    j = (y - y0) * 12 + (mes - m0)
+                    if 0 <= j < len(serie) and serie[j] is not None:
+                        vals.append(serie[j])
+                out.append(round(sum(vals) / len(vals), 1) if len(vals) >= 20 else None)
+            nm[normaliza(nome)] = out
+    except Exception as e:  # noqa
+        print("  sem normais mensais:", e, file=sys.stderr)
+    try:
+        with open(os.path.join(PASTA, "chuva", "diario.json"), encoding="utf-8") as f:
+            dia = json.load(f)
+        L = max(j for j, t in enumerate(dia["tipo"]) if t != "-")
+        ate = (datetime.strptime(dia["inicio"], "%Y-%m-%d") + timedelta(days=L)).strftime("%Y-%m-%d")
+        for i, nome in enumerate(dia["mun"]):
+            n = 0
+            for j in range(L, -1, -1):
+                v = dia["v"][i][j]
+                if v is not None and v < 1:
+                    n += 1
+                else:
+                    break
+            seco[normaliza(nome)] = n
+    except Exception as e:  # noqa
+        print("  sem chuva diária observada:", e, file=sys.stderr)
+    return nm, seco, ate
 HORARIAS = ["temperature_2m", "relative_humidity_2m", "wind_speed_10m", "precipitation", "soil_moisture_0_to_7cm", "soil_moisture_7_to_28cm"]
 
 
@@ -84,13 +129,21 @@ def main():
     with open(ARQ_MUN, encoding="utf-8") as f:
         muns = [(r["nome"], float(r["latitude"]), float(r["longitude"])) for r in csv.DictReader(f)]
     saida, datas = {}, None
+    nm, seco, seco_ate = climatologia()
     for i in range(0, len(muns), LOTE):
         lote = muns[i:i + LOTE]
         print(f"Baixando {i + 1}-{i + len(lote)}...", flush=True)
         for (nome, la, lo), r in zip(lote, baixar(lote)):
             d, h = r["daily"], r["hourly"]
             datas = datas or d["time"]
-            m = {"et0": [], "chuva": [], "bal": [], "sm1": [], "sm2": [], "man": [], "horas": [], "jan": []}
+            m = {"et0": [], "chuva": [], "bal": [], "sm1": [], "sm2": [], "man": [], "horas": [], "jan": [],
+                 "tmax": [r1(x) for x in d.get("temperature_2m_max", [])], "tmin": [r1(x) for x in d.get("temperature_2m_min", [])],
+                 "c": [round(la, 4), round(lo, 4)]}
+            k_n = normaliza(nome)
+            if k_n in nm:
+                m["nm"] = nm[k_n]
+            if k_n in seco:
+                m["seco"] = seco[k_n]
             for k in range(len(d["time"])):
                 et0, ch = d["et0_fao_evapotranspiration"][k], d["precipitation_sum"][k]
                 m["et0"].append(r1(et0)); m["chuva"].append(r1(max(0.0, ch)) if ch is not None else None)
@@ -107,6 +160,7 @@ def main():
            "fonte": "Open-Meteo (melhor modelo disponível), na sede de cada município",
            "regra_manejo": "Hora boa (6h–18h): sem chuva, vento de 3 a 10 km/h, umidade ≥ 55% e temperatura ≤ 30 °C. "
                            "Favorável: 4 h ou mais; Razoável: 2–3 h; Desfavorável: 1 h; Crítico: nenhuma.",
+           "seco_ate": seco_ate,
            "municipios": saida}
     destino = os.path.join(PASTA, "agro.json")
     with open(destino + ".tmp", "w", encoding="utf-8") as f:
