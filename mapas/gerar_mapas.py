@@ -38,6 +38,7 @@ from scipy.spatial import cKDTree
 AQUI = os.path.dirname(os.path.abspath(__file__))
 UA = {"User-Agent": "inema-meteorologia-mapas/1.0 (github actions)"}
 NDIAS = 5
+DIAS_ACUM = (5, 10, 15)       # chuva acumulada em n dias (ICON só chega a 7 dias: fica só com 5)
 
 # Grade alvo (0,25°) cobrindo a América do Sul tropical/subtropical e o Atlântico
 LON0, LON1, LAT0, LAT1 = -80.0, -20.0, -40.0, 8.0
@@ -184,6 +185,21 @@ def modelo_ecmwf(ciclo):
             F[("msl", p)] = g("msl") / 100.0
             for lv in (850, 200):
                 F[("u", lv, p)] = g("u", lv); F[("v", lv, p)] = g("v", lv)
+    # Acumulado de 10 e 15 dias: depois de 144 h o ECMWF só tem saídas de 6 em 6 h (até 360 h); usa a saída mais
+    # próxima da virada do dia e guarda o passo real em ("fim_acc", b) para o título do mapa.
+    for n in DIAS_ACUM:
+        if n <= NDIAS:
+            continue
+        b = ini[0] + 24 * n
+        passo = b if (b <= 144 or b % 6 == 0) else b + 3
+        passo = min(passo, 360)
+        try:
+            d = ecmwf_baixar(ciclo, passo, [("tp", "sfc", None)])
+            if ("tp", None) in d:
+                F[("tpacc", b)] = d[("tp", None)] * 1000.0
+                F[("fim_acc", b)] = passo
+        except Exception as e:  # noqa
+            log(f"ECMWF: acumulado de {n} dias indisponível:", e)
     return F
 
 
@@ -249,7 +265,48 @@ def modelo_gfs(ciclo, com_analise=True):
         inc = b if p % 6 == 3 else (b - F[("apcp_bucket", p - 3)] if ("apcp_bucket", p - 3) in F else b)
         acc = acc + np.maximum(inc, 0)
         F[("tpacc", p)] = acc
+    gfs_longo(ciclo, ini, F)
     return F
+
+
+def gfs_apcp(ciclo, passo):
+    """Só a chuva (APCP) de uma saída do GFS, recortada na América do Sul."""
+    d = ciclo.strftime("%Y%m%d"); h = ciclo.strftime("%H")
+    q = [f"dir=%2Fgfs.{d}%2F{h}%2Fatmos", f"file=gfs.t{h}z.pgrb2.0p25.f{passo:03d}", "var_APCP=on", "lev_surface=on",
+         "subregion=", "toplat=9", "leftlon=279", "rightlon=341", "bottomlat=-41"]
+    raw = http_get("https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?" + "&".join(q))
+    for k, vals, la, lo in mensagens(raw):
+        return regular_para_alvo(vals, la, lo)
+    raise RuntimeError(f"APCP vazio f{passo:03d}")
+
+
+def gfs_longo(ciclo, ini, F):
+    """Acumulado até o fim do 10º e do 15º dia. As viradas de dia caem em passos ≡ 3 (mod 6): o arquivo desses
+    passos traz o balde de 3 h; os múltiplos de 6 trazem o balde de 6 h. acc(b) = acc6(b − 3) + balde3(b)."""
+    b5 = ini[0] + 24 * NDIAS
+    if ("tpacc", b5) not in F or ("apcp_bucket", b5) not in F:
+        return
+    alvos = [ini[0] + 24 * n for n in DIAS_ACUM if n > NDIAS and ini[0] + 24 * n <= 384]
+    if not alvos:
+        return
+    seis = list(range(b5 + 3, alvos[-1] - 3 + 1, 6))
+    def um(p):
+        time.sleep(0.4)
+        return p, gfs_apcp(ciclo, p)
+    baldes = {}
+    try:
+        with ThreadPoolExecutor(3) as ex:
+            for p, v in ex.map(um, seis + alvos):
+                baldes[p] = v
+    except Exception as e:  # noqa
+        log("GFS: acumulado longo indisponível:", e)
+        return
+    acc6 = F[("tpacc", b5)] - F[("apcp_bucket", b5)]      # acumulado até b5 − 3 (múltiplo de 6)
+    for m in seis:
+        acc6 = acc6 + np.maximum(baldes[m], 0)
+        for b in alvos:
+            if m == b - 3:
+                F[("tpacc", b)] = acc6 + np.maximum(baldes[b], 0)
 
 
 # ---------------------------------------------------------------- ICON (DWD)
@@ -406,7 +463,17 @@ ESTILOS = {
     "tmin": dict(rot="Temperatura mínima (°C)", niveis=list(range(8, 31, 1)), cmap="turbo", ext="both"),
     "urmin": dict(rot="Umidade relativa mínima (%)", niveis=list(range(10, 101, 5)), cmap="BrBG", ext="neither"),
     "vento": dict(rot="Vento máximo a 10 m (km/h)", niveis=list(range(0, 65, 5)), cmap="YlOrRd", ext="max"),
+    "chuvaac": dict(rot="Chuva acumulada no período (mm)", niveis=[0, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 400, 500],
+                    cores=["#ffffff", "#d7f0d0", "#a6dba0", "#5aae61", "#1b7837", "#4fb3d9", "#1f78b4", "#08519c",
+                           "#6a51a3", "#8e44ad", "#c51b7d", "#7a0177"], ext="max"),
+    "difchuva": dict(rot="Diferença entre os modelos: maior − menor (mm)", niveis=[0, 2, 5, 10, 15, 20, 30, 40, 60, 80, 100],
+                     cmap="YlOrRd", ext="max"),
+    "diftmax": dict(rot="Diferença entre os modelos: maior − menor (°C)", niveis=[0, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6],
+                    cmap="YlOrRd", ext="max"),
 }
+ESTILOS["mediatmax"] = dict(ESTILOS["tmax"], rot="Temperatura máxima — média dos modelos (°C)")
+ESTILOS["mediachuva"] = dict(ESTILOS["chuva"], rot="Chuva no dia — média dos modelos (mm)")
+ESTILOS["mediachuvaac"] = dict(ESTILOS["chuvaac"], rot="Chuva em 5 dias — média dos modelos (mm)")
 
 
 def cmap_de(est):
@@ -533,9 +600,57 @@ def gerar_modelo(nome, ciclo, F, saida, info):
             mapa_sinotico(d["sin"], "v200", f"{NOMES[nome]} · Escoamento em 200 hPa", hora,
                           os.path.join(saida, f"{nome}_v200_d{k}.png"))
             feitos += 2
+    # Chuva acumulada em 5, 10 e 15 dias (a partir das 00h do 1º dia completo)
+    _, ini = passos_necessarios(ciclo)
+    acum, ac5 = {}, None
+    for n in DIAS_ACUM:
+        b = ini[0] + 24 * n
+        if ("tpacc", b) not in F or ("tpacc", ini[0]) not in F:
+            continue
+        campo = np.maximum(F[("tpacc", b)] - F[("tpacc", ini[0])], 0)
+        de = ciclo + dt.timedelta(hours=ini[0] - 3)                       # 00h local do 1º dia
+        ate = ciclo + dt.timedelta(hours=F.get(("fim_acc", b), b) - 3)    # fim real (horário local)
+        fim_txt = (ate - dt.timedelta(days=1)).strftime("%d/%m") + " 24h" if ate.hour == 0 else ate.strftime("%d/%m %Hh")
+        mapa_bahia(campo, "chuvaac", f"{NOMES[nome]} · Chuva acumulada em {n} dias (mm)",
+                   f"{de.strftime('%d/%m')} 00h a {fim_txt} · {rod}", os.path.join(saida, f"{nome}_chuva{n}.png"))
+        acum[str(n)] = {"de": de.strftime("%Y-%m-%dT%H:00"), "ate": ate.strftime("%Y-%m-%dT%H:00")}
+        feitos += 1
+        if n == 5:
+            ac5 = campo
     info["modelos"][nome] = {"rodada": ciclo.strftime("%Y-%m-%dT%HZ"), "mapas": feitos, "analise": analise,
-                             "dias": [d["dia"].isoformat() for d in P]}
+                             "dias": [d["dia"].isoformat() for d in P], "acumulados": acum}
     log(f"{nome}: {feitos} mapas")
+    return {"dias": {d["dia"]: {v: d[v] for v in ("chuva", "tmax") if v in d} for d in P}, "chuva5": ac5}
+
+
+def gerar_consenso(guardados, info, saida):
+    """Média e diferença (maior − menor) entre os modelos: chuva e máxima de cada dia e chuva de 5 dias."""
+    mods = [m for m in ("ecmwf", "gfs", "icon") if m in guardados]
+    if len(mods) < 2:
+        return
+    nomes = ", ".join(NOMES[m].split(" ")[0] for m in mods)
+    datas = sorted(set.intersection(*[set(guardados[m]["dias"]) for m in mods]))
+    rod = "rodadas: " + ", ".join(f"{NOMES[m].split(' ')[0]} {info['modelos'][m]['rodada'][8:10]}/{info['modelos'][m]['rodada'][5:7]} {info['modelos'][m]['rodada'][11:13]} UTC" for m in mods)
+    for k, d in enumerate(datas):
+        for var, med, dif in (("chuva", "mediachuva", "difchuva"), ("tmax", "mediatmax", "diftmax")):
+            cs = [guardados[m]["dias"][d].get(var) for m in mods]
+            if any(c is None for c in cs):
+                continue
+            pilha = np.stack(cs)
+            mapa_bahia(np.nanmean(pilha, axis=0), med, f"Média dos modelos ({nomes}) · {ESTILOS[var]['rot']}",
+                       f"{rotulo_dia(d)} · {rod}", os.path.join(saida, f"media_{var}_d{k}.png"))
+            mapa_bahia(np.nanmax(pilha, axis=0) - np.nanmin(pilha, axis=0), dif, f"Incerteza ({nomes}) · {ESTILOS[dif]['rot']}",
+                       f"{rotulo_dia(d)} · {rod}", os.path.join(saida, f"dif_{var}_d{k}.png"))
+    c5 = [guardados[m]["chuva5"] for m in mods]
+    tem5 = all(c is not None for c in c5)
+    if tem5:
+        pilha = np.stack(c5)
+        mapa_bahia(np.nanmean(pilha, axis=0), "mediachuvaac", f"Média dos modelos ({nomes}) · Chuva acumulada em 5 dias (mm)",
+                   rod, os.path.join(saida, "media_chuva5.png"))
+        mapa_bahia(np.nanmax(pilha, axis=0) - np.nanmin(pilha, axis=0), "difchuva", f"Incerteza ({nomes}) · Chuva em 5 dias: maior − menor (mm)",
+                   rod, os.path.join(saida, "dif_chuva5.png"))
+    info["consenso"] = {"modelos": mods, "dias": [d.isoformat() for d in datas], "chuva5": tem5}
+    log(f"consenso: {len(datas)} dias, modelos {mods}")
 
 
 def main():
@@ -566,13 +681,14 @@ def main():
                           "pnmm850": "Pressão ao nível do mar e vento em 850 hPa (12 UTC)",
                           "v200": "Linhas de corrente e vento em 200 hPa (12 UTC)"}}
 
+    guardados = {}
     for m, f in (("gfs", modelo_gfs), ("ecmwf", modelo_ecmwf), ("icon", modelo_icon)):
         if m not in escolha:
             info["erros"][m] = "nenhuma rodada disponível"; continue
         try:
             log(f"{m}: baixando rodada {escolha[m]:%d/%m %HZ}")
             F = f(escolha[m])
-            gerar_modelo(m, escolha[m], F, a.saida, info)
+            guardados[m] = gerar_modelo(m, escolha[m], F, a.saida, info)
             if m == "gfs" and ("msl", 0) in F:
                 sin = {"msl": F[("msl", 0)], "u850": F[("u", 850, 0)], "v850": F[("v", 850, 0)]}
                 mapa_sinotico(sin, "pnmm850", "Análise GFS · Pressão e vento em 850 hPa",
@@ -583,6 +699,11 @@ def main():
         except Exception as e:
             traceback.print_exc()
             info["erros"][m] = f"{type(e).__name__}: {e}"[:300]
+    try:
+        gerar_consenso(guardados, info, a.saida)
+    except Exception as e:  # noqa
+        traceback.print_exc()
+        info["erros"]["consenso"] = f"{type(e).__name__}: {e}"[:300]
 
     with open(os.path.join(a.saida, "info.json"), "w", encoding="utf-8") as f:
         json.dump(info, f, ensure_ascii=False, indent=1)
