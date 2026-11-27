@@ -80,7 +80,11 @@
     "#inema-chuva .ic-graf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}",
     "#inema-chuva .ic-graf svg{width:100%;height:auto;display:block}",
     "#inema-chuva .ic-graf h4{margin:0 0 4px;font-size:.92em;color:var(--tx)}",
-    "#inema-chuva .ic-graf .ic-grpp{margin:0 0 4px}",
+    "#inema-chuva .ic-graf .ic-grpp,#inema-chuva .ic-graf1 .ic-grpp{margin:0 0 4px}",
+    "#inema-chuva .ic-graf1{margin-top:16px;padding-top:12px;border-top:1px solid var(--ln)}",
+    "#inema-chuva .ic-graf1 svg{width:100%;height:auto;display:block}",
+    "#inema-chuva .ic-graf1 h4{margin:0;font-size:.92em;color:var(--tx)}",
+    "#inema-chuva .ic-grpp button.ic-b{font-size:.8em;padding:3px 9px}",
     "#inema-chuva .ic-glg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.76em;color:var(--tx2);margin-top:2px}",
     "#inema-chuva .ic-glg i{display:inline-block;width:12px;height:8px;border-radius:2px;margin-right:4px;vertical-align:0}",
     "#inema-chuva details.ic-ajuda{margin-top:14px;background:var(--cz);border:1px solid var(--ln);border-radius:12px;padding:8px 14px;font-size:.92em}",
@@ -174,6 +178,12 @@
   var SECO_C = { thr: [3, 7, 15, 30, 60, 90, 120, 180], c: ["#edf5fb", "#f7f2d8", "#f6e2a4", "#f4c56b", "#ef9b3d", "#dc6a22", "#b54313", "#86290c", "#57190a"] };
   function bin(thr, v) { var i = 0; while (i < thr.length && v >= thr[i]) i++; return i; }
   function bonito(x) { if (x <= 0) return 0; var e = Math.pow(10, Math.floor(Math.log10(x))), f = x / e; return (f < 1.5 ? 1 : f < 2.25 ? 2 : f < 3.5 ? 2.5 : f < 7.5 ? 5 : 10) * e; }
+  function teto(x) {   // menor número "redondo" ≥ x (topo de eixo de gráfico; bonito() pode arredondar para baixo)
+    if (!(x > 0)) return 1;
+    var e = Math.pow(10, Math.floor(Math.log10(x))), f = x / e, c = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+    for (var i = 0; i < c.length; i++) if (c[i] >= f - 1e-9) return c[i] * e;
+    return 10 * e;
+  }
   function escalaMm(k) { return [5, 15, 30, 50, 75, 110, 160, 240].map(function (b) { return bonito(b * Math.pow(k, 0.85)); }); }
   function escalaAnom(k) { var f = Math.pow(k, 0.7); return [-100, -50, -25, -10, 10, 25, 50, 100].map(function (b) { return (b < 0 ? -1 : 1) * bonito(Math.abs(b) * f); }); }
   function classeSpi(v) { return ok(v) ? bin(SPI_C.thr, v) : -1; }
@@ -197,21 +207,31 @@
   var JANELAS = [7, 15, 30, 60, 90, 180];
 
   // ---------- estado ----------
-  var S = { modo: "m", k: 3, fim: null, v: "spi", grp: "m", sel: "e", rv: "total", rj: 30, rk: "seco", span: 10 };
+  // ks: escala do gráfico de SPI (0 = a mesma do período); anoIni: 0 = ano civil (jan–dez), 9 = ano hidrológico (out–set);
+  // ano: ano do gráfico de comparação (null = o do mês final); anosRef: anos de comparação (até 3)
+  var S = { modo: "m", k: 3, fim: null, v: "spi", grp: "m", sel: "e", rv: "total", rj: 30, rk: "seco", span: 10, ks: 0, anoIni: 0, ano: null, anosRef: [] };
+  var SPI_ESC = [1, 3, 6, 12, 24, 48];
   try {
     var g0 = JSON.parse(localStorage.getItem("inemaChuva1") || "{}");
     ["modo", "v", "grp", "rv", "rk"].forEach(function (c) { if (typeof g0[c] === "string") S[c] = g0[c]; });
-    ["k", "rj", "span"].forEach(function (c) { if (typeof g0[c] === "number") S[c] = g0[c]; });
+    ["k", "rj", "span", "ks", "anoIni"].forEach(function (c) { if (typeof g0[c] === "number") S[c] = g0[c]; });
   } catch (e) { /* sem armazenamento */ }
   var K_SALVO = ESCALAS.indexOf(S.k) >= 0 ? S.k : 3;   // período livre não fica guardado: ao voltar, abre na última escala padrão
   function guarda() {
     if (ESCALAS.indexOf(S.k) >= 0) K_SALVO = S.k;
-    try { localStorage.setItem("inemaChuva1", JSON.stringify({ modo: S.modo, k: K_SALVO, v: S.v, grp: S.grp, rv: S.rv, rj: S.rj, rk: S.rk, span: S.span })); } catch (e) { /* ignora */ }
+    try { localStorage.setItem("inemaChuva1", JSON.stringify({ modo: S.modo, k: K_SALVO, v: S.v, grp: S.grp, rv: S.rv, rj: S.rj, rk: S.rk, span: S.span, ks: S.ks, anoIni: S.anoIni })); } catch (e) { /* ignora */ }
   }
+  // Endereço da página: guarda município (ou território/região), período, escala, variável do mapa, agrupamento e aba.
   var qs = new URLSearchParams(location.search);
   if (+qs.get("escala") > 0) S.k = +qs.get("escala");
-  if (qs.get("modo") === "recente") S.modo = "r";
-  var QMUN = qs.get("municipio"), QFIM = qs.get("fim"), QINI = qs.get("inicio");
+  if (qs.get("modo") === "recente") S.modo = "r"; else if (qs.get("modo") === "anomalias") S.modo = "m";
+  if (VARS_M[qs.get("mapa")]) S.v = qs.get("mapa");
+  if (VARS_R[qs.get("mapa_recente")]) S.rv = qs.get("mapa_recente");
+  if (/^(m|t|r)$/.test(qs.get("agrupar") || "")) S.grp = qs.get("agrupar");
+  if (JANELAS.indexOf(+qs.get("dias")) >= 0) S.rj = +qs.get("dias");
+  var QMUN = qs.get("municipio"), QTER = qs.get("territorio"), QREG = qs.get("regiao"), QFIM = qs.get("fim"), QINI = qs.get("inicio");
+  if (SPI_ESC.indexOf(S.ks) < 0) S.ks = 0;
+  if (S.anoIni !== 9) S.anoIni = 0;
   if (!(S.k >= 1 && S.k % 1 === 0)) S.k = 3;
   if (!VARS_M[S.v]) S.v = "spi";
   if (!VARS_R[S.rv]) S.rv = "total";
@@ -294,6 +314,25 @@
     if (QINI && /^\d{4}-\d{2}$/.test(QINI)) { var ii = idxYM(+QINI.slice(0, 4), +QINI.slice(5) - 1); if (ii >= 0 && ii <= S.fim) S.k = S.fim - ii + 1; }
     S.k = Math.min(S.k, S.fim + 1);
     if (QMUN && ENT["m:" + norm(QMUN)]) S.sel = "m:" + norm(QMUN);
+    else if (QTER || QREG) {
+      var lista0 = QTER ? TERR : REGS, alvo0 = norm(QTER || QREG);
+      lista0.forEach(function (x) { if (norm(x.nome) === alvo0) S.sel = x.id; });
+    }
+  }
+  function ym(i) { var a = ymDe(i); return a.y + "-" + ("0" + (a.m + 1)).slice(-2); }
+  function urlEstado() {
+    try {
+      var u = new URL(location.href), p = u.searchParams;
+      ["municipio", "territorio", "regiao", "fim", "inicio", "escala", "modo", "mapa", "mapa_recente", "agrupar", "dias"].forEach(function (c) { p.delete(c); });
+      var e = ENT[S.sel];
+      if (e && e.tipo === "m") p.set("municipio", e.nome); else if (e && e.tipo === "t") p.set("territorio", e.nome); else if (e && e.tipo === "r") p.set("regiao", e.nome);
+      if (S.modo === "m") {
+        if (S.fim !== N - 1) p.set("fim", ym(S.fim));
+        p.set("escala", S.k); p.set("mapa", S.v);
+      } else { p.set("modo", "recente"); p.set("dias", S.rj); p.set("mapa_recente", S.rv); }
+      if (S.grp !== "m") p.set("agrupar", S.grp);
+      history.replaceState(null, "", u.toString());
+    } catch (x) { /* ignora */ }
   }
 
   // ---------- cálculos ----------
@@ -371,7 +410,7 @@
       "<div class='ic-modos' role='tablist'><button data-modo='m'>Anomalias e SPI</button><button data-modo='r'>Chuva recente</button></div></div>";
     h += "<div id='ic-avisos'></div><div class='ic-kpis' id='ic-kpis'></div>";
     h += "<div class='ic-ctl' id='ic-ctl'></div>";
-    h += "<div class='ic-corpo'><div class='ic-cx'><div class='ic-cxh'><h3 id='ic-tmapa'></h3><button class='ic-lnk' id='ic-csv' type='button'>Baixar tabela (CSV)</button></div>" +
+    h += "<div class='ic-corpo'><div class='ic-cx'><div class='ic-cxh'><h3 id='ic-tmapa'></h3><span style='display:flex;gap:12px'><button class='ic-lnk' id='ic-png' type='button'>Baixar mapa (PNG)</button><button class='ic-lnk' id='ic-csv' type='button'>Baixar tabela (CSV)</button></span></div>" +
       "<div class='ic-mapa' id='ic-mapa'>" + svgMapa() + "<div class='ic-tip' id='ic-tip'></div></div><div class='ic-leg' id='ic-leg'></div></div>" +
       "<div class='ic-lado'><div class='ic-cx'><h3 id='ic-tgrp'></h3><div class='ic-lista' id='ic-lista'></div></div>" +
       "<div class='ic-cx'><div class='ic-cxh'><h3 id='ic-trank'></h3><span class='ic-grp' id='ic-rk'><button class='ic-b' data-rk='seco'>Mais secos</button><button class='ic-b' data-rk='umido'>Mais chuvosos</button></span></div><ol class='ic-rank' id='ic-rank'></ol></div></div></div>";
@@ -383,7 +422,8 @@
       "<li><b>Percentil</b>: posição do acumulado entre todos os anos desde 1981 (0 = o mais seco, 100 = o mais chuvoso).</li>" +
       "<li><b>Chuva recente</b>: CHIRPS diário (versão “sat”, que distribui a chuva de cada pêntada pelos dias conforme o satélite IMERG). Os últimos dias são <b>preliminares</b> e podem mudar quando sair a versão final (≈ 3ª semana do mês seguinte). A normal das janelas diárias é estimada a partir das normais mensais. Por causa do método de distribuição diária, a contagem de dias sem chuva é aproximada.</li>" +
       "<li>Escala do SPI usada no mapa:<table class='ic-cls'>" + SPI_C.n.map(function (n, i) { var a = SPI_C.thr[i - 1], b = SPI_C.thr[i]; return "<tr><td><i style='display:inline-block;width:14px;height:11px;border-radius:2px;background:" + SPI_C.c[i] + ";border:1px solid rgba(0,0,0,.12)'></i></td><td>" + n + "</td><td>" + (i === 0 ? "≤ −2,0" : i === 8 ? "≥ +2,0" : f2(a).replace(",00", ",0") + " a " + f2(b).replace(",00", ",0")) + "</td></tr>"; }).join("") + "</table></li>" +
-      "<li>Clique em um município (ou território/região, conforme o agrupamento) no mapa, nas listas ou use a busca para ver os detalhes. Os links do painel podem ser compartilhados: o endereço guarda o município, o período e a escala.</li></ul></details>";
+      "<li><b>Chuva acumulada no ano</b>: soma mês a mês desde janeiro (ano civil) ou desde outubro (ano hidrológico, out–set, mais adequado ao Oeste e ao Sertão, onde a estação chuvosa atravessa a virada do ano), comparada à normal acumulada e a até três anos de referência. Os botões sugerem o ano completo mais seco e o mais chuvoso desde 1981 no local.</li>" +
+      "<li>Clique em um município (ou território/região, conforme o agrupamento) no mapa, nas listas ou use a busca para ver os detalhes. O endereço da página acompanha a tela (local, período, escala, variável do mapa e agrupamento): copie-o para compartilhar exatamente o que está vendo. “Baixar mapa (PNG)” gera a figura do mapa com título, legenda e fonte, para boletins.</li></ul></details>";
     h += "<div class='ic-links'>" +
       (AGRO ? "<a href='" + esc(AGRO) + "'><b>Agrometeorologia</b><span>Previsão de chuva, ET0 e balanço hídrico</span></a>" : "") +
       (PREV_MUN ? "<a href='" + esc(PREV_MUN) + "'><b>Previsão por município</b><span>Próximos dias, por período</span></a>" : "") +
@@ -455,17 +495,25 @@
     RAIZ.querySelector("#ic-rank").addEventListener("click", function (e) { var li = e.target.closest("li[data-id]"); if (li) seleciona(li.getAttribute("data-id"), true); });
     RAIZ.querySelector("#ic-rk").addEventListener("click", function (e) { var b = e.target.closest("[data-rk]"); if (!b) return; S.rk = b.getAttribute("data-rk"); guarda(); ranking(); });
     RAIZ.querySelector("#ic-csv").addEventListener("click", baixaCsv);
+    RAIZ.querySelector("#ic-png").addEventListener("click", baixaPng);
     RAIZ.querySelector("#ic-det").addEventListener("click", function (e) {
       var b = e.target.closest("[data-span]"); if (b) { S.span = +b.getAttribute("data-span"); guarda(); detalhe(); return; }
-      var k = e.target.closest("[data-ks]"); if (k) { S.k = +k.getAttribute("data-ks"); S.modo = "m"; guarda(); render(); return; }
+      var k = e.target.closest("[data-ks]"); if (k) { S.k = Math.min(+k.getAttribute("data-ks"), S.fim + 1); S.modo = "m"; guarda(); render(); return; }
+      var ksp = e.target.closest("[data-kspi]"); if (ksp) { S.ks = +ksp.getAttribute("data-kspi"); guarda(); detalhe(); return; }
+      var ai = e.target.closest("[data-anoini]"); if (ai) { S.anoIni = +ai.getAttribute("data-anoini"); S.ano = null; S.anosRef = []; guarda(); detalhe(); return; }
+      var ra = e.target.closest("[data-refadd]"); if (ra) { var y = +ra.getAttribute("data-refadd"); if (S.anosRef.indexOf(y) < 0) S.anosRef = S.anosRef.concat([y]).slice(-3); detalhe(); return; }
+      var rd = e.target.closest("[data-refdel]"); if (rd) { var y2 = +rd.getAttribute("data-refdel"); S.anosRef = S.anosRef.filter(function (x) { return x !== y2; }); detalhe(); return; }
       if (e.target.closest("#ic-volta")) { seleciona("e", false); return; }
       if (e.target.closest("#ic-xls")) baixaXls();
+    });
+    RAIZ.querySelector("#ic-det").addEventListener("change", function (e) {
+      if (e.target.id === "ic-ano") { S.ano = +e.target.value; S.anosRef = S.anosRef.filter(function (x) { return x !== S.ano; }); detalhe(); }
+      if (e.target.id === "ic-anoref" && e.target.value) { S.anosRef = S.anosRef.concat([+e.target.value]).slice(-3); detalhe(); }
     });
   }
   function seleciona(id, rolar) {
     if (!ENT[id]) return;
     S.sel = id;
-    try { var u = new URL(location.href); if (ENT[id].tipo === "m") u.searchParams.set("municipio", ENT[id].nome); else u.searchParams.delete("municipio"); history.replaceState(null, "", u.toString()); } catch (e) { /* ignora */ }
     render();
     if (rolar) RAIZ.querySelector("#ic-det").scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
@@ -511,21 +559,57 @@
     });
     if (selE && selE.tipo === "m" && PATHS[selE.k]) PATHS[selE.k].parentNode.appendChild(PATHS[selE.k]);
     else if (selE && selE.tipo !== "e") selE.mem.forEach(function (i) { var p = PATHS[MUNS[i].k]; if (p) p.parentNode.appendChild(p); });
-    legenda(); kpis(); lista(); ranking(); detalhe();
+    legenda(); kpis(); lista(); ranking(); detalhe(); urlEstado();
     RAIZ.querySelector("#ic-fonte").textContent = "Fonte: " + (M.fonte || "CHIRPS v3.0") + ". Série mensal final até " + ultF +
       (par ? "; " + MESL[+par.mes.slice(5) - 1] + " de " + par.mes.slice(0, 4) + " parcial até " + dBR(iso2d(par.ate)) + (par.preliminar ? " (preliminar)" : "") : "") +
       ". Atualizado em " + new Date(M.gerado_em).toLocaleDateString("pt-BR") + ". Processamento: INEMA.";
   }
 
-  function legenda() {
-    var e = escalaAtual(), h = "";
-    if (S.modo === "m" && S.v === "spi") h = SPI_C.n.map(function (n, i) { return "<span><i style='background:" + SPI_C.c[i] + "'></i>" + n + "</span>"; }).join("");
-    else h = e.c.map(function (c, i) {
+  function itensLegenda() {   // [[cor, rótulo], ...] da escala atual do mapa
+    var e = escalaAtual(), out;
+    if (S.modo === "m" && S.v === "spi") out = SPI_C.n.map(function (n, i) { return [SPI_C.c[i], n]; });
+    else out = e.c.map(function (c, i) {
       var a = e.thr[i - 1], b = e.thr[i], fa = e.sin ? sn(a) : n0(a), fb = e.sin ? sn(b) : n0(b);
-      var r = i === 0 ? "< " + fb : i === e.thr.length ? "≥ " + fa : fa + " a " + fb;
-      return "<span><i style='background:" + c + "'></i>" + r + (e.un || "") + "</span>";
-    }).join("");
-    RAIZ.querySelector("#ic-leg").innerHTML = h + "<span><i style='background:#d9dde2'></i>sem dado</span>";
+      return [c, (i === 0 ? "< " + fb : i === e.thr.length ? "≥ " + fa : fa + " a " + fb) + (e.un || "")];
+    });
+    return out.concat([["#d9dde2", "sem dado"]]);
+  }
+  function legenda() {
+    RAIZ.querySelector("#ic-leg").innerHTML = itensLegenda().map(function (x) { return "<span><i style='background:" + x[0] + "'></i>" + x[1] + "</span>"; }).join("");
+  }
+
+  // Mapa em PNG (para boletins): título, mapa com as cores atuais, legenda e fonte
+  function baixaPng() {
+    var orig = RAIZ.querySelector("#ic-mapa svg"); if (!orig) return;
+    var svg = orig.cloneNode(true), vb = orig.viewBox.baseVal, MW = 760, MH = Math.round(MW * vb.height / vb.width);
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg"); svg.setAttribute("width", MW); svg.setAttribute("height", MH);
+    var est = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    est.textContent = "path.m{stroke:#fff;stroke-width:.35}path.m.sel{stroke:#000;stroke-width:1.6}path.m.grp{stroke:#000;stroke-width:.9}";
+    svg.insertBefore(est, svg.firstChild);
+    var url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml;charset=utf-8" }));
+    var img = new Image();
+    img.onload = function () {
+      var leg = itensLegenda(), LX = MW + 50, topo = 96, Wc = LX + 300, Hc = Math.max(MH, leg.length * 30 + 40) + topo + 56, esc = 2;
+      var cv = document.createElement("canvas"); cv.width = Wc * esc; cv.height = Hc * esc;
+      var c = cv.getContext("2d"); c.scale(esc, esc);
+      c.fillStyle = "#fff"; c.fillRect(0, 0, Wc, Hc);
+      var fonte = "'Segoe UI',Roboto,Arial,sans-serif";
+      c.fillStyle = "#0b4f8a"; c.font = "700 26px " + fonte; c.fillText("Monitoramento da Chuva na Bahia", 24, 40);
+      c.fillStyle = "#1d2733"; c.font = "600 18px " + fonte; c.fillText(RAIZ.querySelector("#ic-tmapa").textContent, 24, 70);
+      c.drawImage(img, 24, topo, MW, MH);
+      c.font = "600 15px " + fonte; c.fillStyle = "#1d2733"; c.fillText(S.modo === "m" ? VARS_M[S.v].curto : VARS_R[S.rv].curto, LX, topo + 14);
+      c.font = "14px " + fonte;
+      leg.forEach(function (x, i) { var y = topo + 34 + i * 30; c.fillStyle = x[0]; c.fillRect(LX, y, 26, 18); c.strokeStyle = "rgba(0,0,0,.2)"; c.strokeRect(LX + .5, y + .5, 25, 17); c.fillStyle = "#1d2733"; c.fillText(x[1], LX + 36, y + 14); });
+      c.fillStyle = "#5b6773"; c.font = "12px " + fonte;
+      c.fillText("Fonte: " + (M.fonte || "CHIRPS v3.0") + ". Normal 1991–2020. Processamento: INEMA — gerado em " + new Date().toLocaleDateString("pt-BR") + ".", 24, Hc - 22);
+      URL.revokeObjectURL(url);
+      cv.toBlob(function (b) {
+        var a = document.createElement("a"); a.href = URL.createObjectURL(b);
+        a.download = "mapa_chuva_" + (S.modo === "m" ? S.v + "_" + ym(S.fim) + "_" + S.k + "meses" : S.rv + "_ultimos_" + S.rj + "_dias") + ".png";
+        document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      }, "image/png");
+    };
+    img.src = url;
   }
 
   function kpi(cor0, rot, val, sub) { return "<div class='ic-kpi' style='--k:" + cor0 + "'><small>" + rot + "</small><strong>" + val + "</strong><em>" + sub + "</em></div>"; }
@@ -619,6 +703,7 @@
         "<div><small>Maior chuva em um dia</small><b>" + n1(q.max) + " mm</b></div></div>";
     }
     h += "<div class='ic-graf'><div>" + grafMeses(e) + "</div><div>" + (S.modo === "m" ? grafSpi(e) : grafDias(e)) + "</div></div>";
+    h += "<div class='ic-graf1'>" + grafAnos(e) + "</div>";
     RAIZ.querySelector("#ic-det").innerHTML = h;
   }
 
@@ -637,9 +722,14 @@
   }
   function grafMeses(e) {
     var itens = mesesGraf(e), par = itens.filter(function (x) { return x.par; });
-    var W = 560, H = 170, top = 10, left = 32, bot = 30, w = W - left - 6, bw = w / itens.length, letras = itens.length <= 40;
-    var max = 10; itens.forEach(function (x) { if (ok(x.v)) max = Math.max(max, x.v); if (ok(x.nor)) max = Math.max(max, x.nor); }); max = bonito(max * 1.08) || max;
+    // acumulado do período (só meses finais) x normal acumulada, no eixo da direita
+    var fins = itens.filter(function (x) { return x.j != null; }), temAc = S.modo === "m" && fins.length >= 2;
+    var acO = 0, acN = 0, acs = {}; fins.forEach(function (x) { acO += ok(x.v) ? x.v : 0; acN += ok(x.nor) ? x.nor : 0; acs[x.j] = [acO, acN]; });
+    var maxA = temAc ? teto(Math.max(acO, acN, 1) * 1.04) : 1;
+    var W = 560, H = 170, top = 10, left = 32, bot = 30, right = temAc ? 40 : 6, w = W - left - right, bw = w / itens.length, letras = itens.length <= 40;
+    var max = 10; itens.forEach(function (x) { if (ok(x.v)) max = Math.max(max, x.v); if (ok(x.nor)) max = Math.max(max, x.nor); }); max = teto(max * 1.04);
     var s = "<svg viewBox='0 0 " + W + " " + (H + top + bot) + "' role='img' aria-label='Chuva mensal e normal'>" + eixoY(max, H, top, left, w);
+    if (temAc) for (var t = 0; t <= 4; t++) s += "<text x='" + (left + w + 4) + "' y='" + (top + H - t / 4 * H + 3).toFixed(1) + "' font-size='9' fill='#0b4f8a'>" + n0(maxA * t / 4) + "</text>";
     var larg = Math.min(bw * 0.76, 40);   // períodos curtos: barras com largura máxima, centradas
     var pts = [];
     itens.forEach(function (x, i) {
@@ -654,30 +744,101 @@
       var p0 = pts[0].split(","), x0 = +p0[0];
       s += "<line x1='" + (x0 - larg * 0.8).toFixed(1) + "' x2='" + (x0 + larg * 0.8).toFixed(1) + "' y1='" + p0[1] + "' y2='" + p0[1] + "' stroke='#1d2733' stroke-width='1.6' stroke-dasharray='4 3'/>";
     } else s += "<polyline points='" + pts.join(" ") + "' fill='none' stroke='#1d2733' stroke-width='1.6' stroke-dasharray='4 3'/>";
+    if (temAc) {
+      var pa = [], pn = [], ult0 = null;
+      itens.forEach(function (x, i) { var a = acs[x.j]; if (!a) return; var cx = (left + i * bw + bw / 2).toFixed(1); pa.push(cx + "," + (top + H - a[0] / maxA * H).toFixed(1)); pn.push(cx + "," + (top + H - a[1] / maxA * H).toFixed(1)); ult0 = { cx: cx, a: a }; });
+      s += "<polyline points='" + pn.join(" ") + "' fill='none' stroke='#6b7a8f' stroke-width='1.5' stroke-dasharray='1.5 3' stroke-linecap='round'/>";
+      s += "<polyline points='" + pa.join(" ") + "' fill='none' stroke='#0b4f8a' stroke-width='2'/>";
+      s += "<circle cx='" + ult0.cx + "' cy='" + (top + H - ult0.a[0] / maxA * H).toFixed(1) + "' r='3' fill='#0b4f8a'><title>Acumulado no período: " + n0(ult0.a[0]) + " mm · normal acumulada: " + n0(ult0.a[1]) + " mm (" + n0(100 * ult0.a[0] / ult0.a[1]) + "%)</title></circle>";
+    }
     s += "</svg>";
     var a = itens[0], b = itens[itens.length - 1], rA = MES[a.m] + "/" + a.ano, rB = MES[b.m] + "/" + b.ano;
     return "<div class='ic-cxh' style='margin:0 0 4px'><h4 style='margin:0'>Chuva mensal — " + (rA === rB ? MESL[a.m] + " de " + a.ano : rA + " a " + rB) + "</h4>" +
       (S.modo === "m" ? "<button class='ic-lnk' id='ic-xls' type='button' title='Observado mensal, normal 1991–2020 e anomalia do período selecionado'>Baixar em Excel</button>" : "") + "</div>" + s +
       "<div class='ic-glg'><span><i style='background:#f39c34'></i>abaixo da normal</span><span><i style='background:#eeeeee;border:1px solid #ccc'></i>normal</span><span><i style='background:#6dbf73'></i>acima</span><span><i style='background:none;border-top:2px dashed #1d2733;height:0;width:16px'></i>normal 1991–2020</span>" +
-      (par.length ? "<span><i style='background:#fff;border:1px dashed #0b4f8a'></i>mês parcial</span>" : "") + "</div>";
+      (par.length ? "<span><i style='background:#fff;border:1px dashed #0b4f8a'></i>mês parcial</span>" : "") +
+      (temAc ? "<span><i style='background:#0b4f8a;height:2px;width:16px;vertical-align:3px'></i>acumulado no período (eixo dir.): " + n0(acO) + " mm</span><span><i style='background:none;border-top:2px dotted #6b7a8f;height:0;width:16px'></i>normal acumulada: " + n0(acN) + " mm (" + n0(100 * acO / acN) + "%)</span>" : "") + "</div>";
   }
+  // Histórico do SPI: escala própria (S.ks, 0 = a do período) e janela de anos que sempre contém o período selecionado (faixa azul-clara)
   function grafSpi(e) {
-    var anos = S.span, ini = Math.max(S.k - 1, N - 12 * anos), itens = [];
-    for (var j = ini; j < N; j++) itens.push({ j: j, v: calcEm(e, j, S.k).spi });
-    var W = 560, H = 170, top = 10, left = 32, bot = 30, w = W - left - 6, bw = w / itens.length, lim = 3;
+    var ks = S.ks || S.k, anos = S.span, nM = 12 * anos, ini = S.fim - S.k + 1, fimJ = N - 1;
+    if (ini < N - nM) fimJ = Math.min(N - 1, S.fim + Math.max(0, Math.floor((nM - S.k) / 2)));
+    var iniJ = Math.max(ks - 1, fimJ - nM + 1), itens = [];
+    for (var j = iniJ; j <= fimJ; j++) itens.push({ j: j, v: calcEm(e, j, ks).spi });
+    var W = 560, H = 170, top = 10, left = 32, bot = 30, w = W - left - 6, bw = w / Math.max(itens.length, 1), lim = 3;
     var s = "<svg viewBox='0 0 " + W + " " + (H + top + bot) + "' role='img' aria-label='Série histórica do SPI'>";
-    [-2, -1, 0, 1, 2].forEach(function (v) { var y = top + H / 2 - v / lim * H / 2; s += "<line x1='" + left + "' x2='" + (left + w) + "' y1='" + y.toFixed(1) + "' y2='" + y.toFixed(1) + "' stroke='" + (v === 0 ? "#9aa5b1" : "#e3e7ec") + "'/><text x='" + (left - 4) + "' y='" + (y + 3).toFixed(1) + "' font-size='9' text-anchor='end' fill='#5b6773'>" + (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + "</text>"; });
+    var fa = Math.max(ini, iniJ), fb = Math.min(S.fim, fimJ);
+    if (fa <= fb) s += "<rect x='" + (left + (fa - iniJ) * bw).toFixed(1) + "' y='" + top + "' width='" + Math.max((fb - fa + 1) * bw, 2).toFixed(1) + "' height='" + H + "' fill='#dce8f5'><title>Período selecionado: " + rotPer(S.fim, S.k) + "</title></rect>";
+    [-2, -1, 0, 1, 2].forEach(function (v) { var y = top + H / 2 - v / lim * H / 2; s += "<line x1='" + left + "' x2='" + (left + w) + "' y1='" + y.toFixed(1) + "' y2='" + y.toFixed(1) + "' stroke='" + (v === 0 ? "#9aa5b1" : "#e3e7ec") + "'" + (v < 0 ? " stroke-dasharray='3 3'" : "") + "/><text x='" + (left - 4) + "' y='" + (y + 3).toFixed(1) + "' font-size='9' text-anchor='end' fill='#5b6773'>" + (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + "</text>"; });
     itens.forEach(function (x, i) {
       if (!ok(x.v)) return;
       var v = Math.max(-lim, Math.min(lim, x.v)), y0 = top + H / 2, y1 = y0 - v / lim * H / 2, cx = left + i * bw;
-      s += "<rect x='" + cx.toFixed(2) + "' y='" + Math.min(y0, y1).toFixed(1) + "' width='" + Math.max(bw * 0.9, 0.6).toFixed(2) + "' height='" + Math.max(Math.abs(y1 - y0), 0.5).toFixed(1) + "' fill='" + SPI_C.c[classeSpi(x.v)] + "'" + (x.j === S.fim ? " stroke='#000' stroke-width='1'" : "") + "><title>" + rotPer(x.j, S.k) + ": SPI " + f2(x.v) + "</title></rect>";
+      s += "<rect x='" + cx.toFixed(2) + "' y='" + Math.min(y0, y1).toFixed(1) + "' width='" + Math.max(bw * 0.9, 0.6).toFixed(2) + "' height='" + Math.max(Math.abs(y1 - y0), 0.5).toFixed(1) + "' fill='" + SPI_C.c[classeSpi(x.v)] + "'" + (x.j === S.fim ? " stroke='#000' stroke-width='1'" : "") + "><title>SPI-" + ks + " · " + rotPer(x.j, ks) + ": " + f2(x.v) + " (" + SPI_C.n[classeSpi(x.v)].toLowerCase() + ")</title></rect>";
     });
     var passoAno = anos <= 10 ? 1 : anos <= 20 ? 2 : 5;
     itens.forEach(function (x, i) { var a = ymDe(x.j); if (a.m === 0 && a.y % passoAno === 0) s += "<text x='" + (left + i * bw).toFixed(1) + "' y='" + (top + H + 14) + "' font-size='9' fill='#5b6773'>" + a.y + "</text>"; });
     s += "</svg>";
     var botoes = [5, 10, 20, 50].map(function (a) { return "<button class='ic-b" + (S.span === a ? " on" : "") + "' data-span='" + a + "' type='button'>" + (a === 50 ? "desde 1981" : a + " anos") + "</button>"; }).join("");
-    return "<div class='ic-cxh' style='margin:0 0 4px'><h4 style='margin:0'>SPI-" + S.k + " — histórico</h4><span class='ic-grp'>" + botoes + "</span></div>" + s +
-      "<div class='ic-glg'><span><i style='background:" + SPI_C.c[1] + "'></i>seco</span><span><i style='background:" + SPI_C.c[7] + "'></i>úmido</span><span>Contorno preto: período selecionado</span></div>";
+    var escalas = [0].concat(SPI_ESC).map(function (k) { return "<button class='ic-b" + (S.ks === k ? " on" : "") + "' data-kspi='" + k + "' type='button'>" + (k ? "SPI-" + k : "do período (" + S.k + " m)") + "</button>"; }).join("");
+    return "<div class='ic-cxh' style='margin:0 0 4px'><h4 style='margin:0'>SPI-" + ks + " — histórico</h4><span class='ic-grp'>" + botoes + "</span></div>" +
+      "<div class='ic-grp ic-grpp'><span>Escala</span>" + escalas + "</div>" + s +
+      "<div class='ic-glg'><span><i style='background:" + SPI_C.c[1] + "'></i>seco</span><span><i style='background:" + SPI_C.c[7] + "'></i>úmido</span><span><i style='background:#dce8f5;border:1px solid #c9d8e8'></i>período selecionado</span><span>Contorno preto: mês final</span></div>";
+  }
+
+  // Comparação de anos: chuva acumulada mês a mês no ano escolhido x normal x anos de referência (ano civil ou hidrológico out–set)
+  var CORES_REF = ["#e4572e", "#7b4fa0", "#2a9d8f"];
+  function grafAnos(e) {
+    var m0 = S.anoIni, hid = m0 === 9, NP = (M.parciais || []).length, ult = N - 1 + NP;
+    function val(j) { return j < N ? e.s[j] : e.p[j - N]; }
+    function rotAno(y) { return hid ? y + "/" + String(y + 1).slice(2) : String(y); }
+    function serie(y) {
+      var j0 = idxYM(y, m0), ac = 0, pts = [], falta = false;
+      for (var k = 0; k < 12; k++) { var j = j0 + k; if (j < 0 || j > ult) break; var v = val(j); if (!ok(v)) { falta = true; break; } ac += v; pts.push({ k: k, ac: ac, v: v, par: j >= N, j: j }); }
+      return { y: y, pts: pts, total: ac, completo: pts.length === 12 && !pts.some(function (p) { return p.par; }) && !falta };
+    }
+    var y0 = ymDe(0).y + (idxYM(ymDe(0).y, m0) < 0 ? 1 : 0), y1 = ymDe(ult - (ult >= N ? 0 : 0)).y;
+    var anos = []; for (var y = y0; y <= y1; y++) if (idxYM(y, m0) <= ult && idxYM(y, m0) >= 0) anos.push(y);
+    var aF = ymDe(S.modo === "m" ? S.fim : N - 1), padrao = hid ? (aF.m >= 9 ? aF.y : aF.y - 1) : aF.y;
+    var ano = anos.indexOf(S.ano) >= 0 ? S.ano : padrao; if (anos.indexOf(ano) < 0) ano = anos[anos.length - 1];
+    var completos = anos.map(serie).filter(function (x) { return x.completo; });
+    var seco = null, umido = null; completos.forEach(function (x) { if (!seco || x.total < seco.total) seco = x; if (!umido || x.total > umido.total) umido = x; });
+    var nor = [], an = 0; for (var k = 0; k < 12; k++) { an += normalMes(e, (m0 + k) % 12); nor.push(an); }
+    var refs = S.anosRef.filter(function (y) { return anos.indexOf(y) >= 0 && y !== ano; }).slice(0, 3);
+    var sel = serie(ano), series = refs.map(serie);
+    var W = RAIZ.clientWidth < 640 ? 440 : 900, H = W < 600 ? 240 : 200, top = 18, left = 40, right = 60, bot = 24, w = W - left - right, dx = w / 12;
+    var max = Math.max(nor[11] || 0, sel.total); series.forEach(function (x) { max = Math.max(max, x.total); }); max = teto(max * 1.06);
+    function px(k) { return (left + (k + 0.5) * dx).toFixed(1); } function py(v) { return (top + H - v / max * H).toFixed(1); }
+    var s = "<svg viewBox='0 0 " + W + " " + (H + top + bot) + "' role='img' aria-label='Chuva acumulada no ano e normal'>" + eixoY(max, H, top, left, w);
+    for (var q = 0; q < 12; q++) s += "<text x='" + px(q) + "' y='" + (top + H + 14) + "' font-size='10' text-anchor='middle' fill='#5b6773'>" + MES[(m0 + q) % 12] + "</text>";
+    s += "<polyline points='" + nor.map(function (v, i) { return px(i) + "," + py(v); }).join(" ") + "' fill='none' stroke='#1d2733' stroke-width='1.6' stroke-dasharray='5 4'/>";
+    s += "<text x='" + (+px(11) + 6) + "' y='" + (+py(nor[11]) + 3) + "' font-size='10' fill='#1d2733'>normal</text>";
+    function linha(sr, cor0, larg0, rot) {
+      if (!sr.pts.length) return "";
+      var fin = sr.pts.filter(function (p) { return !p.par; }), out = "";
+      if (fin.length > 1) out += "<polyline points='" + fin.map(function (p) { return px(p.k) + "," + py(p.ac); }).join(" ") + "' fill='none' stroke='" + cor0 + "' stroke-width='" + larg0 + "'/>";
+      var par = sr.pts.filter(function (p) { return p.par; });
+      if (par.length) { var ant = fin.length ? [fin[fin.length - 1]] : []; out += "<polyline points='" + ant.concat(par).map(function (p) { return px(p.k) + "," + py(p.ac); }).join(" ") + "' fill='none' stroke='" + cor0 + "' stroke-width='" + larg0 + "' stroke-dasharray='4 3'/>"; }
+      sr.pts.forEach(function (p) { out += "<circle cx='" + px(p.k) + "' cy='" + py(p.ac) + "' r='" + (larg0 > 2 ? 3.2 : 2.2) + "' fill='" + (p.par ? "#fff" : cor0) + "' stroke='" + cor0 + "'><title>" + rot + " · até " + MESL[(m0 + p.k) % 12] + ": " + n0(p.ac) + " mm (" + n0(100 * p.ac / nor[p.k]) + "% da normal acumulada)" + (p.par ? " — mês parcial" : "") + "</title></circle>"; });
+      var u = sr.pts[sr.pts.length - 1]; out += "<text x='" + (+px(u.k) + 6) + "' y='" + (+py(u.ac) + 4) + "' font-size='10.5' font-weight='" + (larg0 > 2 ? 700 : 500) + "' fill='" + cor0 + "'>" + rot + "</text>";
+      return out;
+    }
+    series.forEach(function (sr, i) { s += linha(sr, CORES_REF[i], 1.6, rotAno(sr.y)); });
+    s += linha(sel, "#0b4f8a", 2.8, rotAno(ano));
+    s += "</svg>";
+    var u = sel.pts[sel.pts.length - 1];
+    var resumo = u ? rotAno(ano) + ": <b>" + n0(u.ac) + " mm</b> até " + MESL[(m0 + u.k) % 12] + (u.par ? " (parcial)" : "") + " — <b>" + n0(100 * u.ac / nor[u.k]) + "%</b> da normal acumulada no mesmo ponto do ano (" + n0(nor[u.k]) + " mm). Normal do ano inteiro: " + n0(nor[11]) + " mm." : "Sem dados para este ano.";
+    var opsAno = anos.slice().reverse().map(function (y) { return "<option value='" + y + "'" + (y === ano ? " selected" : "") + ">" + rotAno(y) + "</option>"; }).join("");
+    var opsRef = "<option value=''>+ adicionar ano</option>" + anos.slice().reverse().filter(function (y) { return y !== ano && refs.indexOf(y) < 0; }).map(function (y) { return "<option value='" + y + "'>" + rotAno(y) + "</option>"; }).join("");
+    var chips = refs.map(function (y, i) { return "<button class='ic-b' data-refdel='" + y + "' type='button' title='Remover'><i style='display:inline-block;width:10px;height:3px;background:" + CORES_REF[i] + ";vertical-align:3px;margin-right:5px'></i>" + rotAno(y) + " ×</button>"; }).join("");
+    var rap = (seco && refs.indexOf(seco.y) < 0 && seco.y !== ano ? "<button class='ic-b' data-refadd='" + seco.y + "' type='button'>+ ano mais seco (" + rotAno(seco.y) + ")</button>" : "") +
+      (umido && refs.indexOf(umido.y) < 0 && umido.y !== ano ? "<button class='ic-b' data-refadd='" + umido.y + "' type='button'>+ mais chuvoso (" + rotAno(umido.y) + ")</button>" : "");
+    return "<div class='ic-cxh' style='margin:0 0 6px'><h4 style='margin:0'>Chuva acumulada no ano — comparação</h4>" +
+      "<span class='ic-grp'><button class='ic-b" + (hid ? "" : " on") + "' data-anoini='0' type='button'>Ano civil (jan–dez)</button><button class='ic-b" + (hid ? " on" : "") + "' data-anoini='9' type='button'>Ano hidrológico (out–set)</button></span></div>" +
+      "<div class='ic-grp ic-grpp' style='gap:6px'><span>Ano</span><select class='ic-sel' id='ic-ano' aria-label='Ano'>" + opsAno + "</select>" +
+      "<span style='margin-left:8px'>Comparar</span><select class='ic-sel' id='ic-anoref' aria-label='Adicionar ano de comparação'" + (refs.length >= 3 ? " disabled" : "") + ">" + opsRef + "</select>" + chips + (refs.length < 3 ? rap : "") + "</div>" +
+      s + "<p style='margin:4px 0 0;font-size:.88em'>" + resumo + "</p>" +
+      "<div class='ic-glg'><span><i style='background:#0b4f8a;height:3px'></i>ano escolhido</span><span><i style='background:none;border-top:2px dashed #1d2733;height:0;width:16px'></i>normal 1991–2020 acumulada</span><span>Pontos vazados: mês parcial</span>" +
+      (seco ? "<span>Ano completo mais seco: " + rotAno(seco.y) + " (" + n0(seco.total) + " mm) · mais chuvoso: " + rotAno(umido.y) + " (" + n0(umido.total) + " mm)</span>" : "") + "</div>";
   }
   function grafDias(e) {
     if (!e.d || L < 0) return "<h4>Chuva diária</h4><p>Sem dados diários.</p>";
@@ -685,8 +846,8 @@
     var ac = 0, an = 0;
     for (var j = ini; j <= L; j++) { var v = e.d[j], dd = DIAS[j]; ac += ok(v) ? v : 0; an += normalMes(e, dd.getUTCMonth()) / diasMes(dd.getUTCFullYear(), dd.getUTCMonth()); itens.push({ j: j, v: v, ac: ac, an: an, p: D.tipo[j] === "p" }); }
     var W = 560, H = 170, top = 10, left = 32, right = 38, bot = 30, w = W - left - right, bw = w / itens.length;
-    var maxD = 5; itens.forEach(function (x) { if (ok(x.v)) maxD = Math.max(maxD, x.v); }); maxD = bonito(maxD * 1.1);
-    var maxA = Math.max(ac, an, 1); maxA = bonito(maxA * 1.08);
+    var maxD = 5; itens.forEach(function (x) { if (ok(x.v)) maxD = Math.max(maxD, x.v); }); maxD = teto(maxD * 1.04);
+    var maxA = Math.max(ac, an, 1); maxA = teto(maxA * 1.04);
     var s = "<svg viewBox='0 0 " + W + " " + (H + top + bot) + "' role='img' aria-label='Chuva diária e acumulada'>" + eixoY(maxD, H, top, left, w);
     for (var t = 0; t <= 4; t++) { var va = maxA * t / 4, ya = top + H - t / 4 * H; s += "<text x='" + (left + w + 4) + "' y='" + (ya + 3).toFixed(1) + "' font-size='9' fill='#0b4f8a'>" + n0(va) + "</text>"; }
     var pa = [], pn = [];
