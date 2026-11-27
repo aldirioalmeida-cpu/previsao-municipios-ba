@@ -627,10 +627,10 @@
     for (var v = 0; v <= max + 1e-9; v += passo) { var y = top + H - v / max * H; h += "<line x1='" + left + "' x2='" + (left + w) + "' y1='" + y.toFixed(1) + "' y2='" + y.toFixed(1) + "' stroke='#e3e7ec'/><text x='" + (left - 4) + "' y='" + (y + 3).toFixed(1) + "' font-size='9' text-anchor='end' fill='#5b6773'>" + n0(v) + "</text>"; }
     return h;
   }
-  // Meses do gráfico: o período selecionado (no mínimo 24 meses até o mês final) + meses parciais quando o período chega ao último mês
+  // Meses do gráfico: exatamente o período selecionado (na chuva recente, os últimos 24 meses) + meses parciais quando o período chega ao último mês
   function mesesGraf(e) {
-    var fim = S.modo === "m" ? S.fim : N - 1, ini = S.modo === "m" ? fim - S.k + 1 : fim + 1;
-    var j0 = Math.max(0, Math.min(fim - 23, ini)), itens = [];
+    var fim = S.modo === "m" ? S.fim : N - 1, ini = S.modo === "m" ? fim - S.k + 1 : fim - 23;
+    var j0 = Math.max(0, ini), itens = [];
     for (var j = j0; j <= fim; j++) itens.push({ j: j, rot: MES[ymDe(j).m], ano: ymDe(j).y, v: e.s[j], nor: normalMes(e, ymDe(j).m), par: false, m: ymDe(j).m, noPer: j >= ini });
     if (fim === N - 1) (M.parciais || []).forEach(function (p, q) { var mm = +p.mes.slice(5) - 1; itens.push({ rot: MES[mm], ano: +p.mes.slice(0, 4), v: e.p[q], nor: normalMes(e, mm), par: !p.completo, ate: p.ate, m: mm, noPer: false }); });
     return itens;
@@ -640,25 +640,25 @@
     var W = 560, H = 170, top = 10, left = 32, bot = 30, w = W - left - 6, bw = w / itens.length, letras = itens.length <= 40;
     var max = 10; itens.forEach(function (x) { if (ok(x.v)) max = Math.max(max, x.v); if (ok(x.nor)) max = Math.max(max, x.nor); }); max = bonito(max * 1.08) || max;
     var s = "<svg viewBox='0 0 " + W + " " + (H + top + bot) + "' role='img' aria-label='Chuva mensal e normal'>" + eixoY(max, H, top, left, w);
-    var iP = -1, nP = 0; itens.forEach(function (x, i) { if (x.noPer) { if (iP < 0) iP = i; nP++; } });
-    var mostraFaixa = S.modo === "m" && nP > 0 && nP < itens.length;
-    if (mostraFaixa) s += "<rect x='" + (left + iP * bw).toFixed(1) + "' y='" + top + "' width='" + (nP * bw).toFixed(1) + "' height='" + H + "' fill='#e8f0f8'/>";
+    var larg = Math.min(bw * 0.76, 40);   // períodos curtos: barras com largura máxima, centradas
     var pts = [];
     itens.forEach(function (x, i) {
       var cx = left + i * bw, hh = ok(x.v) ? x.v / max * H : 0, pc = ok(x.v) && x.nor > 0.5 ? 100 * x.v / x.nor : NaN;
       var c = ok(pc) ? PCT_C.c[bin(PCT_C.thr, pc)] : "#cfd6de";
-      s += "<rect x='" + (cx + bw * 0.12).toFixed(1) + "' y='" + (top + H - hh).toFixed(1) + "' width='" + (bw * 0.76).toFixed(1) + "' height='" + hh.toFixed(1) + "' fill='" + c + "' stroke='" + (x.par ? "#0b4f8a" : "rgba(0,0,0,.25)") + "'" + (x.par ? " stroke-dasharray='3 2'" : "") + "><title>" + MESL[x.m] + " de " + x.ano + ": " + n0(x.v) + " mm" + (x.par ? " (parcial até " + dBR(iso2d(x.ate)) + ")" : "") + " · normal " + n0(x.nor) + " mm</title></rect>";
+      s += "<rect x='" + (cx + (bw - larg) / 2).toFixed(1) + "' y='" + (top + H - hh).toFixed(1) + "' width='" + larg.toFixed(1) + "' height='" + hh.toFixed(1) + "' fill='" + c + "' stroke='" + (x.par ? "#0b4f8a" : "rgba(0,0,0,.25)") + "'" + (x.par ? " stroke-dasharray='3 2'" : "") + "><title>" + MESL[x.m] + " de " + x.ano + ": " + n0(x.v) + " mm" + (x.par ? " (parcial até " + dBR(iso2d(x.ate)) + ")" : "") + " · normal " + n0(x.nor) + " mm</title></rect>";
       if (ok(x.nor)) pts.push((cx + bw / 2).toFixed(1) + "," + (top + H - x.nor / max * H).toFixed(1));
       if ((x.m === 0 && (itens.length <= 120 || x.ano % 5 === 0)) || i === 0) s += "<text x='" + (cx + bw / 2).toFixed(1) + "' y='" + (top + H + 24) + "' font-size='9' text-anchor='middle' fill='#1d2733' font-weight='600'>" + x.ano + "</text>";
       if (letras) s += "<text x='" + (cx + bw / 2).toFixed(1) + "' y='" + (top + H + 12) + "' font-size='8.5' text-anchor='middle' fill='#5b6773'>" + x.rot.charAt(0).toUpperCase() + "</text>";
     });
-    s += "<polyline points='" + pts.join(" ") + "' fill='none' stroke='#1d2733' stroke-width='1.6' stroke-dasharray='4 3'/>";
+    if (pts.length === 1) {   // um só mês: a normal vira um traço horizontal sobre a barra
+      var p0 = pts[0].split(","), x0 = +p0[0];
+      s += "<line x1='" + (x0 - larg * 0.8).toFixed(1) + "' x2='" + (x0 + larg * 0.8).toFixed(1) + "' y1='" + p0[1] + "' y2='" + p0[1] + "' stroke='#1d2733' stroke-width='1.6' stroke-dasharray='4 3'/>";
+    } else s += "<polyline points='" + pts.join(" ") + "' fill='none' stroke='#1d2733' stroke-width='1.6' stroke-dasharray='4 3'/>";
     s += "</svg>";
-    var a = itens[0], b = itens[itens.length - 1];
-    return "<div class='ic-cxh' style='margin:0 0 4px'><h4 style='margin:0'>Chuva mensal — " + MES[a.m] + "/" + a.ano + " a " + MES[b.m] + "/" + b.ano + "</h4>" +
+    var a = itens[0], b = itens[itens.length - 1], rA = MES[a.m] + "/" + a.ano, rB = MES[b.m] + "/" + b.ano;
+    return "<div class='ic-cxh' style='margin:0 0 4px'><h4 style='margin:0'>Chuva mensal — " + (rA === rB ? MESL[a.m] + " de " + a.ano : rA + " a " + rB) + "</h4>" +
       (S.modo === "m" ? "<button class='ic-lnk' id='ic-xls' type='button' title='Observado mensal, normal 1991–2020 e anomalia do período selecionado'>Baixar em Excel</button>" : "") + "</div>" + s +
       "<div class='ic-glg'><span><i style='background:#f39c34'></i>abaixo da normal</span><span><i style='background:#eeeeee;border:1px solid #ccc'></i>normal</span><span><i style='background:#6dbf73'></i>acima</span><span><i style='background:none;border-top:2px dashed #1d2733;height:0;width:16px'></i>normal 1991–2020</span>" +
-      (mostraFaixa ? "<span><i style='background:#e8f0f8;border:1px solid #c9d8e8'></i>período selecionado</span>" : "") +
       (par.length ? "<span><i style='background:#fff;border:1px dashed #0b4f8a'></i>mês parcial</span>" : "") + "</div>";
   }
   function grafSpi(e) {
