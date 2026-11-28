@@ -489,8 +489,10 @@ def rotulo_dia(d):
 
 
 def base_mapa(ext, figsize):
+    # posições fixas (sem bbox "tight"): todos os mapas do mesmo tipo saem com o mesmo tamanho e enquadramento,
+    # para ficarem alinhados lado a lado na página
     fig = plt.figure(figsize=figsize, dpi=125)
-    ax = plt.axes(projection=ccrs.PlateCarree())
+    ax = fig.add_axes([0.03, 0.135, 0.94, 0.79], projection=ccrs.PlateCarree())
     ax.set_extent(ext, crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.OCEAN.with_scale("50m"), facecolor="#eef3f7", zorder=0)
     ax.add_feature(cfeature.LAND.with_scale("50m"), facecolor="#f7f7f4", zorder=0)
@@ -498,6 +500,11 @@ def base_mapa(ext, figsize):
     ax.add_feature(cfeature.BORDERS.with_scale("50m"), edgecolor="#555", linewidth=0.7, zorder=3)
     ax.add_feature(cfeature.COASTLINE.with_scale("50m"), edgecolor="#444", linewidth=0.7, zorder=3)
     return fig, ax
+
+
+def barra(fig):
+    """Eixo fixo da barra de cores, embaixo do mapa."""
+    return fig.add_axes([0.07, 0.07, 0.86, 0.022])
 
 
 def desenha_regioes(ax, nomes=True):
@@ -530,11 +537,11 @@ def mapa_bahia(campo, var, titulo1, titulo2, arq):
     for nome, lo, la in CIDADES:
         ax.plot(lo, la, "o", ms=3, color="black", transform=ccrs.PlateCarree(), zorder=7)
         ax.text(lo + 0.08, la + 0.08, nome, fontsize=6.5, transform=ccrs.PlateCarree(), zorder=7)
-    cb = fig.colorbar(cs, ax=ax, orientation="horizontal", pad=0.04, fraction=0.045,
+    cb = fig.colorbar(cs, cax=barra(fig), orientation="horizontal",
                       ticks=est["niveis"][::2] if len(est["niveis"]) > 16 else est["niveis"])
     cb.set_label(est["rot"], fontsize=9); cb.ax.tick_params(labelsize=8)
     titulos(ax, titulo1, titulo2)
-    fig.savefig(arq, bbox_inches="tight", pil_kwargs={"optimize": True})
+    fig.savefig(arq, pil_kwargs={"optimize": True})
     plt.close(fig)
 
 
@@ -563,10 +570,10 @@ def mapa_sinotico(sin, tipo, titulo1, titulo2, arq):
                       transform=ccrs.PlateCarree(), zorder=2)
         rot = "Linhas de corrente e vento em 200 hPa (m/s)"
     desenha_regioes(ax, nomes=False)
-    cb = fig.colorbar(cs, ax=ax, orientation="horizontal", pad=0.04, fraction=0.045, extend="max")
+    cb = fig.colorbar(cs, cax=barra(fig), orientation="horizontal", extend="max")
     cb.set_label(rot, fontsize=9); cb.ax.tick_params(labelsize=8)
     titulos(ax, titulo1, titulo2)
-    fig.savefig(arq, bbox_inches="tight", pil_kwargs={"optimize": True})
+    fig.savefig(arq, pil_kwargs={"optimize": True})
     plt.close(fig)
 
 
