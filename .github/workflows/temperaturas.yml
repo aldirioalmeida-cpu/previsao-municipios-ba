@@ -1,0 +1,52 @@
+name: Temperaturas para graus-dia
+
+# Guarda as temperaturas diárias (máx./mín.) dos municípios da Bahia em temp_ba.json para o cálculo de graus-dia
+# do painel agrometeorológico (o site ba.gov.br não permite a página buscar na Open-Meteo diretamente).
+# Roda uma vez por dia; a cada rodada também completa 90 dias de histórico até cobrir 400 dias.
+on:
+  schedule:
+    - cron: "40 9 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temperaturas
+  cancel-in-progress: false
+
+jobs:
+  temperaturas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gerar temp_ba.json
+        run: python agro/gerar_temp.py
+
+      - name: Publicar no repositório
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add temp_ba.json
+          if git diff --cached --quiet; then
+            echo "Sem mudanças."; echo "mudou=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Temperaturas para graus-dia atualizadas em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+            for t in 1 2 3; do git pull --rebase -q && git push && break; sleep 10; done
+            echo "mudou=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Limpar cache do jsDelivr
+        if: steps.commit.outputs.mudou == 'true'
+        run: |
+          for espera in 20 120; do
+            sleep $espera
+            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/temp_ba.json" || echo "purge falhou"
+          done
