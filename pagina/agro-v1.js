@@ -695,7 +695,7 @@
     if (dias > 400) { res.textContent = "Use um plantio dos últimos 400 dias."; return; }
     res.textContent = "Buscando temperaturas…";
     // série diária publicada pelo robô (temp_ba.json): o site não permite buscar na Open-Meteo direto do navegador
-    (TEMP || (TEMP = json(BASE + "temp_ba.json").catch(function (e) { TEMP = null; throw e; }))).then(function (tp) {
+    (TEMP || (TEMP = json(BASE.replace("@main/", "@temperaturas/") + "temp_ba.json").catch(function (e) { TEMP = null; throw e; }))).then(function (tp) {
       var v = tp.mun[m.nome];
       if (!v) throw new Error("município sem dados de temperatura");
       var T = {}, n = v.length / 2, d0 = dt(tp.inicio);
