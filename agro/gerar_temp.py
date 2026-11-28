@@ -25,7 +25,7 @@ DIAS_HIST = 400        # quanto a série guarda para trás
 BLOCO = 90             # dias de reanálise buscados por rodada (limite de uso da Open-Meteo)
 
 
-def baixar(url, lote, extra, tentativas=4):
+def baixar(url, lote, extra, tentativas=3):
     q = {"latitude": ",".join(f"{m[1]:.4f}" for m in lote), "longitude": ",".join(f"{m[2]:.4f}" for m in lote),
          "daily": "temperature_2m_max,temperature_2m_min", "timezone": "America/Bahia"}
     q.update(extra)
@@ -80,8 +80,14 @@ def main():
     for i in range(0, len(muns), LOTE):
         lote = muns[i:i + LOTE]
         print(f"Previsão {i + 1}-{i + len(lote)}...", flush=True)
-        for m, r in zip(lote, baixar(PREV, lote, {"past_days": 20, "forecast_days": 7})):
-            junta(S[m[0]], r)
+        try:
+            for m, r in zip(lote, baixar(PREV, lote, {"past_days": 20, "forecast_days": 7})):
+                junta(S[m[0]], r)
+        except Exception as e:  # noqa
+            if inicio is None:
+                raise
+            print("  previsão falhou nesta rodada; mantém a série anterior:", e, file=sys.stderr)
+            break
         time.sleep(15)
 
     # reanálise para trás, um bloco por rodada
