@@ -685,7 +685,7 @@
     var s0 = 0, s1 = 0, n = 0; (function anda(c) { if (typeof c[0] === "number") { s0 += c[1]; s1 += c[0]; n++; } else c.forEach(anda); })(f.geometry.coordinates);
     return n ? [s0 / n, s1 / n] : null;
   }
-  function jsonExt(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }); }
+  var TEMP = null;   // promessa do temp_ba.json (carregado só quando se calcula)
   function calculaGD(m) {
     var res = RAIZ.querySelector("#ia-gd-res"), c = coordDe(m), cul = CULTURAS.filter(function (x) { return x[0] === GD.c; })[0];
     var hoje = dt(A.datas[0]), pl = GD.plantio ? dt(GD.plantio) : null;
@@ -694,15 +694,13 @@
     if (dias < 0) { res.textContent = "A data do plantio está no futuro: o cálculo usa só a previsão a partir dela."; }
     if (dias > 400) { res.textContent = "Use um plantio dos últimos 400 dias."; return; }
     res.textContent = "Buscando temperaturas…";
-    var la = (+c[0]).toFixed(4), lo = (+c[1]).toFixed(4), base = "latitude=" + la + "&longitude=" + lo + "&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FBahia";
-    var pedidos = [jsonExt("https://api.open-meteo.com/v1/forecast?" + base + "&past_days=" + Math.max(0, Math.min(92, dias)) + "&forecast_days=7")];
-    if (dias > 92) {   // parte antiga: reanálise ERA5 (atraso de ~5 dias)
-      var fimA = new Date(hoje); fimA.setDate(fimA.getDate() - 92);
-      pedidos.push(jsonExt("https://archive-api.open-meteo.com/v1/archive?" + base + "&start_date=" + GD.plantio + "&end_date=" + isoDe(fimA)));
-    }
-    Promise.all(pedidos).then(function (rs) {
-      var T = {};
-      rs.slice().reverse().forEach(function (r) { (r.daily.time || []).forEach(function (d, i) { if (r.daily.temperature_2m_max[i] != null) T[d] = [r.daily.temperature_2m_max[i], r.daily.temperature_2m_min[i]]; }); });
+    // série diária publicada pelo robô (temp_ba.json): o site não permite buscar na Open-Meteo direto do navegador
+    (TEMP || (TEMP = json(BASE + "temp_ba.json").catch(function (e) { TEMP = null; throw e; }))).then(function (tp) {
+      var v = tp.mun[m.nome];
+      if (!v) throw new Error("município sem dados de temperatura");
+      var T = {}, n = v.length / 2, d0 = dt(tp.inicio);
+      for (var i = 0; i < n; i++) if (v[i] != null && v[n + i] != null) { var di = new Date(d0); di.setDate(di.getDate() + i); T[isoDe(di)] = [v[i] / 10, v[n + i] / 10]; }
+      if (GD.plantio < tp.inicio) { res.textContent = "O histórico de temperaturas disponível começa em " + dataBR(tp.inicio) + " (está sendo completado aos poucos até 400 dias). Use um plantio a partir dessa data."; return; }
       var tb = GD.tb, ts = cul && cul[3] && cul[0] === GD.c ? cul[3] : null, datas = Object.keys(T).filter(function (d) { return d >= GD.plantio; }).sort();
       var acObs = 0, acPrev = 0, ult7 = [], serie = [], hojeIso = A.datas[0];
       datas.forEach(function (d) {
@@ -719,7 +717,7 @@
         else if (med > 0) { var dd = new Date(dt(A.datas[A.datas.length - 1])); dd.setDate(dd.getDate() + Math.ceil(falta / med)); txt += " Faltam " + n0(falta) + " GD: mantido o ritmo recente, a meta seria atingida por volta de <b>" + dataBR(isoDe(dd)) + "</b>."; }
       }
       res.innerHTML = txt + "<br>" + grafGD(serie) + "<span style='font-size:.85em'>Método da média diária: GD = (Tmáx + Tmín)/2 − Tbase, com Tmín limitada à base" + (ts ? " e Tmáx a " + ts + " °C" : "") +
-        ". Temperaturas do Open-Meteo (até 92 dias atrás: modelos de previsão; antes disso: reanálise ERA5) no centro do município. A meta de GD depende da cultivar: consulte a recomendação técnica.</span>";
+        ". Temperaturas do Open-Meteo na sede do município (últimos 20 dias e próximos 7: modelos de previsão; antes disso: reanálise ERA5), atualizadas uma vez por dia. A meta de GD depende da cultivar: consulte a recomendação técnica.</span>";
     }).catch(function (e) { res.textContent = "Não foi possível buscar as temperaturas agora (" + e.message + "). Tente de novo em instantes."; });
   }
   function grafGD(serie) {
