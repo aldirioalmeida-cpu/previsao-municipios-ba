@@ -45,7 +45,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           cp temp_ba.json /tmp/temp_ba.json
           git checkout -q --orphan publica
-          git rm -rq --cached .
+          git rm -rqf --cached .
           cp /tmp/temp_ba.json temp_ba.json
           git add -f temp_ba.json
           git commit -qm "Temperaturas para graus-dia em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
