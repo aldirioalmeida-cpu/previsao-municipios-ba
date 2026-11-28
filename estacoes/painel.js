@@ -106,8 +106,11 @@
     ["bacias", "Bacias hidrográficas", "#2a9bb0", 1, false],
     ["municipios", "Municípios", "#7d8a96", .6, false],
     ["semiarido", "Semiárido", "#c2771c", 2, false],
-    ["biomas", "Biomas", "#6a8f2a", 1.6, false]
+    ["biomas", "Biomas", "#6a8f2a", 1.6, false],
+    ["ucs", "Unidades de conservação", "#1f7a3d", 1.2, false],
+    ["barragens", "Barragens e reservatórios", "#1565c0", 1, false]
   ];
+  var PREENCHE = { semiarido: .06, ucs: .18, barragens: .55 };   // camadas com preenchimento
   var UNID = { reg: ["regioes", "Região climática"], ter: ["territorios", "Território de identidade"], rpga: ["rpga", "RPGA"], bac: ["bacias", "Bacia hidrográfica"], mun: ["municipios", "Município"], bio: ["biomas", "Bioma"] };
 
   // ---------------- estado ----------------
@@ -304,7 +307,7 @@
           if (!S.cam[k] || layersCam[k]) return;
           var g = L.layerGroup();
           j.f.forEach(function (f) {
-            L.polygon(f.g.map(ll), { color: c[2], weight: c[3], fill: k === "semiarido", fillOpacity: k === "semiarido" ? .06 : 0, interactive: true })
+            L.polygon(f.g.map(ll), { color: c[2], weight: c[3], fill: !!PREENCHE[k], fillColor: c[2], fillOpacity: PREENCHE[k] || 0, interactive: true })
               .bindTooltip(esc(f.n), { sticky: true, direction: "top", opacity: .9 }).addTo(g);
           });
           layersCam[k] = g; g.addTo(mapa); desenhaEst();
@@ -516,7 +519,7 @@
       "<p><b>Qualidade.</b> Uma estação só entra no mapa se tiver pelo menos o percentual de dias com dado escolhido no período (80% por padrão). Os totais somam apenas os dias com dado.</p>" +
       "<p><b>Anomalia.</b> Compara o total com a normal 1991–2020 do município da estação, estimada pelo satélite CHIRPS (proporcional aos dias do período). A rede tem poucas estações com 30 anos de dados, por isso a normal vem do satélite.</p>" +
       "<p><b>Interpolado.</b> Inverso do quadrado da distância (IDW) com as estações válidas; áreas a mais de 50 km de qualquer estação ficam em branco. É uma aproximação visual: chuva convectiva varia muito em poucos quilômetros.</p>" +
-      "<p><b>Camadas.</b> Municípios e territórios de identidade (SEI 2026), RPGA (INEMA 2012), bacias hidrográficas (INEMA 2012), semiárido (INSA 2024) e biomas (IBGE), do GeoServer do INEMA; regiões climáticas usadas nos boletins do INEMA. Cada estação foi associada às unidades pela sua coordenada.</p>" +
+      "<p><b>Camadas.</b> Territórios de identidade, RPGA, regiões climáticas, unidades de conservação e barragens: as mesmas camadas dos outros painéis do INEMA. Municípios (SEI 2026), bacias hidrográficas (INEMA 2012), semiárido (INSA 2024) e biomas (IBGE), do GeoServer do INEMA. Cada estação foi associada às unidades pela sua coordenada.</p>" +
       "<div class='ie-aviso'>Dados brutos de estações automáticas e convencionais, sem consistência completa. Valores isolados muito altos podem ser leituras acumuladas de vários dias. Use com cautela e confira a série da estação.</div></div>";
   }
 

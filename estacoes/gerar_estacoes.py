@@ -56,7 +56,7 @@ CAMADAS = {}   # nome -> lista de (rotulo, geometria shapely)
 def camada(chave, arquivo, campo, tol, titulo, rotulo=None):
     fs = le(arquivo); itens = []
     for f in fs:
-        if not f.get("geometry"): continue
+        if not f.get("geometry") or f["geometry"]["type"] not in ("Polygon", "MultiPolygon"): continue
         g = shape(f["geometry"]).buffer(0)
         n = rotulo(f["properties"]) if rotulo else str(f["properties"].get(campo, "")).strip()
         itens.append((n, g))
@@ -71,8 +71,12 @@ def camada(chave, arquivo, campo, tol, titulo, rotulo=None):
 
 camada("limite", "limite.geojson", "uf", 0.004, "Limite estadual")
 camada("municipios", "municipios.geojson", "nommun", 0.004, "Municípios")
-camada("territorios", "territorios.geojson", "nome_ti", 0.004, "Territórios de identidade")
-camada("rpga", "rpga.geojson", "rpgas", 0.004, "RPGA (Regiões de Planejamento e Gestão das Águas)")
+# territórios, RPGA, UCs e barragens: as mesmas camadas dos outros painéis do INEMA (pasta --painel)
+camada("territorios", "ti_ba.geojson", "nome", 0.004, "Territórios de identidade")
+camada("rpga", "rpga_ba.geojson", "nome", 0.004, "RPGA (Regiões de Planejamento e Gestão das Águas)")
+camada("ucs", "uc_ba_mapa.geojson", "nome", 0.003, "Unidades de conservação",
+       rotulo=lambda p: f"{p.get('nome', '')} ({p.get('dominio', '')}, {p.get('grupo', '')})")
+camada("barragens", "barragens_ba.geojson", "nome", 0.002, "Barragens e reservatórios")
 camada("bacias", "bacias.geojson", "bacia", 0.006, "Bacias hidrográficas")
 camada("semiarido", "semiarido.geojson", "x", 0.004, "Semiárido (INSA 2024)", rotulo=lambda p: "Semiárido")
 camada("biomas", "biomas.geojson", "bioma", 0.005, "Biomas (IBGE)")
