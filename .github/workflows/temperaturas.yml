@@ -26,27 +26,34 @@ jobs:
         with:
           python-version: "3.12"
 
+      # A série fica no ramo "temperaturas", recriado a cada rodada com um único commit (sem histórico acumulado:
+      # as versões antigas são descartadas pelo GitHub e o repositório não cresce).
+      - name: Recuperar a série anterior
+        run: |
+          if git fetch -q --depth=1 origin temperaturas; then
+            git show FETCH_HEAD:temp_ba.json > temp_ba.json || rm -f temp_ba.json
+          elif [ -f temp_ba.json ]; then
+            echo "Usando a cópia antiga do ramo main."
+          fi
+
       - name: Gerar temp_ba.json
         run: python agro/gerar_temp.py
 
-      - name: Publicar no repositório
-        id: commit
+      - name: Publicar no ramo temperaturas (substitui o anterior)
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add temp_ba.json
-          if git diff --cached --quiet; then
-            echo "Sem mudanças."; echo "mudou=false" >> "$GITHUB_OUTPUT"
-          else
-            git commit -m "Temperaturas para graus-dia atualizadas em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
-            for t in 1 2 3; do git pull --rebase -q && git push && break; sleep 10; done
-            echo "mudou=true" >> "$GITHUB_OUTPUT"
-          fi
+          cp temp_ba.json /tmp/temp_ba.json
+          git checkout -q --orphan publica
+          git rm -rq --cached .
+          cp /tmp/temp_ba.json temp_ba.json
+          git add -f temp_ba.json
+          git commit -qm "Temperaturas para graus-dia em $(TZ=America/Bahia date '+%d/%m/%Y %H:%M')"
+          git push -f origin publica:temperaturas
 
       - name: Limpar cache do jsDelivr
-        if: steps.commit.outputs.mudou == 'true'
         run: |
           for espera in 20 120; do
             sleep $espera
-            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/temp_ba.json" || echo "purge falhou"
+            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@temperaturas/temp_ba.json" || echo "purge falhou"
           done
